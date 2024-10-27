@@ -10,23 +10,27 @@ const SLIDE_SPEED = WALK_SPEED;
 function OnRenderTokenConfig(config, html, context) {
   const isSpritesheet = config.token.getFlag("pokemon-assets", "tileset") ?? false;
   const sheetStyle = config.token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer";
-  const animationFrames = config.token.getFlag("pokemon-assets", "animationframes") ?? 4;
+  const animationFrames = {
+    "trainer": 4,
+    "pkmn": 2
+  }[sheetStyle] ?? config.token.getFlag("pokemon-assets", "animationframes") ?? 4;
+
+  const form = $(html).find("form").get(0);
+
   $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.tileset" ${isSpritesheet ? "checked" : ""}>`);
-  if (isSpritesheet) {
-    // add control for what size
-    const sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
-      return allOptions + `<option value="${val}" ${sheetStyle === val ? "selected" : ""}>${label}</option>`;
-    }, "");
-    $(html).find("[name='texture.src']").closest(".form-group").after(`
-      <div class="form-group">
-        <label>Sheet Style</label>
-        <div class="form-group">
-          <select name="flags.pokemon-assets.sheetstyle">${sheetSizeOptions}</select>
-          <label>Frames</label>
-          <input type="number" name="flags.pokemon-assets.animationframes" value="${animationFrames}">
-        </div>
-      </div>`);
-  }
+  // add control for what size
+  const sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
+    return allOptions + `<option value="${val}" ${sheetStyle === val ? "selected" : ""}>${label}</option>`;
+  }, "");
+  $(html).find("[name='texture.src']").closest(".form-group").after(`
+    <div class="form-group spritesheet-config" ${isSpritesheet ? '' : 'style="display: none"'}>
+      <label>Sheet Style</label>
+      <div class="form-fields">
+        <select name="flags.pokemon-assets.sheetstyle">${sheetSizeOptions}</select>
+        <label for="flags.pokemon-assets.animationframes" ${sheetStyle === "pmd" ? '' : 'style="display: none"'}>Frames</label>
+        <input type="number" name="flags.pokemon-assets.animationframes" value="${animationFrames}" ${sheetStyle === "pmd" ? '' : 'hidden readonly'}>
+      </div>
+    </div>`);
 
   const getTexture = async function (form) {
     // get the texture so this can be calculated
@@ -70,19 +74,35 @@ function OnRenderTokenConfig(config, html, context) {
   //
 
   $(html).find("[name='flags.pokemon-assets.tileset']").on("change", async function () {
-    const form = $(html).find("form").get(0);
+    if (!form.querySelector("input[name='flags.pokemon-assets.tileset']")?.checked) {
+      $(html).find(".spritesheet-config").hide();
+    } else {
+      $(html).find(".spritesheet-config").show();
+    }
+
     const texture = await getTexture(form);
     await updateAnchors(form, texture);
   });
 
   $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", async function () {
-    const form = $(html).find("form").get(0);
+
+    const newSheetStyle = $(this).get(0).value ?? "trainer";
+    if (newSheetStyle === "trainer") {
+      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
+      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(4);
+    } else if (newSheetStyle === "pkmn") {
+      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
+      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(2);
+    } else if (newSheetStyle === "pmd") {
+      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).show();
+      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", false).prop("readonly", false).val(4);
+      // TODO: infer the right number for this?
+    }
     const texture = await getTexture(form);
     await updateAnchors(form, texture);
   });
 
   $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", async function () {
-    const form = $(html).find("form").get(0);
     const texture = await getTexture(form);
     await updateAnchors(form, texture);
   });

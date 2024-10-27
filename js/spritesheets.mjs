@@ -1,9 +1,9 @@
 export class SpritesheetGenerator {
 
   static SHEET_STYLES = {
-    trainer: "4-direction, 4-frame (Trainer Overworld Style)",
-    pkmn: "4-direction, 2-frame (Pokemon Overworld Style)",
-    pmd: "8-direction, arbitrary-frame (Mystery Dungeon Style)",
+    trainer: "4-directions (Trainer Overworld Style)",
+    pkmn: "4-directions (Pokemon Overworld Style)",
+    pmd: "8-direction (Mystery Dungeon Style)",
   };
 
   static DIRECTIONS = {
