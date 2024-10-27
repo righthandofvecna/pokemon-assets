@@ -1,6 +1,6 @@
 export class SpritesheetGenerator {
 
-  static SHEET_MODES = {
+  static SHEET_STYLES = {
     trainer: "4-direction, 4-frame (Trainer Overworld Style)",
     pkmn: "4-direction, 2-frame (Pokemon Overworld Style)",
     pmd: "8-direction, arbitrary-frame (Mystery Dungeon Style)",
@@ -24,7 +24,7 @@ export class SpritesheetGenerator {
     this.spritesheets = {};
   }
 
-  async #getSpritesheet(src, texture, mode) {
+  async #getSpritesheet(src, texture, mode, frames) {
     if (src in this.spritesheets) {
       if (this.spritesheets[src]?.baseTexture?.valid) return this.spritesheets[src];
 
@@ -45,19 +45,14 @@ export class SpritesheetGenerator {
     }
     const [frameWidth, frameHeight] = (()=>{
       switch (mode) {
-        case "pmd":
-          // infer the number of frames from the height/width ratio by assuming they're square
-          let height = spritesheetSlicingInfo.meta.size.h / 8;
-          let estimatedFrames = Math.round(spritesheetSlicingInfo.meta.size.w / height);
-          console.log(estimatedFrames, spritesheetSlicingInfo);
-          return [spritesheetSlicingInfo.meta.size.w / estimatedFrames, height];
+        case "pmd": return [spritesheetSlicingInfo.meta.size.w / frames, spritesheetSlicingInfo.meta.size.h / 8];
         default:
-        case "trainer": return [spritesheetSlicingInfo.meta.size.w / 4, spritesheetSlicingInfo.meta.size.h / 4];
+        case "trainer": return [spritesheetSlicingInfo.meta.size.w / frames, spritesheetSlicingInfo.meta.size.h / 4];
       }
     })();
 
     if (mode === "pmd") {
-      for (let c=0; c<4; c++) {
+      for (let c=0; c<frames; c++) {
         for (let r=0; r<8; r++) {
           const direction = (()=>{
             switch (r) {
@@ -91,7 +86,7 @@ export class SpritesheetGenerator {
         }
       }
     } else {
-      for (let c=0; c<4; c++) {
+      for (let c=0; c<frames; c++) {
         for (let r=0; r<4; r++) {
           const direction = (()=>{
             switch (r) {
@@ -131,13 +126,13 @@ export class SpritesheetGenerator {
 
   }
 
-  async getTexture(src, texture, mode, direction, index=0) {
-    const spritesheet = await this.#getSpritesheet(src, texture, mode);
+  async getTexture(src, texture, mode, frames, direction, index=0) {
+    const spritesheet = await this.#getSpritesheet(src, texture, mode, frames);
     return spritesheet.animations[direction][index];
   }
 
-  async getTextures(src, texture, mode) {
-    const spritesheet = await this.#getSpritesheet(src, texture, mode);
+  async getTextures(src, texture, mode, frames) {
+    const spritesheet = await this.#getSpritesheet(src, texture, mode, frames);
     return spritesheet.animations;
   }
 

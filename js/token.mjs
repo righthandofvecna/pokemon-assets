@@ -9,38 +9,83 @@ const SLIDE_SPEED = WALK_SPEED;
 
 function OnRenderTokenConfig(config, html, context) {
   const isSpritesheet = config.token.getFlag("pokemon-assets", "tileset") ?? false;
-  const sheetSize = config.token.getFlag("pokemon-assets", "sheetsize") ?? "trainer";
+  const sheetStyle = config.token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer";
+  const animationFrames = config.token.getFlag("pokemon-assets", "animationframes") ?? 4;
   $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.tileset" ${isSpritesheet ? "checked" : ""}>`);
   if (isSpritesheet) {
     // add control for what size
-    const sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_MODES).reduce((allOptions, [val, label])=>{
-      return allOptions + `<option value="${val}" ${sheetSize === val ? "selected" : ""}>${label}</option>`;
+    const sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
+      return allOptions + `<option value="${val}" ${sheetStyle === val ? "selected" : ""}>${label}</option>`;
     }, "");
-    $(html).find("[name='texture.src']").closest(".form-group").after(`<div class="form-group"><label>Sheet Size</label><div class="form-group"><select name="flags.pokemon-assets.sheetsize">${sheetSizeOptions}</select></div></div>`);
+    $(html).find("[name='texture.src']").closest(".form-group").after(`
+      <div class="form-group">
+        <label>Sheet Style</label>
+        <div class="form-group">
+          <select name="flags.pokemon-assets.sheetstyle">${sheetSizeOptions}</select>
+          <label>Frames</label>
+          <input type="number" name="flags.pokemon-assets.animationframes" value="${animationFrames}">
+        </div>
+      </div>`);
   }
 
-  $(html).find("[name='flags.pokemon-assets.tileset']").on("change", async function () {
-    if (!this.checked) return;
-    const form = $(html).find("form").get(0);
-
+  const getTexture = async function (form) {
     // get the texture so this can be calculated
     const src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
     if (!src) return;
 
-    const texture = await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
-    if (!texture) return;
+    return await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
+  }
+
+  const updateAnchors = async function (form, texture) {
+    if (!form.querySelector("input[name='flags.pokemon-assets.tileset']")?.checked) return;
+
     const { width, height } = texture;
     if (!width || !height) return;
 
-    const ratio = height / width;
-    const anchorY = 1.02 + (0.5 / (-ratio));
-    // TODO: adjust this math for non-trainer sizes
+    const newSheetStyle = form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? sheetStyle;
+    const directions = (()=>{
+      switch (newSheetStyle) {
+        case "pmd": return 8;
+        default: return 4;
+      }
+    })();
+    const newAnimationFrames = parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || 4;
+
+    const ratio = (height / width) * (newAnimationFrames / directions);
+    const anchorY = (()=>{
+      switch (newSheetStyle) {
+        case "pmd": return 0.5;
+        default: return 1.02 + (0.5 / (-ratio));
+      }
+    })();
 
     // set the fields
     form.querySelector("select[name='texture.fit']").value = "width";
     form.querySelector("input[name='texture.anchorX']").value = 0.5;
     form.querySelector("input[name='texture.anchorY']").value = Math.ceil(100 * anchorY) / 100;
-  })
+  };
+
+  //
+  // listeners
+  //
+
+  $(html).find("[name='flags.pokemon-assets.tileset']").on("change", async function () {
+    const form = $(html).find("form").get(0);
+    const texture = await getTexture(form);
+    await updateAnchors(form, texture);
+  });
+
+  $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", async function () {
+    const form = $(html).find("form").get(0);
+    const texture = await getTexture(form);
+    await updateAnchors(form, texture);
+  });
+
+  $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", async function () {
+    const form = $(html).find("form").get(0);
+    const texture = await getTexture(form);
+    await updateAnchors(form, texture);
+  });
 }
 
 
@@ -229,10 +274,11 @@ export function register() {
         if ( this._original ) texture = this._original.texture?.clone();
         else texture = await loadTexture(this.document.texture.src, {fallback: CONST.DEFAULT_TOKEN});
 
-        const sheetType = this.document.getFlag("pokemon-assets", "sheetsize") ?? "trainer";
+        const sheetStyle = this.document.getFlag("pokemon-assets", "sheetstyle") ?? "trainer";
+        const animationFrames = this.document.getFlag("pokemon-assets", "animationframes") ?? 4;
 
         this.#textureSrc = this.document.texture.src;
-        this.#textures = await game.modules.get("pokemon-assets").api.spritesheetGenerator.getTextures(this.document.texture.src, texture, sheetType);
+        this.#textures = await game.modules.get("pokemon-assets").api.spritesheetGenerator.getTextures(this.document.texture.src, texture, sheetStyle, animationFrames);
       }
       this.#updateDirection();
       this.texture = this.#textures[this.#direction][this.#index];
