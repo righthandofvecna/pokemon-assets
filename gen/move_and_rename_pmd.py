@@ -11,8 +11,9 @@ for dirpath, dirnames, filenames in os.walk(FOLDER_LOCATION):
 
     dexNumber = splitPath[0]
 
-    if "Idle-Anim.png" not in filenames:
-        print("No idle animation:", dexNumber)
+    animToGet = "Walk-Anim.png"
+    if animToGet not in filenames:
+        print("No", animToGet, "animation:", dexNumber)
         continue
 
     # make the 3-deep nested structure
@@ -23,7 +24,7 @@ for dirpath, dirnames, filenames in os.walk(FOLDER_LOCATION):
     if not os.path.exists(newDirpath):
         os.makedirs(newDirpath)
 
-    shutil.copy(os.path.join(dirpath, "Idle-Anim.png"), os.path.join(newDirpath, fileName))
+    shutil.copy(os.path.join(dirpath, animToGet), os.path.join(newDirpath, fileName))
 
     print("Completed", fileName)
 
