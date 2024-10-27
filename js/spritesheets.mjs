@@ -69,15 +69,7 @@ export class SpritesheetGenerator {
           const key = `${src}-${direction}${c}`;
 
           spritesheetSlicingInfo.animations[direction].push(key);
-          // handle the fact that this sheet doesn't have diagonals
-          if (direction === "down") {
-            spritesheetSlicingInfo.animations.downleft.push(key);
-            spritesheetSlicingInfo.animations.downright.push(key);
-          } else if (direction === "up") {
-            spritesheetSlicingInfo.animations.upleft.push(key);
-            spritesheetSlicingInfo.animations.upright.push(key);
-          }
-
+          
           spritesheetSlicingInfo.frames[key] = {
             frame: { x: frameWidth * c, y: frameHeight * r, w: frameWidth, h: frameHeight },
             sourceSize: { w: frameWidth, h: frameHeight },

@@ -89,6 +89,43 @@ function OnRenderTokenConfig(config, html, context) {
 }
 
 
+function getDirection(dx, dy) {
+  // normalized rounded dx, dy
+  const nrdx = Math.sign(Math.round(dx / Math.abs(dy || dx || 1)));
+  const nrdy = Math.sign(Math.round(dy / Math.abs(dx || dy || 1)));
+  const result = Object.entries(SpritesheetGenerator.DIRECTIONS).find(([d, { x, y }])=>x === nrdx && y === nrdy)?.[0];
+  return result ?? "down";
+}
+
+function getAngleFromDirection(d) {
+  switch (d) {
+    case "down": return 0;
+    case "left": return 90;
+    case "right": return 270;
+    case "up": return 180;
+    case "downleft": return 45;
+    case "downright": return 315;
+    case "upleft": return 135;
+    case "upright": return 225;
+  }
+  return 0;
+}
+
+function getDirectionFromAngle(angle) {
+  switch (Math.floor(((angle + 22.5) % 360) / 45)) {
+    case 0: return "down";
+    case 1: return "downleft";
+    case 2: return "left";
+    case 3: return "upleft";
+    case 4: return "up";
+    case 5: return "upright";
+    case 6: return "right";
+    case 7: return "downright";
+  }
+  return "down";
+}
+
+
 function OnPreUpdateToken(doc, change, options) {
   if (!doc.getFlag("pokemon-assets", "tileset")) return;
   
@@ -97,24 +134,10 @@ function OnPreUpdateToken(doc, change, options) {
   const oy = doc.y ?? 0;
   const ny = change?.y ?? oy;
 
-  const dx = ox - nx;
-  const dy = oy - ny;
+  const dx = nx - ox;
+  const dy = ny - oy;
   if (dx !== 0 || dy !== 0) {
-    change.rotation = (()=>{
-      if (Math.abs(dx) > Math.abs(dy)) { // horizontal
-        if (dx > 0) {
-          return 90;
-        } else {
-          return 270;
-        }
-      } else {
-        if (dy > 0) {
-          return 180;
-        } else {
-          return 0;
-        }
-      }
-    })();
+    change.rotation = getAngleFromDirection(getDirection(dx, dy));
   };
 
   const { sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
@@ -166,6 +189,14 @@ export function register() {
 
     get isTileset() {
       return this.document.getFlag("pokemon-assets", "tileset");
+    }
+
+    get sheetStyle() {
+      return this.document.getFlag("pokemon-assets", "sheetstyle") ?? "trainer";
+    }
+
+    get animationFrames() {
+      return this.document.getFlag("pokemon-assets", "animationframes") ?? 4;
     }
 
     get allAnimationsPromise() {
@@ -274,11 +305,8 @@ export function register() {
         if ( this._original ) texture = this._original.texture?.clone();
         else texture = await loadTexture(this.document.texture.src, {fallback: CONST.DEFAULT_TOKEN});
 
-        const sheetStyle = this.document.getFlag("pokemon-assets", "sheetstyle") ?? "trainer";
-        const animationFrames = this.document.getFlag("pokemon-assets", "animationframes") ?? 4;
-
         this.#textureSrc = this.document.texture.src;
-        this.#textures = await game.modules.get("pokemon-assets").api.spritesheetGenerator.getTextures(this.document.texture.src, texture, sheetStyle, animationFrames);
+        this.#textures = await game.modules.get("pokemon-assets").api.spritesheetGenerator.getTextures(this.document.texture.src, texture, this.sheetStyle, this.animationFrames);
       }
       this.#updateDirection();
       this.texture = this.#textures[this.#direction][this.#index];
@@ -358,20 +386,7 @@ export function register() {
     }
 
     #updateDirection() {
-      switch (Math.floor(this.document.rotation / 90)) {
-        case 0:
-          this.#direction = "down";
-          break;
-        case 1:
-          this.#direction = "left";
-          break;
-        case 2:
-          this.#direction = "up";
-          break;
-        case 3:
-          this.#direction = "right";
-          break;
-      }
+      this.#direction = getDirectionFromAngle(this.document.rotation);
     }
 
     /**
@@ -446,28 +461,16 @@ export function register() {
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
 
       // set the direction
-      const dx = (changed.x ?? context?.to?.x ?? 0) - (context?.to?.x ?? changed.x ?? 0);
-      const dy = (changed.y ?? context?.to?.y ?? 0) - (context?.to?.y ?? changed.y ?? 0);
+      const dx = (context?.to?.x ?? changed.x ?? 0) - (changed.x ?? context?.to?.x ?? 0);
+      const dy = (context?.to?.y ?? changed.y ?? 0) - (changed.y ?? context?.to?.y ?? 0);
       if (dx != 0 || dy != 0) {
         if (this.document._spinning) { // spinning
           this.#index = 0;
           this.#direction = ["down", "right", "up", "left"][(~~((((changed.x ?? 0) / sizeX) + ((changed.y ?? 0) / sizeY)))) % 4];
-        } else if (Math.abs(dx) > Math.abs(dy)) { // horizontal
-          if (dx > 0) {
-            this.#direction = "left";
-          } else {
-            this.#direction = "right";
-          }
+        } else { // normal animation
+          this.#direction = getDirection(dx, dy);
           // set the index
-          this.#index = ~~((2 * changed.x / sizeX) % (this.#textures[this.#direction].length));
-        } else { // vertical
-          if (dy > 0) {
-            this.#direction = "up";
-          } else {
-            this.#direction = "down";
-          }
-          // set the index
-          this.#index = ~~((2 * changed.y / sizeY) % (this.#textures[this.#direction].length));
+          this.#index = (~~((((changed.x ?? 0) / sizeX) + ((changed.y ?? 0) / sizeY)))) % (this.#textures[this.#direction].length);
         }
 
         // don't animate rotation while moving
