@@ -1,0 +1,43 @@
+{
+    "name": "pokemon-assets",
+    "title": "Pokemon Assets",
+    "description": "Pokemon images, fonts, sounds",
+    "authors": [
+      {
+        "name": "RightHandOfVecna",
+        "email": "",
+        "url": ""
+      }
+    ],
+    "version": "0.1.1",
+    "compatibility": {
+      "minimum": "10",
+      "verified": "12"
+    },
+    "relationships": {
+      "requires": [
+        {
+          "id": "lib-wrapper",
+          "type": "module",
+          "compatibility": {
+            "minimum": "1.0.0.0",
+            "verified": "1.12.6.0"
+          }
+        },
+        {
+          "id": "sequencer",
+          "type": "module",
+          "compatibility": {
+            "minimum": "3.3.3",
+            "verified": "3.3.3"
+          }
+        }
+      ]
+    },
+    "esmodules": [
+        "js/main.mjs"
+    ],
+    "url": "",
+    "manifest": "",
+    "download": ""
+  }

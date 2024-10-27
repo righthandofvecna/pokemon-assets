@@ -1,0 +1,1 @@
+Pokemon overworld sprites obtained from [PMDCollab](https://github.com/PMDCollab/SpriteCollab), used under Creative Commons license (Attribution-NonCommercial 4.0 International)
