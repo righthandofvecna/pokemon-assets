@@ -470,7 +470,15 @@ export function register() {
         } else { // normal animation
           this.#direction = getDirection(dx, dy);
           // set the index
-          this.#index = (~~((((changed.x ?? 0) / sizeX) + ((changed.y ?? 0) / sizeY)))) % (this.#textures[this.#direction].length);
+          const framesPerSquare = 2;
+          const [ animStepX, animStepY ] = [ sizeX / framesPerSquare, sizeY / framesPerSquare ];
+          const { x: ox, y: oy } = this.#animationData;
+          const rdx = (changed.x ?? ox ?? 0) - (ox ?? 0);
+          const rdy = (changed.y ?? oy ?? 0) - (oy ?? 0);
+          const absDx = Math.abs(rdx / animStepX);
+          const absDy = Math.abs(rdy / animStepY);
+          const distDiagApprox = Math.max(absDx, absDy) + ( Math.min(absDx, absDy) / 2 ) + ( ox / animStepX) + ( oy / animStepY );
+          this.#index = ~~( distDiagApprox % (this.#textures[this.#direction].length));
         }
 
         // don't animate rotation while moving
