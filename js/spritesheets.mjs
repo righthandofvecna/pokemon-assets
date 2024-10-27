@@ -24,12 +24,17 @@ export class SpritesheetGenerator {
     this.spritesheets = {};
   }
 
+  static generateKey(src, mode, frames) {
+    return `${mode}-${frames}:${src}`;
+  }
+
   async #getSpritesheet(src, texture, mode, frames) {
-    if (src in this.spritesheets) {
-      if (this.spritesheets[src]?.baseTexture?.valid) return this.spritesheets[src];
+    const sheetKey = SpritesheetGenerator.generateKey(src, mode, frames);
+    if (sheetKey in this.spritesheets) {
+      if (this.spritesheets[sheetKey]?.baseTexture?.valid) return this.spritesheets[sheetKey];
 
       // remove the unloaded assets from the cache
-      this.spritesheets[src]._frameKeys.forEach(t=>PIXI.Texture.removeFromCache(t));
+      this.spritesheets[sheetKey]._frameKeys.forEach(t=>PIXI.Texture.removeFromCache(t));
     }
 
     // build up spritesheet slicing info
@@ -66,7 +71,7 @@ export class SpritesheetGenerator {
               case 7: return "downleft";
             }
           })();
-          const key = `${src}-${direction}${c}`;
+          const key = `${sheetKey}-${direction}${c}`;
 
           spritesheetSlicingInfo.animations[direction].push(key);
           
@@ -113,7 +118,7 @@ export class SpritesheetGenerator {
     // Generate all the Textures asynchronously
     await spritesheet.parse();
 
-    this.spritesheets[src] = spritesheet;
+    this.spritesheets[sheetKey] = spritesheet;
     return spritesheet;
 
   }
@@ -128,6 +133,17 @@ export class SpritesheetGenerator {
     return spritesheet.animations;
   }
 
+  async getTexturesForToken(tilesetToken, texture) {
+    const spritesheet = await this.#getSpritesheet(
+      tilesetToken.document.texture.src,
+      texture,
+      tilesetToken.sheetStyle,
+      tilesetToken.animationFrames
+    );
+    spritesheet._registeredTokens ??= new Set();
+    spritesheet._registeredTokens.add(tilesetToken);
+    return spritesheet.animations;
+  }
 }
 
 

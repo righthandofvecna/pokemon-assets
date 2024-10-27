@@ -88,6 +88,48 @@ function OnRenderTokenConfig(config, html, context) {
   });
 }
 
+function OnUpdateToken(token, changes, metadata, user) {
+  if (!changes?.texture?.src &&
+    !changes?.flags?.["pokemon-assets"]?.sheetstyles &&
+    !changes?.flags?.["pokemon-assets"]?.animationframes)
+    return;
+
+  const src = changes?.texture?.src ?? token?.texture?.src;
+  if (!src) return;
+  
+  const tokenObj = token?.object;
+  if (!tokenObj) return
+
+  tokenObj.renderFlags.set({
+    redraw: true
+  });
+  tokenObj.applyRenderFlags();
+}
+
+
+/* ------------------------------------------------------------------------- */
+
+
+
+function OnPreUpdateToken(doc, change, options) {
+  if (!doc.getFlag("pokemon-assets", "tileset")) return;
+  
+  const ox = doc.x ?? 0;
+  const nx = change?.x ?? ox;
+  const oy = doc.y ?? 0;
+  const ny = change?.y ?? oy;
+
+  const dx = nx - ox;
+  const dy = ny - oy;
+  if (dx !== 0 || dy !== 0) {
+    change.rotation = getAngleFromDirection(getDirection(dx, dy));
+  };
+
+  const { sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
+
+  // sort 
+  change.sort = Math.floor(ny / sizeY);
+}
 
 function getDirection(dx, dy) {
   // normalized rounded dx, dy
@@ -126,27 +168,6 @@ function getDirectionFromAngle(angle) {
 }
 
 
-function OnPreUpdateToken(doc, change, options) {
-  if (!doc.getFlag("pokemon-assets", "tileset")) return;
-  
-  const ox = doc.x ?? 0;
-  const nx = change?.x ?? ox;
-  const oy = doc.y ?? 0;
-  const ny = change?.y ?? oy;
-
-  const dx = nx - ox;
-  const dy = ny - oy;
-  if (dx !== 0 || dy !== 0) {
-    change.rotation = getAngleFromDirection(getDirection(dx, dy));
-  };
-
-  const { sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
-
-  // sort 
-  change.sort = Math.floor(ny / sizeY);
-}
-
-
 function OnCreateCombatant(combatant) {
   if (!combatant?.token?.getFlag("pokemon-assets", "tileset")) return;
   combatant.update({
@@ -165,6 +186,7 @@ export function register() {
     #index;
     #textures;
     #textureSrc;
+    #textureKey;
     #direction;
     #animationData;
     #animationPromise;
@@ -300,13 +322,15 @@ export function register() {
     }
 
     async playFromSpritesheet() {
-      if (this.#textures == null || this.#textureSrc !== this.document.texture.src) {
+      const genSpritesheetKey = SpritesheetGenerator.generateKey(this.document.texture.src, this.sheetStyle, this.animationFrames);
+      if (this.#textures == null || this.#textureSrc !== this.document.texture.src || this.#textureKey !== genSpritesheetKey) {
         let texture;
         if ( this._original ) texture = this._original.texture?.clone();
         else texture = await loadTexture(this.document.texture.src, {fallback: CONST.DEFAULT_TOKEN});
 
         this.#textureSrc = this.document.texture.src;
-        this.#textures = await game.modules.get("pokemon-assets").api.spritesheetGenerator.getTextures(this.document.texture.src, texture, this.sheetStyle, this.animationFrames);
+        this.#textures = await game.modules.get("pokemon-assets").api.spritesheetGenerator.getTexturesForToken(this, texture);
+        this.#textureKey = genSpritesheetKey;
       }
       this.#updateDirection();
       this.texture = this.#textures[this.#direction][this.#index];
@@ -508,7 +532,9 @@ export function register() {
   CONFIG.Token.objectClass = TilesetToken;
 
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
+
   Hooks.on("renderTokenConfig", OnRenderTokenConfig);
+  Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("preUpdateToken", OnPreUpdateToken);
   Hooks.on("createCombatant", OnCreateCombatant);
 }
