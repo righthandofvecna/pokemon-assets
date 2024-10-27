@@ -267,7 +267,7 @@ async function HandleJumps() {
 
   const { sizeX, sizeY } = scene.grid;
 
-  const renderedToken = game.canvas.tokens.ownedTokens.find(t=>t.id === token.id);
+  const renderedToken = token.object;
 
   // wait until the token has finished animating
   await renderedToken.allAnimationsPromise;
@@ -307,7 +307,7 @@ async function HandleIce() {
   const { sizeX, sizeY } = scene.grid;
   const { x: originalX, y: originalY } = token;
 
-  const renderedToken = game.canvas.tokens.ownedTokens.find(t=>t.id === token.id);
+  const renderedToken = token.object;
 
   // wait until the token has finished animating
   await renderedToken.allAnimationsPromise;
