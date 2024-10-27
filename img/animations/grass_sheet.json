@@ -1,0 +1,66 @@
+{
+    "meta": {
+        "image": "grass_sheet.png",
+        "format": "RGBA8888",
+        "scale": 1
+    },
+    "frames": {
+        "grass_sheet.png_0": {
+            "frame": {
+                "x": 0,
+                "y": 0,
+                "w": 32,
+                "h": 32
+            },
+            "sourceSize": {
+                "w": 32,
+                "h": 32
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 32,
+                "h": 32
+            }
+        },
+        "grass_sheet.png_1": {
+            "frame": {
+                "x": 32,
+                "y": 0,
+                "w": 32,
+                "h": 32
+            },
+            "sourceSize": {
+                "w": 32,
+                "h": 32
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 32,
+                "h": 32
+            }
+        },
+        "grass_sheet.png_2": {
+            "frame": {
+                "x": 64,
+                "y": 0,
+                "w": 32,
+                "h": 32
+            },
+            "sourceSize": {
+                "w": 32,
+                "h": 32
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 32,
+                "h": 32
+            }
+        }
+    },
+    "animations": {
+        "play": ["grass_sheet.png_0", "grass_sheet.png_1", "grass_sheet.png_2"]
+    }
+}
