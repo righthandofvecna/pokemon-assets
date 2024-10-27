@@ -1,17 +1,16 @@
 {
     "name": "pokemon-assets",
     "title": "Pokemon Assets",
-    "description": "Pokemon images, fonts, sounds",
+    "description": "Pokemon images, fonts, sounds, and behaviors",
     "authors": [
       {
         "name": "RightHandOfVecna",
-        "email": "",
-        "url": ""
+        "url": "https://github.com/righthandofvecna"
       }
     ],
     "version": "0.1.1",
     "compatibility": {
-      "minimum": "10",
+      "minimum": "12",
       "verified": "12"
     },
     "relationships": {
@@ -37,7 +36,7 @@
     "esmodules": [
         "js/main.mjs"
     ],
-    "url": "",
-    "manifest": "",
-    "download": ""
+    "url": "https://github.com/righthandofvecna/pokemon-assets",
+    "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",
+    "download": "https://github.com/righthandofvecna/pokemon-assets/releases/download/v0.1.1/module.zip"
   }
