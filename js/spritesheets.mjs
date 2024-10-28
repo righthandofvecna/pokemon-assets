@@ -1,3 +1,5 @@
+import { default as SPRITESHEET_MAP } from "../data/spritesheetmap.js";
+
 export class SpritesheetGenerator {
 
   static SHEET_STYLES = {
@@ -17,11 +19,15 @@ export class SpritesheetGenerator {
     upright:   { x:  1, y: -1 },
   };
 
+  static CONFIGURED_SHEET_SETTINGS = { };
+
 
   spritesheets;
 
   constructor () {
     this.spritesheets = {};
+    // generate the configurations
+    SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS = Object.values(SPRITESHEET_MAP).reduce((a, obj)=>({...a, ...obj.sheets}), SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS);
   }
 
   static generateKey(src, mode, frames) {

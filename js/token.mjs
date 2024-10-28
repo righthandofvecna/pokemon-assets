@@ -7,23 +7,33 @@ const RUN_DISTANCE = 5;
 const SLIDE_SPEED = WALK_SPEED;
 
 
+/**
+ * Add the spritesheet settings to the token config page
+ * @param {*} config 
+ * @param {*} html 
+ * @param {*} context 
+ */
 function OnRenderTokenConfig(config, html, context) {
-  const isSpritesheet = config.token.getFlag("pokemon-assets", "tileset") ?? false;
-  const sheetStyle = config.token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer";
-  const animationFrames = {
-    "trainer": 4,
-    "pkmn": 2
-  }[sheetStyle] ?? config.token.getFlag("pokemon-assets", "animationframes") ?? 4;
-
   const form = $(html).find("form").get(0);
 
-  $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.tileset" ${isSpritesheet ? "checked" : ""}>`);
+  let src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
+  let defaultSettings = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {
+    sheetstyle: "trainer",
+    animationframes: 4,
+  };
+
+  const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
+  const isSpritesheet = config.token.getFlag("pokemon-assets", "spritesheet") ?? isPredefined;
+  const sheetStyle = config.token.getFlag("pokemon-assets", "sheetstyle") ?? defaultSettings.sheetstyle;
+  const animationFrames = config.token.getFlag("pokemon-assets", "animationframes") ?? defaultSettings.animationframes;
+
+  $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${isSpritesheet ? "checked" : ""}>`);
   // add control for what size
   const sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
     return allOptions + `<option value="${val}" ${sheetStyle === val ? "selected" : ""}>${label}</option>`;
   }, "");
   $(html).find("[name='texture.src']").closest(".form-group").after(`
-    <div class="form-group spritesheet-config" ${isSpritesheet ? '' : 'style="display: none"'}>
+    <div class="form-group spritesheet-config" ${!isPredefined && isSpritesheet ? '' : 'style="display: none"'}>
       <label>Sheet Style</label>
       <div class="form-fields">
         <select name="flags.pokemon-assets.sheetstyle">${sheetSizeOptions}</select>
@@ -31,6 +41,47 @@ function OnRenderTokenConfig(config, html, context) {
         <input type="number" name="flags.pokemon-assets.animationframes" value="${animationFrames}" ${sheetStyle === "pmd" ? '' : 'hidden readonly'}>
       </div>
     </div>`);
+  
+  const updateDefaults = async function () {
+    src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
+    const predefined = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src]
+    defaultSettings = predefined ?? {
+      sheetstyle: "trainer",
+      animationframes: 4,
+    };
+
+    if (predefined) {
+      $(html).find(".spritesheet-config").hide();
+      $(html).find(`[name="flags.pokemon-assets.spritesheet"]`).prop("checked", true);
+      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`).prop("hidden", true).prop("readonly", true).val(predefined.sheetstyle);
+      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(predefined.animationframes);
+
+      const texture = await getTexture(form);
+      await updateAnchors(form, texture);
+    } else if (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) {
+      $(html).find(".spritesheet-config").show();
+      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`)
+        .prop("hidden", false)
+        .prop("readonly", false)
+        .val(defaultSettings.sheetstyle);
+      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).toggle(defaultSettings.sheetstyle === "pmd");
+      $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
+        .prop("hidden", defaultSettings.sheetstyle === "trainer")
+        .prop("readonly", defaultSettings.sheetstyle === "trainer")
+        .val(defaultSettings.animationframes);
+    } else {
+      $(html).find(".spritesheet-config")
+        .hide();
+      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`)
+        .prop("hidden", false)
+        .prop("readonly", false)
+        .val(defaultSettings.sheetstyle);
+      $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
+        .prop("hidden", defaultSettings.sheetstyle === "trainer")
+        .prop("readonly", defaultSettings.sheetstyle === "trainer")
+        .val(defaultSettings.animationframes);
+    }
+  }
 
   const getTexture = async function (form) {
     // get the texture so this can be calculated
@@ -41,7 +92,7 @@ function OnRenderTokenConfig(config, html, context) {
   }
 
   const updateAnchors = async function (form, texture) {
-    if (!form.querySelector("input[name='flags.pokemon-assets.tileset']")?.checked) return;
+    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) return;
 
     const { width, height } = texture;
     if (!width || !height) return;
@@ -73,8 +124,36 @@ function OnRenderTokenConfig(config, html, context) {
   // listeners
   //
 
-  $(html).find("[name='flags.pokemon-assets.tileset']").on("change", async function () {
-    if (!form.querySelector("input[name='flags.pokemon-assets.tileset']")?.checked) {
+  const OnUpdateFilePicker = async function () {
+    console.log("thing changed")
+    if (await updateDefaults()) return;
+
+    const texture = await getTexture(form);
+    await updateAnchors(form, texture);
+  };
+
+  $(html).find("[name='texture.src'] input[type='text']").on("change", OnUpdateFilePicker);
+  // dumb workaround to listen on the filepicker button too
+  $(html).find("[name='texture.src'] button").on("click", function () {
+    const filePicker = $(this).closest("file-picker")?.get(0)?.picker;
+    if (!filePicker) {
+      console.log("boooo", $(this).closest("file-picker")?.get(0));
+      return;
+    }
+    console.log("set callback!");
+    filePicker.callback = ((callback)=>{
+      return function () {
+        if (callback) callback(...arguments);
+        OnUpdateFilePicker();
+      }
+    })(filePicker.callback);
+  })
+
+  // listen for the "spritesheet" toggle
+  $(html).find("[name='flags.pokemon-assets.spritesheet']").on("change", async function () {
+    if (await updateDefaults()) return;
+
+    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) {
       $(html).find(".spritesheet-config").hide();
     } else {
       $(html).find(".spritesheet-config").show();
@@ -85,7 +164,6 @@ function OnRenderTokenConfig(config, html, context) {
   });
 
   $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", async function () {
-
     const newSheetStyle = $(this).get(0).value ?? "trainer";
     if (newSheetStyle === "trainer") {
       $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
@@ -132,7 +210,7 @@ function OnUpdateToken(token, changes, metadata, user) {
 
 
 function OnPreUpdateToken(doc, change, options) {
-  if (!doc.getFlag("pokemon-assets", "tileset")) return;
+  if (!doc.getFlag("pokemon-assets", "spritesheet")) return;
   
   const ox = doc.x ?? 0;
   const nx = change?.x ?? ox;
@@ -189,7 +267,7 @@ function getDirectionFromAngle(angle) {
 
 
 function OnCreateCombatant(combatant) {
-  if (!combatant?.token?.getFlag("pokemon-assets", "tileset")) return;
+  if (!combatant?.token?.getFlag("pokemon-assets", "spritesheet")) return;
   combatant.update({
     "img": combatant?.actor?.img ?? "icons/svg/mystery-man.svg",
   });
@@ -230,7 +308,7 @@ export function register() {
     }
 
     get isTileset() {
-      return this.document.getFlag("pokemon-assets", "tileset");
+      return this.document.getFlag("pokemon-assets", "spritesheet");
     }
 
     get sheetStyle() {

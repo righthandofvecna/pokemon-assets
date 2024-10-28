@@ -9,7 +9,7 @@ with open("local.json", "r") as local:
     data = json.load(local)
     INFO_JSON_LOCATION = data["INFO_JSON_LOCATION"]
     FOLDER_LOCATION = data["FOLDER_LOCATION"]
-SPRITESHEET_SETTINGS_JSON = "spritesheetmap.json"
+SPRITESHEET_SETTINGS_JS = os.path.join("data", "spritesheetmap.js")
 
 
 
@@ -109,8 +109,8 @@ def main():
                             if anim.find("Name").text == file.replace("-Anim.png", ""):
                                 frames = len(anim.find("Durations"))
                     spritesheetSettings[dexnumber]["sheets"][foundryPath] = {
-                        "sheetStyle": "pmd",
-                        "frames": frames,
+                        "sheetstyle": "pmd",
+                        "animationframes": frames,
                     }
         def processVariant(key, suffix):
             _processSingleVariant(key, suffix)
@@ -321,7 +321,8 @@ def main():
         # if dexnumber == "0530":
         #     break
     
-    with open(SPRITESHEET_SETTINGS_JSON, "w") as ssJ:
+    with open(SPRITESHEET_SETTINGS_JS, "w") as ssJ:
+        ssJ.write("export default\n")
         json.dump(spritesheetSettings, ssJ, indent=2)
 
     forbidden = (
