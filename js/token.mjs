@@ -462,7 +462,7 @@ export function register() {
 
     _canDrag() {
       const scene = this?.document?.parent;
-      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") || (scene.getFlag("pokemon-assets", "outOfCombat") && this.inCombat)))
+      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && this.inCombat)))
         return false;
       return super._canDrag();
     }

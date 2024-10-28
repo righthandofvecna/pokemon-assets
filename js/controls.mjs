@@ -4,7 +4,8 @@
 
 function Scene_prepareBaseData(wrapped, ...args) {
   wrapped(...args);
-  if (this.getFlag("pokemon-assets", "diagonals")) {
+  const hasCombat = !!game.combats.find(c=>c.active && c.scene.uuid === this.uuid);
+  if (this.getFlag("pokemon-assets", "diagonals") && !(this.getFlag("pokemon-assets", "outOfCombat") && hasCombat)) {
     this.grid.diagonals = CONST.GRID_DIAGONALS.ILLEGAL;
   }
 }
