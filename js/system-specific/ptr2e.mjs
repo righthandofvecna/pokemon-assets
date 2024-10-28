@@ -1,30 +1,16 @@
-import { sleep } from "../utils.mjs";
+import { early_isGM, sleep } from "../utils.mjs";
 
-function OnPreUpdateActor(actor, update) {
-  console.log("OnPreUpdateActor", arguments)
-  if (!game.user.isGM) return;
-  
-  // check for common health
-  if (!update?.system?.health) return;
-
-  // not damaged
-  if ((update.system.health.value ?? 0) >= (actor.system.health.max ?? 0)) return;
-
-  // fainted
-  if ((update.system.health.value ?? 0) <= 0) return;
-
-  const token = game.scenes.active.tokens.find(t=>t.actor.uuid === actor.uuid);
-  // check if 1/5 hp or less
-  const lowHp = update.system.health.value <= ((actor.system?.health?.max ?? 0) / 5)
-
-  game.modules.get("pokemon-assets").api.scripts.IndicateDamage(actor, token, lowHp);
-}
-
+/**
+ * A Chat Message listener, that should only be run on the GM's client
+ * @param {*} message 
+ * @returns 
+ */
 async function OnCreateChatMessage(message) {
-  console.log("OnCreateChatMessage", message);
-  if (message.type === "capture") {
-    if (!game.user.isGM) return;
 
+  //
+  // Handle Capture Animations
+  //
+  if (message.type === "capture") {
     const sourceId = message.actor.uuid;
     const targetId = message.system.target;
     const { source, target } = (()=>{
@@ -40,6 +26,7 @@ async function OnCreateChatMessage(message) {
 
     await sleep(1500);
     
+    const crit = message.system.rolls.crit.total <= 0;
     const shakes = 3 - [
       message.system.rolls.shake4,
       message.system.rolls.shake3,
@@ -51,13 +38,35 @@ async function OnCreateChatMessage(message) {
       target,
       message.system.action.img,
       message.system.rolls.accuracy.result <= 0,
-      Math.min(shakes, 3),
-      shakes >= 4);
+      Math.min(shakes, crit ? 1 : 3),
+      crit ? shakes >= 1 : shakes >= 4);
+    return;
+  }
+
+  //
+  // Handle the Damage Hit Indicator and sounds
+  //
+  if (message.type === "damage-applied") {
+    const target = message.system.target;
+
+    // check that the damage applied is positive
+    if (message.system.damageApplied <= 0) return;
+
+    // check if the target fainted
+    if ((target.system.health.value ?? 0) <= 0) return;
+
+    // check if 1/5 hp or less
+    const lowHp = target.system.health.value <= target.system.health.max / 5;
+
+    const token = game.scenes.active.tokens.find(t=>t.actor.uuid === target.uuid);
+    game.modules.get("pokemon-assets").api.scripts.IndicateDamage(target, token, lowHp);
+    return;
   }
 }
 
 
 export function register() {
-  Hooks.on("preUpdateActor", OnPreUpdateActor);
-  Hooks.on("createChatMessage", OnCreateChatMessage);
+  if (early_isGM) {
+    Hooks.on("createChatMessage", OnCreateChatMessage);
+  }
 }
