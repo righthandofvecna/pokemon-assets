@@ -125,7 +125,6 @@ function OnRenderTokenConfig(config, html, context) {
   //
 
   const OnUpdateFilePicker = async function () {
-    console.log("thing changed")
     if (await updateDefaults()) return;
 
     const texture = await getTexture(form);
@@ -136,11 +135,7 @@ function OnRenderTokenConfig(config, html, context) {
   // dumb workaround to listen on the filepicker button too
   $(html).find("[name='texture.src'] button").on("click", function () {
     const filePicker = $(this).closest("file-picker")?.get(0)?.picker;
-    if (!filePicker) {
-      console.log("boooo", $(this).closest("file-picker")?.get(0));
-      return;
-    }
-    console.log("set callback!");
+    if (!filePicker) return;
     filePicker.callback = ((callback)=>{
       return function () {
         if (callback) callback(...arguments);
