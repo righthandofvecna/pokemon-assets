@@ -28,86 +28,95 @@ def scrapeTrainerClassPage(pageSrc):
     tcDoc = etree.HTML(r.text)
 
     for classVariant in tcDoc.xpath('//form/div[@class="content"]'):
-        permission = len(classVariant.xpath('div/a[@class="free-to-use yes"]')) > 0
-        ownerElement = classVariant.xpath('div/b[@class="owner"]/following-sibling::*')[0]
-        owner = ownerElement.text
-        ownerLink = ownerElement.attrib['href']
-        if not permission:
-            continue
+        try:
+            permission = len(classVariant.xpath('div/a[@class="free-to-use yes"]')) > 0
+            ownerElement = classVariant.xpath('div/b[@class="owner"]/following-sibling::*')[0]
+            owner = ownerElement.text
+            ownerLink = ownerElement.attrib['href']
+            if not permission:
+                continue
 
-        name = classVariant.xpath('a')[0].text.lower().replace(' ', '')
-        gender = ""
-        for tag in classVariant.xpath('div/a[@class="tab"]'):
-            if tag.text == "#male":
-                gender = "_m"
-                break
-            if tag.text == "#female":
-                gender = "_f"
-                break
+            name = classVariant.xpath('a')[0].text.lower().replace(' ', '')
+            gender = ""
+            for tag in classVariant.xpath('div/a[@class="tab"]'):
+                if tag.text == "#male":
+                    gender = "_m"
+                    break
+                if tag.text == "#female":
+                    gender = "_f"
+                    break
 
-        trainerClassSrc:str = ""
-        trainerOverworldSrc = ""
-        for sprite in classVariant.xpath('div[@class="panel"]/div[contains(@class, "sprite")]//img'):
-            spriteSrc = sprite.attrib["src"]
-            if "/fronts/" in spriteSrc:
-                trainerClassSrc = spriteSrc
-            if "/overworlds/" in spriteSrc:
-                trainerOverworldSrc = spriteSrc
-        if not trainerClassSrc or not trainerOverworldSrc:
-            continue
+            trainerClassSrc:str = ""
+            trainerOverworldSrc = ""
+            for sprite in classVariant.xpath('div[@class="panel"]/div[contains(@class, "sprite")]//img'):
+                spriteSrc = sprite.attrib["src"]
+                if "/fronts/" in spriteSrc:
+                    trainerClassSrc = spriteSrc
+                if "/overworlds/" in spriteSrc:
+                    trainerOverworldSrc = spriteSrc
+            if not trainerClassSrc or not trainerOverworldSrc:
+                continue
 
-        trainerId = trainerClassSrc[trainerClassSrc.rindex("/")+1:trainerClassSrc.index(".webp")]
-        print(name, gender, trainerId, permission, owner, ownerLink, trainerClassSrc, trainerOverworldSrc)
+            trainerId = trainerClassSrc[trainerClassSrc.rindex("/")+1:trainerClassSrc.index(".webp")]
+            if trainerId in excludeIds:
+                continue
 
-        if trainerId in excludeIds:
-            continue
+            fname = f"trainer_{name}{gender}_pe_{trainerId}.webp"
 
-        fname = f"trainer_{name}{gender}_pe_{trainerId}.png"
+            # download the trainer class image
+            tcPath = os.path.join("img","trainers-profile", fname)
+            if not os.path.exists(tcPath):
+                imgR = requests.get(trainerClassSrc)
+                if imgR.status_code != 200:
+                    print("can't create", fname, ":: response code", r.status_code)
+                    continue
+                with open(tcPath, "wb") as fp:
+                    fp.write(imgR.content)
 
-        # download the trainer class image
-        imgR = requests.get(trainerClassSrc)
-        if imgR.status_code != 200:
-            print("can't create", fname, ":: response code", r.status_code)
-            continue
-        with open(os.path.join("img","trainers-profile", fname), "wb") as fp:
-            fp.write(imgR.content)
-
-        # download the trainer overworld image
-        imgR = requests.get(trainerOverworldSrc)
-        if imgR.status_code != 200:
-            print("can't create", fname, ":: response code", r.status_code)
-            continue
-        with open(os.path.join("img","trainers-overworld", fname), "wb") as fp:
-            fp.write(imgR.content)
-        
-        attribution[owner] = {
-            "owner": owner,
-            "url": f"https://pokengine.org{ownerLink}"
-        }
-
-        foundryPath = "/".join("module", "pokemon-assets", "img", "trainers-overworld", fname)
-        if foundryPath not in spritesheetSettings:
-            spritesheetSettings[foundryPath] = {
-                "animationframes": 3,
-                "sheetstyle": "trainer3"
+            # download the trainer overworld image
+            toPath = os.path.join("img","trainers-overworld", fname)
+            if not os.path.exists(toPath):
+                imgR = requests.get(trainerOverworldSrc)
+                if imgR.status_code != 200:
+                    print("can't create", fname, ":: response code", r.status_code)
+                    continue
+                with open(toPath, "wb") as fp:
+                    fp.write(imgR.content)
+            
+            attribution[owner] = {
+                "owner": owner,
+                "url": f"https://pokengine.org{ownerLink}"
             }
+
+            foundryPath = "/".join(["modules", "pokemon-assets", "img", "trainers-overworld", fname])
+            if foundryPath not in spritesheetSettings:
+                spritesheetSettings[foundryPath] = {
+                    "animationframes": 3,
+                    "sheetstyle": "trainer3"
+                }
+        except Exception as e:
+            print(e)
 
 
 def scrapePage(pageNum):
-    r = requests.get(f"https://pokengine.org/collections/10qmfbx6/Nintendo?tab=trainers&trainerclass&overworlds&page={pageNum}")
-    if r.status_code != 200:
-        print("failed", r)
+    try:
+        r = requests.get(f"https://pokengine.org/collections/10qmfbx6/Nintendo?tab=trainers&trainerclass&overworlds&page={pageNum}")
+        if r.status_code != 200:
+            print("failed", r)
+            return False
+        tcDoc = etree.HTML(r.text)
+        for spriteContainer in tcDoc.xpath('//div[@class="dex-block"]'):
+            src = ""
+            for scimg in spriteContainer.xpath('a'):
+                src = scimg.attrib["href"]
+                break
+            if not src: continue
+            scrapeTrainerClassPage(f"https://pokengine.org{src}")
+        
+        return True
+    except Exception as e:
+        print(e)
         return False
-    tcDoc = etree.HTML(r.text)
-    for spriteContainer in tcDoc.xpath('//div[@class="dex-block"]'):
-        src = ""
-        for scimg in spriteContainer.xpath('a'):
-            src = scimg.attrib["href"]
-            break
-        if not src: continue
-        scrapeTrainerClassPage(f"https://pokengine.org{src}")
-    
-    return True
 
 def main():
     for i in range(100):
