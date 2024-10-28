@@ -2,9 +2,16 @@
 import json
 import os
 import shutil
+import xml.etree.ElementTree as ET
 
-INFO_JSON_LOCATION = "<path>"
-FOLDER_LOCATION = "<path>"
+# get local settings
+with open("local.json", "r") as local:
+    data = json.load(local)
+    INFO_JSON_LOCATION = data["INFO_JSON_LOCATION"]
+    FOLDER_LOCATION = data["FOLDER_LOCATION"]
+SPRITESHEET_SETTINGS_JSON = "spritesheetmap.json"
+
+
 
 def safeGet(d, *k, default=None):
     cd = d
@@ -24,51 +31,51 @@ def getAnimFileFromFilesystem(*nests):
     return None
 
 registeredVariants = {}
-def registerVariant(dexnumber, v):
+def registerGlobalVariant(dexnumber, v):
     if v in registeredVariants:
         registeredVariants[v].append(dexnumber)
         return
     registeredVariants[v] = [dexnumber]
 
-def unregisterVariant(dexnumber, v):
+def unregisterGlobalVariant(dexnumber, v):
     if v not in registeredVariants or dexnumber not in registeredVariants[v]:
         print(f"can't remove {dexnumber=} from {v=}")
     else:
         registeredVariants[v].remove(dexnumber)
 
-with open(INFO_JSON_LOCATION, "r") as iJ:
-    data = json.load(iJ)
+def main():
+    with open(INFO_JSON_LOCATION, "r") as iJ:
+        data = json.load(iJ)
+
+    spritesheetSettings = {}
 
     for dexnumber in data.keys():
         mainSprite = getAnimFileFromFilesystem(dexnumber)
+        name = safeGet(data, dexnumber, "name", default="variant")   
         variants = {}
-        if mainSprite:
-            variants[""] = mainSprite
-            registerVariant(dexnumber, "")
+        def registerVariant(sprite, key):
+            if sprite:
+                variants[key] = mainSprite
+                registerGlobalVariant(dexnumber, key)
+        registerVariant(mainSprite, "")
         
         sgs1 = safeGet(data, dexnumber, "subgroups", default={})
         for sg1 in sgs1.keys():
             varSprite = getAnimFileFromFilesystem(dexnumber, sg1)
-            name1 = safeGet(data, dexnumber, "subgroups", sg1, "name", default="variant")   
-            if varSprite:
-                variants[name1] = varSprite
-                registerVariant(dexnumber, name1)
+            name1 = safeGet(data, dexnumber, "subgroups", sg1, "name", default="")
+            registerVariant(varSprite, name1)
 
             sgs2 = safeGet(data, dexnumber, "subgroups", sg1, "subgroups", default={})
             for sg2 in sgs2.keys():
-                name2 = safeGet(data, dexnumber, "subgroups", sg1, "subgroups", sg2, "name", default="variant") 
+                name2 = safeGet(data, dexnumber, "subgroups", sg1, "subgroups", sg2, "name", default="") 
                 varSprite2 = getAnimFileFromFilesystem(dexnumber, sg1, sg2)
-                if varSprite2:
-                    variants[name1 + ":" + name2] = varSprite2
-                    registerVariant(dexnumber, name1 + ":" + name2)
+                registerVariant(varSprite2, name1 + ":" + name2)
                  
                 sgs3 = safeGet(data, dexnumber, "subgroups", sg1, "subgroups", sg2, "subgroups", default={})
                 for sg3 in sgs3.keys():
-                    name3 = safeGet(data, dexnumber, "subgroups", sg1, "subgroups", sg2, "subgroups", sg3, "name", default="variant") 
+                    name3 = safeGet(data, dexnumber, "subgroups", sg1, "subgroups", sg2, "subgroups", sg3, "name", default="") 
                     varSprite3 = getAnimFileFromFilesystem(dexnumber, sg1, sg2, sg3)
-                    if varSprite3:
-                        variants[name1 + ":" + name2 + ":" + name3] = varSprite3
-                        registerVariant(dexnumber, name1 + ":" + name2 + ":" + name3)
+                    registerVariant(varSprite3, name1 + ":" + name2 + ":" + name3)
         
         # make the 3-deep nested structure
         d3 = dexnumber[:-2] + "XX"
@@ -77,49 +84,58 @@ with open(INFO_JSON_LOCATION, "r") as iJ:
         if not os.path.exists(newDirpath):
             os.makedirs(newDirpath)
 
-        toCopy = {}
-        def addVariant(key, suffix):
-            if key in variants:
-                if variants[key]:
-                    toCopy[f"{dexnumber}{suffix}.png"] = variants[key]
-                    unregisterVariant(dexnumber, key)
-            if f"{key}:Shiny" in variants:
-                if variants[f"{key}:Shiny"]:
-                    toCopy[f"{dexnumber}s{suffix}.png"] = variants[f"{key}:Shiny"]
-                    unregisterVariant(dexnumber, f"{key}:Shiny")
-            if f"{key}::Male" in variants:
-                if variants[f"{key}::Male"]:
-                    toCopy[f"{dexnumber}m{suffix}.png"] = variants[f"{key}::Male"]
-                    unregisterVariant(dexnumber, f"{key}::Male")
-            if f"{key}:Shiny:Male" in variants:
-                if variants[f"{key}:Shiny:Male"]:
-                    toCopy[f"{dexnumber}ms{suffix}.png"] = variants[f"{key}:Shiny:Male"]
-                    unregisterVariant(dexnumber, f"{key}:Shiny:Male")
-            if f"{key}::Female" in variants:
-                if variants[f"{key}::Female"]:
-                    toCopy[f"{dexnumber}f{suffix}.png"] = variants[f"{key}::Female"]
-                    unregisterVariant(dexnumber, f"{key}::Female")
-            if f"{key}:Shiny:Female" in variants:
-                if variants[f"{key}:Shiny:Female"]:
-                    toCopy[f"{dexnumber}fs{suffix}.png"] = variants[f"{key}:Shiny:Female"]
-                    unregisterVariant(dexnumber, f"{key}:Shiny:Female")
+        spritesheetSettings[dexnumber] = {
+            "name": name,
+            "dex": dexnumber,
+            "sheets": {}
+        }
 
-        addVariant("", "")
+        toCopy = {}
+        def _processSingleVariant(key, suffix):
+            if key in variants:
+                unregisterGlobalVariant(dexnumber, key)
+                if variants[key]:
+                    fileName = f"{dexnumber}{suffix}.png"
+                    toCopy[fileName] = variants[key]
+                    # load the sheet anim data
+                    foundryPath = "/".join(("modules", "pokemon-assets", "img", "pmd-overworld", d3, d2, fileName, ))
+                    folder, file = os.path.split(variants[key])
+                    metadataPath = os.path.join(folder, "AnimData.xml")
+                    frames = 4
+                    with open(metadataPath, "r") as mdF:
+                        metadata = ET.parse(mdF)
+                        root = metadata.getroot()
+                        for anim in root.find("Anims"):
+                            if anim.find("Name").text == file.replace("-Anim.png", ""):
+                                frames = len(anim.find("Durations"))
+                    spritesheetSettings[dexnumber]["sheets"][foundryPath] = {
+                        "sheetStyle": "pmd",
+                        "frames": frames,
+                    }
+        def processVariant(key, suffix):
+            _processSingleVariant(key, suffix)
+            _processSingleVariant(f"{key}::Male", f"m{suffix}")
+            _processSingleVariant(f"{key}::Female", f"f{suffix}")
+            _processSingleVariant(f"{key}:Shiny", f"s{suffix}")
+            _processSingleVariant(f"{key}:Shiny:Male", f"ms{suffix}")
+            _processSingleVariant(f"{key}:Shiny:Female", f"fs{suffix}")
+
+        processVariant("", "")
         # regional variants
-        addVariant("Alola", "_alolan")
-        addVariant("Galar", "_galarian")
-        addVariant("Hisui", "_hisuian")
-        addVariant("Paldea", "_paldean")
+        processVariant("Alola", "_alolan")
+        processVariant("Galar", "_galarian")
+        processVariant("Hisui", "_hisuian")
+        processVariant("Paldea", "_paldean")
 
         # megas
-        addVariant("Mega", "_MEGA")
-        addVariant("Mega_X", "_MEGA_X")
-        addVariant("Mega_Y", "_MEGA_Y")
+        processVariant("Mega", "_MEGA")
+        processVariant("Mega_X", "_MEGA_X")
+        processVariant("Mega_Y", "_MEGA_Y")
 
         # type formes
         for t in ("Bug", "Dark", "Dragon", "Electric", "Fairy", "Fighting", "Fire", "Flying", "Ghost", "Grass", "Ground", "Ice", "Poison", "Psychic", "Rock", "Steel", "Water"):
-            addVariant(t, f"_{t}")
-        addVariant("Question_Mark", "_Untyped")
+            processVariant(t, f"_{t}")
+        processVariant("Question_Mark", "_Untyped")
 
         # special formes
         for t in (
@@ -137,80 +153,79 @@ with open(INFO_JSON_LOCATION, "r") as iJ:
             "Ultra",
             "Hangry",
             "Hero",
-
             ):
-            addVariant(t, f"_{t}")
+            processVariant(t, f"_{t}")
 
         # special formes (all caps)
         for t in ("Shadow", ):
-            addVariant(t, f"_{t.upper()}")
+            processVariant(t, f"_{t.upper()}")
 
         # rotom formes
         for t in ("Fan", "Frost", "Heat", "Mow", "Wash", "Drone"):
-            addVariant(t, f"_{t}")
+            processVariant(t, f"_{t}")
 
         # weather formes
         for t in ("Sunny", "Rainy", "Snowy", "Sunshine"):
-            addVariant(t, f"_{t}")
+            processVariant(t, f"_{t}")
 
         # seasonal formes
         for s in ("Summer", "Autumn", "Winter"):
-            addVariant(s, f"_{s}")
+            processVariant(s, f"_{s}")
 
         # daytime formes
         for s in ("Midnight", "Dusk", ):
-            addVariant(s, f"_{s}")
+            processVariant(s, f"_{s}")
 
         # color formes
         for t in ("Blue", "Red", "White", "Yellow", "Orange", "Green", "Indigo", "Violet", "Purple" ):
-            addVariant(t, f"_{t}")
+            processVariant(t, f"_{t}")
         
         # spiky pichu
-        addVariant("Spiky", f"_spiky")
+        processVariant("Spiky", f"_spiky")
 
         # unown formes
         for c in (*"ABCDEFGHIJKLMNOPQRSTUVWXYZ", "Exclamation", "Question"):
-            addVariant(c, f"_{c}")
+            processVariant(c, f"_{c}")
 
         # wormadam formes
         for t in ("Trash", "Sand", ):
-            addVariant(t, f"_{t}")
+            processVariant(t, f"_{t}")
         
         # directional shellos formes
-        addVariant("East", f"_East")
-        addVariant("West", f"_West")
+        processVariant("East", f"_East")
+        processVariant("West", f"_West")
 
         # genesect formes
         for t in ("Douse", "Shock", "Burn", "Chill", ):
-            addVariant(t, f"_{t}")
+            processVariant(t, f"_{t}")
 
         # vivillion formes
         for t in ("Icy_Snow", "Polar", "Tundra", "Continental", "Garden", "Elegant", "Archipelago", "High_Plains", ):
             # there are so many more than are implemented......
             # and there are already a lot
-            addVariant(t, f"_{t.replace('_','')}")
+            processVariant(t, f"_{t.replace('_','')}")
 
         # froufrou haircut/outfit formes
         for t in ("Kabuki", ):
-            addVariant(t, f"_{t}")
+            processVariant(t, f"_{t}")
 
         # aegislash formes
-        addVariant("Blade", f"_Blade")
+        processVariant("Blade", f"_Blade")
 
         # size formes
         for t in ("Small", "Large", "Super" ):
-            addVariant(t, f"_{t}")
+            processVariant(t, f"_{t}")
 
         # zygarde formes
-        addVariant("10", "_10%")
-        addVariant("50", "_50%")
-        addVariant("Complete", "_Complete")
+        processVariant("10", "_10%")
+        processVariant("50", "_50%")
+        processVariant("Complete", "_Complete")
         
         # wishiwashi formes
-        addVariant("School", "_Schooling")
+        processVariant("School", "_Schooling")
 
         # mimiku formes
-        addVariant("Busted", "_Busted")
+        processVariant("Busted", "_Busted")
 
         # alcremie formes
         for t in (
@@ -277,26 +292,26 @@ with open(INFO_JSON_LOCATION, "r") as iJ:
             "Rainbow_Swirl_Flower_Sweet",
             "Rainbow_Swirl_Ribbon_Sweet",
             ):
-            addVariant(t, f"_{t.replace('_','')}")
+            processVariant(t, f"_{t.replace('_','')}")
 
-        addVariant("Rapid_Strike", "_Rapid")
-        addVariant("Bloodmoon", "_bloodmoon")
+        processVariant("Rapid_Strike", "_Rapid")
+        processVariant("Bloodmoon", "_bloodmoon")
 
         # tatsiguri formes
-        addVariant("Stretchy", "_Stretchy")
+        processVariant("Stretchy", "_Stretchy")
 
         # gimmighoul formes
-        addVariant("Roaming", "_Roaming")
+        processVariant("Roaming", "_Roaming")
 
         # never seen this guy, 1017
-        addVariant("Teal", "_Teal")
-        addVariant("Teal_Mask", "_TealOn")
-        addVariant("Wellspring", "_Wellspring")
-        addVariant("Wellspring_Mask", "_WellspringOn")
-        addVariant("Hearthflame", "_Hearthflame")
-        addVariant("Hearthflame_Mask", "_HearthflameOn")
-        addVariant("Cornerstone", "_Cornerstone")
-        addVariant("Cornerstone_Mask", "_CornerstoneOn")
+        processVariant("Teal", "_Teal")
+        processVariant("Teal_Mask", "_TealOn")
+        processVariant("Wellspring", "_Wellspring")
+        processVariant("Wellspring_Mask", "_WellspringOn")
+        processVariant("Hearthflame", "_Hearthflame")
+        processVariant("Hearthflame_Mask", "_HearthflameOn")
+        processVariant("Cornerstone", "_Cornerstone")
+        processVariant("Cornerstone_Mask", "_CornerstoneOn")
 
         for fileName, original in toCopy.items():
             newFilePath = os.path.join(newDirpath, fileName)
@@ -306,6 +321,9 @@ with open(INFO_JSON_LOCATION, "r") as iJ:
         # if dexnumber == "0530":
         #     break
     
+    with open(SPRITESHEET_SETTINGS_JSON, "w") as ssJ:
+        json.dump(spritesheetSettings, ssJ, indent=2)
+
     forbidden = (
         "Alternate",
         "Altcolor",
@@ -320,3 +338,6 @@ with open(INFO_JSON_LOCATION, "r") as iJ:
         if v and not [None for x in forbidden if (x in k)]:
             print(k, v)
 
+
+if __name__ == "__main__":
+    main()
