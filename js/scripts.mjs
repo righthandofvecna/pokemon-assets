@@ -328,6 +328,138 @@ async function HandleIce() {
   renderedToken._refreshRotation();
 }
 
+/**
+ * Flash a token momentarily and play the hit noise, indicating it's taken damage
+ * @param {*} actor the damaged actor
+ * @param {*} token the token to flash
+ * @param {boolean} lowHp if below 1/5 hp, we should play the alert
+ */
+async function IndicateDamage(actor, token, lowHp) {
+  const allowedLevels = [CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER, CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER];
+  const users = (()=>{
+    if (allowedLevels.includes(actor.ownership.default)) return game.users;
+    return game.users.filter(u=>u.isGM || allowedLevels.includes(actor.ownership[u.id] ?? CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE));
+  })().map(u=>u.id);
+
+  let sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
+  sequence = sequence.sound()
+      .file(`modules/pokemon-assets/audio/bgs/hit.mp3`);
+  if (!!token) {
+    sequence = sequence.animation()
+        .on(token)
+        .hide()
+        .duration(125)
+        .async()
+      .animation()
+        .on(token)
+        .show()
+        .duration(125)
+        .async()
+      .animation()
+        .on(token)
+        .hide()
+        .duration(125)
+        .async()
+      .animation()
+        .on(token)
+        .show()
+        .duration(125)
+        .async();
+  }
+  
+  // check if 1/5 hp or less
+  if (lowHp) {
+    sequence = sequence
+      .sound()
+        .file(`modules/pokemon-assets/audio/bgs/low-hp.mp3`)
+        // .audioChannel("interface")
+        .forUsers(users);
+  }
+
+  sequence.play()
+}
+
+
+/**
+ * Throw a Pokeball!
+ * @param {*} source the source token
+ * @param {*} target the targeted token
+ * @param {*} img the image of the pokeball to throw
+ * @param {*} hit whether the pokeball hit or not
+ * @param {*} shakes how many shakes the pokeball does
+ * @param {*} caught whether or not to play the caught or escaped animation
+ */
+async function ThrowPokeball(source, target, img, hit, shakes, caught) {
+  let sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
+  sequence = sequence
+    .sound()
+      .file(`modules/pokemon-assets/audio/bgs/pokeball-throw.mp3`)
+    .effect()
+      .file(img)
+      .atLocation(source)
+      .moveTowards(target)
+      .missed(!hit)
+      .duration(500)
+      .size(0.35, { gridUnits: true })
+      .randomSpriteRotation()
+      .rotateOut(360, 100)
+      .async()
+    .sound()
+      .file(`modules/pokemon-assets/audio/bgs/pokeball-drop.mp3`)
+      .async();
+
+  if (!hit) {
+    await sequence.play();
+    return;
+  }
+  
+  sequence = sequence
+    .effect()
+      .file(img)
+      .atLocation(target)
+      .duration(2000)
+      .size(0.35, { gridUnits: true })
+    .animation()
+      .on(target)
+      .hide()
+      .duration(2000)
+      .async();
+  for (let shake=0; shake < shakes; shake++) {
+    sequence = sequence
+      .sound()
+        .file(`modules/pokemon-assets/audio/bgs/pokeball-shake.mp3`)
+      .effect()
+        .file(img)
+        .atLocation(target)
+        .duration(2000)
+        .size(0.35, { gridUnits: true })
+        .rotateIn(45, 2000, { ease: "easeOutElastic", delay: 0 })
+        .async();
+  }
+
+  if (caught) {
+    sequence = sequence
+      .sound()
+        .file(`modules/pokemon-assets/audio/bgs/pokeball-caught.mp3`)
+      .effect()
+        .file(img)
+        .tint("#555555")
+        .atLocation(target)
+        .duration(2000)
+        .size(0.35, { gridUnits: true })
+        .async();
+  } else {
+    sequence = sequence
+      .sound()
+        .file(`modules/pokemon-assets/audio/bgs/pokeball-escape.mp3`)
+      .animation()
+        .on(target)
+        .show();
+  }
+  
+  await sequence.play();
+}
+
 class PainterTemplate extends MeasuredTemplate {
   #initialLayer;
   #events;
@@ -473,6 +605,8 @@ export function register() {
     SwitchScenes,
     HandleIce,
     HandleJumps,
+    ThrowPokeball,
+    IndicateDamage,
     UserPaintArea,
   };
 }
