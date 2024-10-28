@@ -4,6 +4,7 @@ export class SpritesheetGenerator {
 
   static SHEET_STYLES = {
     trainer: "4-directions (Trainer Overworld Style)",
+    trainer3: "4-directions (Reduced Trainer Overworld Style)",
     pkmn: "4-directions (Pokemon Overworld Style)",
     pmd: "8-direction (Mystery Dungeon Style)",
   };
@@ -29,6 +30,7 @@ export class SpritesheetGenerator {
   }
 
   static generateKey(src, mode, frames) {
+    if (mode === "trainer3") frames = 3;
     return `${mode}-${frames}:${src}`;
   }
 
@@ -39,6 +41,11 @@ export class SpritesheetGenerator {
 
       // remove the unloaded assets from the cache
       this.spritesheets[sheetKey]._frameKeys.forEach(t=>PIXI.Texture.removeFromCache(t));
+    }
+
+    if (mode === "trainer3") {
+      // force this to be 3 for trainer3
+      frames = 3;
     }
 
     // build up spritesheet slicing info
@@ -85,6 +92,41 @@ export class SpritesheetGenerator {
             spriteSourceSize: { x: 0, y: 0, w: frameWidth, h: frameHeight },
           }
         }
+      }
+    } else if (mode === "trainer3") {
+      for (let c=0; c<frames; c++) {
+        for (let r=0; r<4; r++) {
+          const direction = (()=>{
+            switch (r) {
+              case 0: return "down";
+              case 1: return "up";
+              case 2: return "right";
+              case 3: return "left";
+            }
+          })();
+          const key = `${src}-${direction}${c}`;
+
+          spritesheetSlicingInfo.animations[direction].push(key);
+          // handle the fact that this sheet doesn't have diagonals
+          if (direction === "down") {
+            spritesheetSlicingInfo.animations.downleft.push(key);
+            spritesheetSlicingInfo.animations.downright.push(key);
+          } else if (direction === "up") {
+            spritesheetSlicingInfo.animations.upleft.push(key);
+            spritesheetSlicingInfo.animations.upright.push(key);
+          }
+
+          spritesheetSlicingInfo.frames[key] = {
+            frame: { x: frameWidth * c, y: frameHeight * r, w: frameWidth, h: frameHeight },
+            sourceSize: { w: frameWidth, h: frameHeight },
+            spriteSourceSize: { x: 0, y: 0, w: frameWidth, h: frameHeight },
+          }
+        }
+      }
+
+      // duplicate the first texture of each row
+      for (const [k, anim] of Object.entries(spritesheetSlicingInfo.animations)) {
+        spritesheetSlicingInfo.animations[k] = [anim[0], anim[1], anim[0], anim[2]];
       }
     } else {
       for (let c=0; c<frames; c++) {
