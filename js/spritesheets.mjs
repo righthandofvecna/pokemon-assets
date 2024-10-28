@@ -19,15 +19,13 @@ export class SpritesheetGenerator {
     upright:   { x:  1, y: -1 },
   };
 
-  static CONFIGURED_SHEET_SETTINGS = { };
+  static CONFIGURED_SHEET_SETTINGS = SPRITESHEET_MAP;
 
 
   spritesheets;
 
   constructor () {
     this.spritesheets = {};
-    // generate the configurations
-    SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS = Object.values(SPRITESHEET_MAP).reduce((a, obj)=>({...a, ...obj.sheets}), SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS);
   }
 
   static generateKey(src, mode, frames) {

@@ -47,7 +47,9 @@ def main():
     with open(INFO_JSON_LOCATION, "r") as iJ:
         data = json.load(iJ)
 
-    spritesheetSettings = {}
+    with open(SPRITESHEET_SETTINGS_JS, "r") as ssjs:
+        ssjs.readline()
+        spritesheetSettings = json.load(ssjs)
 
     for dexnumber in data.keys():
         mainSprite = getAnimFileFromFilesystem(dexnumber)
@@ -84,12 +86,6 @@ def main():
         if not os.path.exists(newDirpath):
             os.makedirs(newDirpath)
 
-        spritesheetSettings[dexnumber] = {
-            "name": name,
-            "dex": dexnumber,
-            "sheets": {}
-        }
-
         toCopy = {}
         def _processSingleVariant(key, suffix):
             if key in variants:
@@ -108,7 +104,7 @@ def main():
                         for anim in root.find("Anims"):
                             if anim.find("Name").text == file.replace("-Anim.png", ""):
                                 frames = len(anim.find("Durations"))
-                    spritesheetSettings[dexnumber]["sheets"][foundryPath] = {
+                    spritesheetSettings[foundryPath] = {
                         "sheetstyle": "pmd",
                         "animationframes": frames,
                     }
@@ -323,7 +319,7 @@ def main():
     
     with open(SPRITESHEET_SETTINGS_JS, "w") as ssJ:
         ssJ.write("export default\n")
-        json.dump(spritesheetSettings, ssJ, indent=2)
+        json.dump(spritesheetSettings, ssJ, indent=2, sort_keys=True)
 
     forbidden = (
         "Alternate",
