@@ -269,17 +269,30 @@ async function HandleJumps() {
 
   const renderedToken = token.object;
 
+  const unlock = token.lockMovement();
   // wait until the token has finished animating
   await renderedToken.allAnimationsPromise;
 
   // check if the token is still inside the jump area
-  if (!token.regions.has(regionDocument)) return;
-  switch (direction) {
-    case "down": return await token.update({ y: token.y + sizeY});
-    case "left": return await token.update({ x: token.x - sizeX});
-    case "right": return await token.update({ x: token.x + sizeX});
-    case "up": return await token.update({ y: token.y - sizeY});
+  if (!token.regions.has(regionDocument)) {
+    unlock();
+    return;
   }
+  switch (direction) {
+    case "down": 
+      await token.update({ y: token.y + sizeY});
+      break;
+    case "left":
+      await token.update({ x: token.x - sizeX});
+      break;
+    case "right":
+      await token.update({ x: token.x + sizeX});
+      break;
+    case "up":
+      await token.update({ y: token.y - sizeY});
+      break;
+  }
+  unlock();
 }
 
 /**
@@ -303,6 +316,7 @@ async function HandleIce() {
 
   if (token._sliding ?? false) return;
   token._sliding = true;
+  const unlock = token.lockMovement();
 
   const { sizeX, sizeY } = scene.grid;
   const { x: originalX, y: originalY } = token;
@@ -325,6 +339,7 @@ async function HandleIce() {
   }
   await renderedToken.allAnimationsPromise;
   token._sliding = false;
+  unlock();
   renderedToken._refreshRotation();
 }
 

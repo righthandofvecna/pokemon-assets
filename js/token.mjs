@@ -283,9 +283,21 @@ function OnCreateCombatant(combatant) {
 
 
 function PlaceablesLayer_getMovableObjects(wrapped, ids, includeLocked) {
-  return wrapped(ids, includeLocked).filter(t=>includeLocked || !(t?.document?._sliding ?? false));
+  return wrapped(ids, includeLocked).filter(t=>includeLocked || (t?.document?.movable ?? true));
 }
 
+
+
+function TokenDocument_lockMovement() {
+  const lockId = foundry.utils.randomID();
+  if (this._movementLocks === undefined)
+    this._movementLocks = new Set();
+  this._movementLocks.add(lockId);
+  const thisToken = this;
+  return function () {
+    thisToken._movementLocks.delete(lockId);
+  };
+}
 
 export function register() {
   class TilesetToken extends CONFIG.Token.objectClass {
@@ -636,6 +648,13 @@ export function register() {
   };
 
   CONFIG.Token.objectClass = TilesetToken;
+
+  Object.defineProperty(CONFIG.Token.documentClass.prototype, "movable", {
+    get() {
+      return (this._movementLocks?.size ?? 0) === 0;
+    }
+  });
+  CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
 
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
 
