@@ -1,4 +1,5 @@
 import { early_isGM, sleep } from "../utils.mjs";
+import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 
 /**
  * A Chat Message listener, that should only be run on the GM's client
@@ -65,8 +66,68 @@ async function OnCreateChatMessage(message) {
 }
 
 
+/**
+ * Whenever an actor would be created, try to populate its sprite
+ * @param {*} actor
+ * @returns 
+ */
+function OnPreCreateActor(actor) {
+  // console.log("OnPreCreateActor", ...[...arguments].map(a=>foundry.utils.deepClone(a)));
+  if (actor.type !== "pokemon") return;
+  const species = actor.system.species;
+  const slug = species.slug;
+  const dexNum = species.number;
+  const regionalVariant = (()=>{
+    if (slug.startsWith("alolan-")) return "_alolan";
+    if (slug.startsWith("galarian-")) return "_galarian";
+    if (slug.startsWith("hisuian-")) return "_hisuian";
+    if (slug.startsWith("paldean-")) return "_paldean";
+    return "";
+  })();
+  const shiny = actor.system.shiny ? "s" : "";
+  const gender = (()=>{
+    if (actor.system.gender == "male") return "m";
+    if (actor.system.gender == "female") return "f";
+    return "";
+  })();
+  const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
+  const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
+  const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
+  const dexString = `${dexNum}`.padStart(4, "0");
+
+  // check if everything is populated!
+  const src = (()=>{
+    for (const testSrc of [
+      `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
+      `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
+      `${pmdPath}${dexString}${gender}${regionalVariant}.png`,
+      `${pmdPath}${dexString}${regionalVariant}.png`,
+      `${pmdPath}${dexString}.png`,
+    ]) {
+      console.log("testing", testSrc);
+      if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
+        return testSrc;
+      }
+    }
+    return null;
+  })();
+
+  if (!src) return;
+  
+  const updates = {
+    "prototypeToken.texture.src": src,
+    "prototypeToken.flags.pokemon-assets": {
+      spritesheet: true,
+      ...SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src],
+    }
+  };
+  actor.updateSource(updates);
+}
+
+
 export function register() {
   if (early_isGM) {
     Hooks.on("createChatMessage", OnCreateChatMessage);
   }
+  Hooks.on("preCreateActor", OnPreCreateActor);
 }
