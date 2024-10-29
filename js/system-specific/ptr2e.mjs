@@ -104,7 +104,6 @@ function OnPreCreateActor(actor) {
       `${pmdPath}${dexString}${regionalVariant}.png`,
       `${pmdPath}${dexString}.png`,
     ]) {
-      console.log("testing", testSrc);
       if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
         return testSrc;
       }
