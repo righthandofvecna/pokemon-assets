@@ -1,4 +1,5 @@
 import { early_isGM, sleep } from "../utils.mjs";
+import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 
 /**
  * A Chat Message listener, that should only be run on the GM's client
@@ -62,8 +63,92 @@ async function OnCreateChatMessage(message) {
 }
 
 
+function _getPrototypeTokenUpdates(actor, species) {
+  const slug = species.slug;
+  const dexNum = species.system.number;
+  const regionalVariant = (()=>{
+    if (slug.endsWith("-alolan")) return "_alolan";
+    if (slug.endsWith("-galarian")) return "_galarian";
+    if (slug.endsWith("-hisuian")) return "_hisuian";
+    if (slug.endsWith("-paldean")) return "_paldean";
+    return "";
+  })();
+  const shiny = actor.system.shiny ? "s" : "";
+  const gender = (()=>{
+    if (actor.system.gender == "male") return "m";
+    if (actor.system.gender == "female") return "f";
+    return "";
+  })();
+  const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
+  const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
+  const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
+  const dexString = `${dexNum}`.padStart(4, "0");
+
+  // check if everything is populated!
+  const src = (()=>{
+    for (const testSrc of [
+      `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
+      `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
+      `${pmdPath}${dexString}${gender}${regionalVariant}.png`,
+      `${pmdPath}${dexString}${regionalVariant}.png`,
+      `${pmdPath}${dexString}.png`,
+    ]) {
+      console.log("testing", testSrc);
+      if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
+        return testSrc;
+      }
+    }
+    return null;
+  })();
+
+  if (!src) return;
+  
+  const updates = {
+    "prototypeToken.texture.src": src,
+    "prototypeToken.flags.pokemon-assets": {
+      spritesheet: true,
+      ...SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src],
+    }
+  };
+  return updates;
+}
+
+
+/**
+ * Whenever an actor would be created, try to populate its sprite
+ * @param {*} actor
+ * @returns 
+ */
+function OnPreCreateActor(actor) {
+  if (actor.type !== "pokemon") return;
+  const species = actor.items.find(i=>i.type === "species");
+  if (!species) return;
+
+  const updates = _getPrototypeTokenUpdates(actor, species);
+  actor.updateSource(updates);
+}
+
+
+/**
+ * Update the token source if we're updating a pokemon's species
+ * @param {*} item 
+ * @param {*} metadata 
+ * @param {*} userId 
+ */
+function OnCreateItem(species, metadata, userId) {
+  if (game.user.id !== userId) return;
+  if (species.type !== "species") return;
+  const actor = species.parent;
+  if (!actor) return;
+
+  const updates = _getPrototypeTokenUpdates(actor, species);
+  actor.update(updates);
+}
+
 export function register() {
   if (early_isGM) {
     Hooks.on("createChatMessage", OnCreateChatMessage);
   }
+  Hooks.on("preCreateActor", OnPreCreateActor);
+  Hooks.on("createItem", OnCreateItem);
 }

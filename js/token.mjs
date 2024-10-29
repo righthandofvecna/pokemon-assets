@@ -64,10 +64,11 @@ function OnRenderTokenConfig(config, html, context) {
         .prop("hidden", false)
         .prop("readonly", false)
         .val(defaultSettings.sheetstyle);
-      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).toggle(defaultSettings.sheetstyle === "pmd");
+      let hideAnimationFrames = defaultSettings.sheetstyle === "trainer" || defaultSettings.sheetstyle === "trainer3";
+      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).toggle(!hideAnimationFrames);
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
-        .prop("hidden", defaultSettings.sheetstyle === "trainer")
-        .prop("readonly", defaultSettings.sheetstyle === "trainer")
+        .prop("hidden", hideAnimationFrames)
+        .prop("readonly", hideAnimationFrames)
         .val(defaultSettings.animationframes);
     } else {
       $(html).find(".spritesheet-config")
@@ -76,9 +77,10 @@ function OnRenderTokenConfig(config, html, context) {
         .prop("hidden", false)
         .prop("readonly", false)
         .val(defaultSettings.sheetstyle);
+      let hideAnimationFrames = defaultSettings.sheetstyle === "trainer" || defaultSettings.sheetstyle === "trainer3";
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
-        .prop("hidden", defaultSettings.sheetstyle === "trainer")
-        .prop("readonly", defaultSettings.sheetstyle === "trainer")
+        .prop("hidden", hideAnimationFrames)
+        .prop("readonly", hideAnimationFrames)
         .val(defaultSettings.animationframes);
     }
   }
@@ -107,10 +109,11 @@ function OnRenderTokenConfig(config, html, context) {
     const newAnimationFrames = parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || 4;
 
     const ratio = (height / width) * (newAnimationFrames / directions);
+    const scale = form.querySelector("input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
       switch (newSheetStyle) {
         case "pmd": return 0.5;
-        default: return 1.02 + (0.5 / (-ratio));
+        default: return 1.02 + (0.5 / (-ratio * scale));
       }
     })();
 
@@ -163,6 +166,9 @@ function OnRenderTokenConfig(config, html, context) {
     if (newSheetStyle === "trainer") {
       $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(4);
+    } else if (newSheetStyle === "trainer3") {
+      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
+      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(3);
     } else if (newSheetStyle === "pkmn") {
       $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(2);
@@ -176,6 +182,13 @@ function OnRenderTokenConfig(config, html, context) {
   });
 
   $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", async function () {
+    const texture = await getTexture(form);
+    await updateAnchors(form, texture);
+  });
+
+  // listen for the "scale" value
+  $(html).find("[name='scale']").on("change", async function () {
+    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) return;
     const texture = await getTexture(form);
     await updateAnchors(form, texture);
   });
@@ -449,7 +462,7 @@ export function register() {
 
     _canDrag() {
       const scene = this?.document?.parent;
-      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") || (scene.getFlag("pokemon-assets", "outOfCombat") && this.inCombat)))
+      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && this.inCombat)))
         return false;
       return super._canDrag();
     }
