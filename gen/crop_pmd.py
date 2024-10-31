@@ -138,7 +138,7 @@ for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")
                         row * newFrameHeight + 1
                     ))
 
-        result = result.convert("P")
+        result = result.convert("P", palette=Image.ADAPTIVE)
         result.save(imgPath, optimize=True, lossless=True)
 
 

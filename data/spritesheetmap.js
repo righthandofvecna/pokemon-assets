@@ -529,19 +529,23 @@ export default
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/00XX/005X/0051.png": {
-    "animationframes": 3,
+    "animationframes": 4,
+    "separateidle": true,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/00XX/005X/0051_alolan.png": {
-    "animationframes": 3,
+    "animationframes": 4,
+    "separateidle": true,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/00XX/005X/0051s.png": {
-    "animationframes": 3,
+    "animationframes": 4,
+    "separateidle": true,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/00XX/005X/0051s_alolan.png": {
-    "animationframes": 3,
+    "animationframes": 4,
+    "separateidle": true,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/00XX/005X/0052.png": {
