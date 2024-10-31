@@ -31,7 +31,7 @@ for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")
         frameHeight = int(height / 8)
 
         if frameWidth * animationFrames != width:
-            print(file, f"WOAH OFF BY ONE??? {frameWidth=} * {animationFrames=} ({frameWidth * animationFrames} != {width=})")
+            print(f"{file}'s settings require attention! {frameWidth=} * {animationFrames=} ({frameWidth * animationFrames} != {width=})")
             exit(1)
 
         px = img.load()
