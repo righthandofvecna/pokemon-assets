@@ -10,11 +10,13 @@ with open(SPRITESHEET_SETTINGS_JS, "r") as ssjs:
 
 toCheck = []
 
+debug = False
+
 gotThere = False
 for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")):
     for file in filenames:
         imgPath = os.path.join(dirpath, file)
-        if not gotThere and imgPath[imgPath.rindex("\\")+1:] != "0000.png":
+        if imgPath[imgPath.rindex("\\")+1:] != "0005.png":
             continue
         gotThere = True
 
@@ -22,6 +24,7 @@ for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")
         animationFrames = sss['animationframes']
 
         img = Image.open(imgPath)
+        palleteized = img.getbands() == ('P', )
         if img.getbands() != ('R', 'G', 'B', 'A'):
             print(imgPath, img.getbands())
             img = img.convert("RGBA")
@@ -82,32 +85,54 @@ for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")
                     break
             if not sweepClear:
                 break
-        
-        horizontalPadding = horizontalPadding
-        topPadding = topPadding
-        bottomPadding = bottomPadding
+
+        # horizontalPadding = horizontalPadding - 1
+        # topPadding = topPadding - 1
+        # bottomPadding = bottomPadding - 1
         print(file, "horizontalPadding", horizontalPadding, "topPadding",  topPadding, "bottomPadding",  bottomPadding)
 
         newFrameWidth = frameWidth + 2 - (horizontalPadding * 2)
-        newFrameHeight = frameHeight + 2 - topPadding - bottomPadding
+        newFrameHeight = frameHeight + 2 - (topPadding + bottomPadding)
 
         newImgWidth = newFrameWidth * animationFrames
         newImgHeight = newFrameHeight * 8
 
-        if newImgWidth == width and newImgHeight == height:
+        if newImgWidth == width and newImgHeight == height and palleteized:
             continue
 
-        if horizontalPadding == 0:
+        if debug:
+            print(f"{file} :: {newImgWidth=} {width=} \t {newImgHeight=} {height=} \t {palleteized=}")
+            print(f"{newFrameWidth=} x {newFrameHeight=}")
+            print(f"{(frameWidth - max(0, horizontalPadding) - 1) - (max(0, horizontalPadding))=}")
+            # paint the failed sweeps magenta
+            for frame in range(animationFrames):
+                frameLeftX = frame*frameWidth + horizontalPadding
+                frameRightX = (frame + 1)*frameWidth - horizontalPadding - 1
+                for verticalSweep in range(height):
+                    if px[frameLeftX, verticalSweep][3] != 255:
+                        px[frameLeftX, verticalSweep] = (255, 0, 255, min(255, px[frameLeftX, verticalSweep][3]+80))
+                    if px[frameRightX, verticalSweep][3] != 255:
+                        px[frameRightX, verticalSweep] = (255, 0, 255, min(255, px[frameRightX, verticalSweep][3]+80))
+            for row in range(8):
+                rowTop = row * frameHeight + topPadding
+                rowBottom = (row + 1) * frameHeight - bottomPadding - 1
+                for horizontalSweep in range(width):
+                    if px[horizontalSweep, rowTop][3] != 255:
+                        px[horizontalSweep, rowTop] = (255, 0, 255, min(255, px[horizontalSweep, rowTop][3]+80))
+                    if px[horizontalSweep, rowBottom][3] != 255:
+                        px[horizontalSweep, rowBottom] = (255, 0, 255, min(255, px[horizontalSweep, rowBottom][3]+80))
+
+        if horizontalPadding < 0 or topPadding < 0 or bottomPadding < 0:
             toCheck.append(file)
 
         result = Image.new("RGBA", (newImgWidth, newImgHeight), (0,0,0,0))
         for frame in range(animationFrames):
             for row in range(8):
                 result.paste(img.crop((
-                        frame * frameWidth + horizontalPadding,
-                        row * frameHeight + topPadding,
-                        (frame + 1) * frameWidth - horizontalPadding - 1,
-                        (row + 1) * frameHeight - bottomPadding - 1,
+                        frame * frameWidth + max(0, horizontalPadding),
+                        row * frameHeight + max(0, topPadding),
+                        (frame + 1) * frameWidth - max(0, horizontalPadding),
+                        (row + 1) * frameHeight - max(0, bottomPadding),
                     )), (
                         frame * newFrameWidth + 1,
                         row * newFrameHeight + 1
