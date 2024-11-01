@@ -5,6 +5,10 @@ export function early_isGM() {
 	return level >= gmLevel;
 }
 
+export function isTheGM() {
+	return game.users.find(u=>u.active && u.isGM)?.id === game.user.id;
+}
+
 export async function sleep(ms) {
 	return new Promise((resolve)=>setTimeout(resolve, ms))
 }

@@ -17,15 +17,18 @@ function OnRenderTokenConfig(config, html, context) {
   const form = $(html).find("form").get(0);
 
   let src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
-  let defaultSettings = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {
+  let defaultSettings =  {
     sheetstyle: "trainer",
     animationframes: 4,
+    separateidle: false,
+    ...(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {}),
   };
 
   const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
   const isSpritesheet = config.token.getFlag("pokemon-assets", "spritesheet") ?? isPredefined;
   const sheetStyle = config.token.getFlag("pokemon-assets", "sheetstyle") ?? defaultSettings.sheetstyle;
   const animationFrames = config.token.getFlag("pokemon-assets", "animationframes") ?? defaultSettings.animationframes;
+  const hasSeparateIdle = config.token.getFlag("pokemon-assets", "separateidle") ?? defaultSettings.separateidle;
 
   $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${isSpritesheet ? "checked" : ""}>`);
   // add control for what size
@@ -33,21 +36,38 @@ function OnRenderTokenConfig(config, html, context) {
     return allOptions + `<option value="${val}" ${sheetStyle === val ? "selected" : ""}>${label}</option>`;
   }, "");
   $(html).find("[name='texture.src']").closest(".form-group").after(`
-    <div class="form-group spritesheet-config" ${!isPredefined && isSpritesheet ? '' : 'style="display: none"'}>
-      <label>Sheet Style</label>
-      <div class="form-fields">
-        <select name="flags.pokemon-assets.sheetstyle">${sheetSizeOptions}</select>
-        <label for="flags.pokemon-assets.animationframes" ${sheetStyle === "pmd" ? '' : 'style="display: none"'}>Frames</label>
-        <input type="number" name="flags.pokemon-assets.animationframes" value="${animationFrames}" ${sheetStyle === "pmd" ? '' : 'hidden readonly'}>
+    <div class="spritesheet-config" ${!isPredefined && isSpritesheet ? '' : 'style="display: none"'}>
+      <div class="form-group sheet-style">
+        <label>Sheet Style</label>
+        <div class="form-fields">
+          <select name="flags.pokemon-assets.sheetstyle">${sheetSizeOptions}</select>
+        </div>
+        <p class="hint">What the sheet's layout style is.</p>
+      </div>
+      <div class="form-group sheet-frames" ${sheetStyle === "pmd" ? '' : 'style="display: none"'}>
+        <label>Sheet Frames</label>
+        <div class="form-fields">
+          <input type="number" name="flags.pokemon-assets.animationframes" value="${animationFrames}" ${sheetStyle === "pmd" ? '' : 'hidden readonly'}>
+        </div>
+        <p class="hint">How many frames per animation this spritesheet has.</p>
+      </div>
+      <div class="form-group sheet-idle">
+        <label for="flags.pokemon-assets.separateidle">Separate Idle Frame</label>
+        <div class="form-fields">
+          <input type="checkbox" name="flags.pokemon-assets.separateidle" ${hasSeparateIdle ? "checked" : ""}>
+        </div>
+        <p class="hint">Whether or not the first frame of each direction on the sheet should be included when playing the walking animation.</p>
       </div>
     </div>`);
   
   const updateDefaults = async function () {
     src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
     const predefined = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src]
-    defaultSettings = predefined ?? {
+    defaultSettings = {
       sheetstyle: "trainer",
       animationframes: 4,
+      separateidle: false,
+      ...(predefined ?? {}),
     };
 
     if (predefined) {
@@ -55,33 +75,53 @@ function OnRenderTokenConfig(config, html, context) {
       $(html).find(`[name="flags.pokemon-assets.spritesheet"]`).prop("checked", true);
       $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`).prop("hidden", true).prop("readonly", true).val(predefined.sheetstyle);
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(predefined.animationframes);
+      $(html).find(`[name="flags.pokemon-assets.separateidle"]`).prop("hidden", true).prop("readonly", true).prop("checked", predefined.separateidle);
 
       const texture = await getTexture(form);
       await updateAnchors(form, texture);
     } else if (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) {
       $(html).find(".spritesheet-config").show();
+      
+      $(html).find(".spritesheet-config .sheet-style").show();
       $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`)
         .prop("hidden", false)
         .prop("readonly", false)
         .val(defaultSettings.sheetstyle);
+      
       let hideAnimationFrames = defaultSettings.sheetstyle === "trainer" || defaultSettings.sheetstyle === "trainer3";
-      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).toggle(!hideAnimationFrames);
+      $(html).find(".spritesheet-config .sheet-frames").toggle(!hideAnimationFrames);
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
         .prop("hidden", hideAnimationFrames)
         .prop("readonly", hideAnimationFrames)
         .val(defaultSettings.animationframes);
+      
+      $(html).find(".spritesheet-config .sheet-idle").show();
+      $(html).find(`[name="flags.pokemon-assets.separateidle"]`)
+        .prop("hidden", false)
+        .prop("readonly", false)
+        .prop("checked", predefined.separateidle);
     } else {
       $(html).find(".spritesheet-config")
         .hide();
+      
+      $(html).find(".spritesheet-config .sheet-style").show();
       $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`)
         .prop("hidden", false)
         .prop("readonly", false)
         .val(defaultSettings.sheetstyle);
+      
       let hideAnimationFrames = defaultSettings.sheetstyle === "trainer" || defaultSettings.sheetstyle === "trainer3";
+      $(html).find(".spritesheet-config .sheet-frames").toggle(!hideAnimationFrames);
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
         .prop("hidden", hideAnimationFrames)
         .prop("readonly", hideAnimationFrames)
         .val(defaultSettings.animationframes);
+      
+      $(html).find(".spritesheet-config .sheet-idle").show();
+      $(html).find(`[name="flags.pokemon-assets.separateidle"]`)
+        .prop("hidden", false)
+        .prop("readonly", false)
+        .prop("checked", predefined.separateidle);
     }
   }
 
@@ -164,18 +204,18 @@ function OnRenderTokenConfig(config, html, context) {
   $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", async function () {
     const newSheetStyle = $(this).get(0).value ?? "trainer";
     if (newSheetStyle === "trainer") {
-      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
+      $(html).find(`.spritesheet-config .sheet-frames`).hide();
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(4);
     } else if (newSheetStyle === "trainer3") {
-      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
+      $(html).find(`.spritesheet-config .sheet-frames`).hide();
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(3);
     } else if (newSheetStyle === "pkmn") {
-      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).hide();
+      $(html).find(`.spritesheet-config .sheet-frames`).hide();
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(2);
     } else if (newSheetStyle === "pmd") {
-      $(html).find(`[for="flags.pokemon-assets.animationframes"]`).show();
+      $(html).find(`.spritesheet-config .sheet-frames`).show();
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", false).prop("readonly", false).val(4);
-      // TODO: infer the right number for this?
+      // TODO: infer a sensible number for this?
     }
     const texture = await getTexture(form);
     await updateAnchors(form, texture);
@@ -194,6 +234,16 @@ function OnRenderTokenConfig(config, html, context) {
   });
 }
 
+
+/**
+ * When a token's spritesheet settings have been updated, re-render the token immediately
+ * Otherwise, it will take a scene/browser reload to display the changed settings.
+ * @param {*} token 
+ * @param {*} changes 
+ * @param {*} metadata 
+ * @param {*} user 
+ * @returns 
+ */
 function OnUpdateToken(token, changes, metadata, user) {
   if (!changes?.texture?.src &&
     !changes?.flags?.["pokemon-assets"]?.sheetstyles &&
@@ -283,9 +333,21 @@ function OnCreateCombatant(combatant) {
 
 
 function PlaceablesLayer_getMovableObjects(wrapped, ids, includeLocked) {
-  return wrapped(ids, includeLocked).filter(t=>includeLocked || !(t?.document?._sliding ?? false));
+  return wrapped(ids, includeLocked).filter(t=>includeLocked || (t?.document?.movable ?? true));
 }
 
+
+
+function TokenDocument_lockMovement() {
+  const lockId = foundry.utils.randomID();
+  if (this._movementLocks === undefined)
+    this._movementLocks = new Set();
+  this._movementLocks.add(lockId);
+  const thisToken = this;
+  return function () {
+    thisToken._movementLocks.delete(lockId);
+  };
+}
 
 export function register() {
   class TilesetToken extends CONFIG.Token.objectClass {
@@ -325,6 +387,10 @@ export function register() {
 
     get animationFrames() {
       return this.document.getFlag("pokemon-assets", "animationframes") ?? 4;
+    }
+
+    get seperateIdle() {
+      return this.document.getFlag("pokemon-assets", "separateidle") ?? false;
     }
 
     get allAnimationsPromise() {
@@ -608,7 +674,8 @@ export function register() {
           const absDx = Math.abs(rdx / animStepX);
           const absDy = Math.abs(rdy / animStepY);
           const distDiagApprox = Math.max(absDx, absDy) + ( Math.min(absDx, absDy) / 2 ) + ( ox / animStepX) + ( oy / animStepY );
-          this.#index = ~~( distDiagApprox % (this.#textures[this.#direction].length));
+          const idxOffset = this.seperateIdle ? 1 : 0;
+          this.#index = idxOffset + ~~( distDiagApprox % (this.#textures[this.#direction].length - idxOffset));
         }
 
         // don't animate rotation while moving
@@ -636,6 +703,13 @@ export function register() {
   };
 
   CONFIG.Token.objectClass = TilesetToken;
+
+  Object.defineProperty(CONFIG.Token.documentClass.prototype, "movable", {
+    get() {
+      return (this._movementLocks?.size ?? 0) === 0;
+    }
+  });
+  CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
 
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
 

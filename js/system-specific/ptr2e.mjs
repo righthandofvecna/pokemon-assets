@@ -1,4 +1,4 @@
-import { early_isGM, sleep } from "../utils.mjs";
+import { early_isGM, isTheGM, sleep } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 
 /**
@@ -7,7 +7,9 @@ import { SpritesheetGenerator } from "../spritesheets.mjs";
  * @returns 
  */
 async function OnCreateChatMessage(message) {
-
+  // early return if you are not the "first" logged in GM
+  if (!isTheGM()) return;
+  
   //
   // Handle Capture Animations
   //
@@ -124,9 +126,112 @@ function OnPreCreateActor(actor) {
 }
 
 
+/* ------------------------------------------------------------------------- */
+/*                            PTR2e Region Controls                          */
+/* ------------------------------------------------------------------------- */
+
+
+/**
+ * Pokemon Center config for PTR2e
+ * @param {*} regionConfig 
+ */
+async function PokemonCenter(regionConfig) {
+  const currentScene = regionConfig?.options?.document?.parent;
+
+  const allTokensSelect = currentScene.tokens.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b);
+
+  const tokenUuid = await new Promise(async (resolve)=>{
+    Dialog.prompt({
+      title: 'Select Nurse Token',
+      content: `
+          <div class="form-group">
+            <label for="token">Nurse Token</label>
+            <select name="token">
+              ${allTokensSelect}
+            </select>
+          </div>
+      `,
+      callback: (html) => resolve(html.find('[name="token"]')?.val() ?? null),
+    }).catch(()=>{
+      resolve(null);
+    });
+  });
+
+  if (!tokenUuid) return;
+
+  // create the document
+  const pokemonCenterData = {
+    type: "executeScript",
+    name: "Pokemon Center",
+    system: {
+      events: ["tokenMoveIn"],
+      source: `if (arguments.length < 4) return;
+
+// only for the triggering user
+const regionTrigger = arguments[3];
+if (regionTrigger.user !== game.user) return;
+
+
+const toHeal = game.actors.filter(a=>a.isOwner);
+
+const heal = async function () {
+  for (const actor of toHeal) {
+    if (!actor?.heal) continue;
+    await actor.heal({
+      fractionToHeal: 1,
+      removeWeary: true,
+      removeExposed: true,
+      removeAllStacks: true,
+    });
+  }
+};
+
+await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonCenter(await fromUuid("${tokenUuid}"), heal);`
+    }
+  };
+  await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [pokemonCenterData]);
+  return;
+}
+
+
+/**
+ * Pokemon Computer config
+ * @param {*} regionConfig 
+ */
+async function PokemonComputer(regionConfig) {
+  // create the document
+  const pokemonComputerData = {
+    type: "executeScript",
+    name: "Pokemon Computer",
+    system: {
+      events: ["tokenMoveIn"],
+      source: `await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...arguments);`,
+    }
+  };
+  await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [pokemonComputerData]);
+  return;
+}
+
+
+
+
 export function register() {
   if (early_isGM) {
     Hooks.on("createChatMessage", OnCreateChatMessage);
   }
   Hooks.on("preCreateActor", OnPreCreateActor);
+
+  const module = game.modules.get("pokemon-assets");
+  module.api ??= {};
+  module.api.controls = {
+    ...(module.api.controls ?? {}),
+    "pokemonCenter": {
+      "label": "Pokemon Center",
+      "callback": PokemonCenter,
+    },
+    "pokemonComputer": {
+      "label": "Pokemon Computer",
+      "callback": PokemonComputer,
+    },
+  }
 }

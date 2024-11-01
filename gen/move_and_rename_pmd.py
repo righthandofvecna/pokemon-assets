@@ -53,11 +53,13 @@ def main():
 
     for dexnumber in data.keys():
         mainSprite = getAnimFileFromFilesystem(dexnumber)
+        if dexnumber == "0050": # skip diglett
+            continue
         name = safeGet(data, dexnumber, "name", default="variant")   
         variants = {}
         def registerVariant(sprite, key):
             if sprite:
-                variants[key] = mainSprite
+                variants[key] = sprite
                 registerGlobalVariant(dexnumber, key)
         registerVariant(mainSprite, "")
         
@@ -311,12 +313,9 @@ def main():
 
         for fileName, original in toCopy.items():
             newFilePath = os.path.join(newDirpath, fileName)
-            if not os.path.exists(newFilePath):
+            if True or not os.path.exists(newFilePath):
                 shutil.copy(original, newFilePath)
         
-        # if dexnumber == "0530":
-        #     break
-    
     with open(SPRITESHEET_SETTINGS_JS, "w") as ssJ:
         ssJ.write("export default\n")
         json.dump(spritesheetSettings, ssJ, indent=2, sort_keys=True)

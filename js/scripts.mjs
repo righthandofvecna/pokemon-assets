@@ -1,5 +1,5 @@
 
-import { sleep } from "./utils.mjs";
+import { isTheGM, sleep } from "./utils.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
@@ -88,7 +88,14 @@ async function PokemonCenter(nurse, doHeal) {
   })
 }
 
-
+/**
+ * Run when a Pokemon Computer is triggered
+ * @param {*} scene 
+ * @param {*} regionDocument 
+ * @param {*} regionBehavior 
+ * @param {*} event 
+ * @returns 
+ */
 async function PokemonComputer(scene, regionDocument, regionBehavior, event) {
   if (event?.user !== game.user) return;
 
@@ -109,6 +116,14 @@ async function PokemonComputer(scene, regionDocument, regionBehavior, event) {
 }
 
 
+/**
+ * Play a grass flying animation
+ * @param {*} scene 
+ * @param {*} regionDocument 
+ * @param {*} regionBehavior 
+ * @param {*} event 
+ * @returns 
+ */
 async function GrassShake(scene, regionDocument, regionBehavior, event) {
   if (event?.user !== game.user) return;
 
@@ -149,6 +164,12 @@ async function GrassShake(scene, regionDocument, regionBehavior, event) {
 }
 
 
+/**
+ * Add a reaction icon above an actor and play a noise.
+ * @param {*} token 
+ * @param {*} reaction 
+ * @returns 
+ */
 async function TokenReact(token, reaction) {
   const destination = (()=>{
     const { x, y } = token;
@@ -175,8 +196,17 @@ async function TokenReact(token, reaction) {
 }
 
 
+/**
+ * When triggered, pause the game, react, and walk the provided token over to the triggering token
+ * @param {*} token 
+ * @param {*} scene 
+ * @param {*} regionDocument 
+ * @param {*} regionBehavior 
+ * @param {*} event 
+ * @returns 
+ */
 async function TrainerEyesMeet(token, scene, regionDocument, regionBehavior, event) {
-  if (!game.user.isGM) return; // only do updates as the GM
+  if (!isTheGM()) return; // only do updates as the GM
   if (token === event?.data?.token) return; // the token can't trigger its own vision!
   if (token.disposition === event?.data?.token?.disposition) return; // the token has to be aligned differently
 
@@ -232,8 +262,7 @@ async function TrainerEyesMeet(token, scene, regionDocument, regionBehavior, eve
 async function SwitchScenes(newScene, newAttributes, ...args) {
   const [scene, regionDocument, regionBehavior, { data: { token }, name: trigger, user }] = args;
   if (!newScene || !scene || !token) return;
-  if (!game.user.isGM) return;
-  if (user.isGM && user !== game.user) return;
+  if (!isTheGM()) return;
 
   const tokenData = {
     ...token.toObject(),
@@ -269,17 +298,30 @@ async function HandleJumps() {
 
   const renderedToken = token.object;
 
+  const unlock = token.lockMovement();
   // wait until the token has finished animating
   await renderedToken.allAnimationsPromise;
 
   // check if the token is still inside the jump area
-  if (!token.regions.has(regionDocument)) return;
-  switch (direction) {
-    case "down": return await token.update({ y: token.y + sizeY});
-    case "left": return await token.update({ x: token.x - sizeX});
-    case "right": return await token.update({ x: token.x + sizeX});
-    case "up": return await token.update({ y: token.y - sizeY});
+  if (!token.regions.has(regionDocument)) {
+    unlock();
+    return;
   }
+  switch (direction) {
+    case "down": 
+      await token.update({ y: token.y + sizeY});
+      break;
+    case "left":
+      await token.update({ x: token.x - sizeX});
+      break;
+    case "right":
+      await token.update({ x: token.x + sizeX});
+      break;
+    case "up":
+      await token.update({ y: token.y - sizeY});
+      break;
+  }
+  unlock();
 }
 
 /**
@@ -303,6 +345,7 @@ async function HandleIce() {
 
   if (token._sliding ?? false) return;
   token._sliding = true;
+  const unlock = token.lockMovement();
 
   const { sizeX, sizeY } = scene.grid;
   const { x: originalX, y: originalY } = token;
@@ -325,6 +368,7 @@ async function HandleIce() {
   }
   await renderedToken.allAnimationsPromise;
   token._sliding = false;
+  unlock();
   renderedToken._refreshRotation();
 }
 
@@ -347,22 +391,22 @@ async function IndicateDamage(actor, token, lowHp) {
   if (!!token) {
     sequence = sequence.animation()
         .on(token)
-        .hide()
+        .opacity(0.5)
         .duration(125)
         .async()
       .animation()
         .on(token)
-        .show()
+        .opacity(1)
         .duration(125)
         .async()
       .animation()
         .on(token)
-        .hide()
+        .opacity(0.5)
         .duration(125)
         .async()
       .animation()
         .on(token)
-        .show()
+        .opacity(1)
         .duration(125)
         .async();
   }
