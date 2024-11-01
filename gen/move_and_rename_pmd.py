@@ -106,10 +106,11 @@ def main():
                         for anim in root.find("Anims"):
                             if anim.find("Name").text == file.replace("-Anim.png", ""):
                                 frames = len(anim.find("Durations"))
-                    spritesheetSettings[foundryPath] = {
-                        "sheetstyle": "pmd",
-                        "animationframes": frames,
-                    }
+                    if foundryPath not in spritesheetSettings:
+                        spritesheetSettings[foundryPath] = {
+                            "sheetstyle": "pmd",
+                            "animationframes": frames,
+                        }
         def processVariant(key, suffix):
             _processSingleVariant(key, suffix)
             _processSingleVariant(f"{key}::Male", f"m{suffix}")
@@ -313,7 +314,7 @@ def main():
 
         for fileName, original in toCopy.items():
             newFilePath = os.path.join(newDirpath, fileName)
-            if True or not os.path.exists(newFilePath):
+            if not os.path.exists(newFilePath):
                 shutil.copy(original, newFilePath)
         
     with open(SPRITESHEET_SETTINGS_JS, "w") as ssJ:
