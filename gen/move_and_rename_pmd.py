@@ -7,8 +7,10 @@ import xml.etree.ElementTree as ET
 # get local settings
 with open("local.json", "r") as local:
     data = json.load(local)
-    INFO_JSON_LOCATION = data["INFO_JSON_LOCATION"]
-    FOLDER_LOCATION = data["FOLDER_LOCATION"]
+    SPRITECOLLAB = data["SPRITECOLLAB"]
+    CREDITS_LOCATION = os.path.join(SPRITECOLLAB, "credit_names.txt")
+    INFO_JSON_LOCATION = os.path.join(SPRITECOLLAB, "tracker.json")
+    FOLDER_LOCATION = os.path.join(SPRITECOLLAB, "sprite")
 SPRITESHEET_SETTINGS_JS = os.path.join("data", "spritesheetmap.js")
 
 
@@ -24,7 +26,7 @@ def safeGet(d, *k, default=None):
 
 def getAnimFileFromFilesystem(*nests):
     # test for files
-    for anim in ("Walk-Anim.png", ):
+    for anim in ("Walk-Anim.png", "Charge-Anim.png", "Idle-Anim.png", ):
         path = os.path.join(FOLDER_LOCATION, *nests, anim)
         if os.path.exists(path):
             return path
@@ -43,6 +45,12 @@ def unregisterGlobalVariant(dexnumber, v):
     else:
         registeredVariants[v].remove(dexnumber)
 
+
+toSkip = set((
+    "0050", # skip diglett, manually intervened
+    "0051", # skip dugtrio, manually intervened
+))
+
 def main():
     with open(INFO_JSON_LOCATION, "r") as iJ:
         data = json.load(iJ)
@@ -53,7 +61,7 @@ def main():
 
     for dexnumber in data.keys():
         mainSprite = getAnimFileFromFilesystem(dexnumber)
-        if dexnumber == "0050": # skip diglett
+        if dexnumber in toSkip:
             continue
         name = safeGet(data, dexnumber, "name", default="variant")   
         variants = {}
@@ -106,10 +114,14 @@ def main():
                         for anim in root.find("Anims"):
                             if anim.find("Name").text == file.replace("-Anim.png", ""):
                                 frames = len(anim.find("Durations"))
-                    spritesheetSettings[foundryPath] = {
-                        "sheetstyle": "pmd",
-                        "animationframes": frames,
-                    }
+                    if foundryPath not in spritesheetSettings or spritesheetSettings[foundryPath]["animationframes"] != frames:
+                        newPath = os.path.join(newDirpath, fileName)
+                        if os.path.exists(newPath):
+                            os.remove(newPath)
+                        spritesheetSettings[foundryPath] = {
+                            "sheetstyle": "pmd",
+                            "animationframes": frames,
+                        }
         def processVariant(key, suffix):
             _processSingleVariant(key, suffix)
             _processSingleVariant(f"{key}::Male", f"m{suffix}")
@@ -151,6 +163,8 @@ def main():
             "Ultra",
             "Hangry",
             "Hero",
+            "Zen",
+            "Crowned"
             ):
             processVariant(t, f"_{t}")
 
@@ -224,6 +238,9 @@ def main():
 
         # mimiku formes
         processVariant("Busted", "_Busted")
+
+
+        processVariant("Pom_Pom", "_PomPom")
 
         # alcremie formes
         for t in (
@@ -313,12 +330,15 @@ def main():
 
         for fileName, original in toCopy.items():
             newFilePath = os.path.join(newDirpath, fileName)
-            if True or not os.path.exists(newFilePath):
+            if not os.path.exists(newFilePath):
                 shutil.copy(original, newFilePath)
         
     with open(SPRITESHEET_SETTINGS_JS, "w") as ssJ:
         ssJ.write("export default\n")
         json.dump(spritesheetSettings, ssJ, indent=2, sort_keys=True)
+    
+    # copy the credits.txt file
+    shutil.copy(CREDITS_LOCATION, os.path.join("img", "pmd-overworld", "credits.txt"))
 
     forbidden = (
         "Alternate",
