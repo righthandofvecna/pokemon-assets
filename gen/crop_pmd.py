@@ -97,7 +97,7 @@ for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")
         newImgWidth = newFrameWidth * animationFrames
         newImgHeight = newFrameHeight * 8
 
-        if newImgWidth == width and newImgHeight == height and palleteized:
+        if not debug and newImgWidth == width and newImgHeight == height and palleteized:
             continue
 
         if debug:
@@ -139,7 +139,10 @@ for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")
                     ))
 
         result = result.convert("P", palette=Image.ADAPTIVE)
-        result.save(imgPath, optimize=True, lossless=True)
+        if not debug:
+            result.save(imgPath, optimize=True, lossless=True)
+        else:
+            result.save(imgPath[:imgPath.rindex(".png")] + "-debug.png", optimize=True, lossless=True)
 
 
 print("\n\n\nCheck All:\n")

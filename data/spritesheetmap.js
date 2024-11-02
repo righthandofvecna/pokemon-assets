@@ -9196,6 +9196,10 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/10XX/100X/1002.png": {
+    "animationframes": 7,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/10XX/100X/1006.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
