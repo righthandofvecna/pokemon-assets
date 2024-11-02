@@ -338,7 +338,8 @@ def main():
         json.dump(spritesheetSettings, ssJ, indent=2, sort_keys=True)
     
     # copy the credits.txt file
-    shutil.copy(CREDITS_LOCATION, os.path.join("img", "pmd-overworld", "credits.txt"))
+    if os.path.exists(CREDITS_LOCATION):
+        shutil.copy(CREDITS_LOCATION, os.path.join("img", "pmd-overworld", "credits.txt"))
 
     forbidden = (
         "Alternate",

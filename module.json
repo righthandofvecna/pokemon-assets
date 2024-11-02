@@ -8,7 +8,7 @@
         "url": "https://github.com/righthandofvecna"
       }
     ],
-    "version": "0.1.8",
+    "version": "0.1.9",
     "compatibility": {
       "minimum": "12",
       "verified": "12"
@@ -20,15 +20,15 @@
           "type": "module",
           "compatibility": {
             "minimum": "1.0.0.0",
-            "verified": "1.12.6.0"
+            "verified": "1.13.2.0"
           }
         },
         {
           "id": "sequencer",
           "type": "module",
           "compatibility": {
-            "minimum": "3.3.3",
-            "verified": "3.3.3"
+            "minimum": "3.1.0",
+            "verified": "3.4.3"
           }
         }
       ]
@@ -38,5 +38,5 @@
     ],
     "url": "https://github.com/righthandofvecna/pokemon-assets",
     "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",
-    "download": "https://github.com/righthandofvecna/pokemon-assets/releases/download/v0.1.8/module.zip"
+    "download": "https://github.com/righthandofvecna/pokemon-assets/releases/download/v0.1.9/module.zip"
   }
