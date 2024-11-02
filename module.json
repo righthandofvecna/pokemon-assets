@@ -20,15 +20,15 @@
           "type": "module",
           "compatibility": {
             "minimum": "1.0.0.0",
-            "verified": "1.12.6.0"
+            "verified": "1.13.2.0"
           }
         },
         {
           "id": "sequencer",
           "type": "module",
           "compatibility": {
-            "minimum": "3.3.3",
-            "verified": "3.3.3"
+            "minimum": "3.1.0",
+            "verified": "3.4.3"
           }
         }
       ]
