@@ -8844,6 +8844,14 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/09XX/091X/0916f.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
+  "modules/pokemon-assets/img/pmd-overworld/09XX/091X/0916m.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/09XX/091X/0918.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
@@ -9112,6 +9120,14 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/09XX/098X/0982.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
+  "modules/pokemon-assets/img/pmd-overworld/09XX/098X/0982_Three.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/09XX/098X/0983.png": {
     "animationframes": 6,
     "sheetstyle": "pmd"
@@ -9194,6 +9210,10 @@ export default
   },
   "modules/pokemon-assets/img/pmd-overworld/10XX/100X/1000s.png": {
     "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
+  "modules/pokemon-assets/img/pmd-overworld/10XX/100X/1002.png": {
+    "animationframes": 7,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/10XX/100X/1006.png": {
