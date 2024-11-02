@@ -163,6 +163,8 @@ def main():
             "Ultra",
             "Hangry",
             "Hero",
+            "Zen",
+            "Crowned"
             ):
             processVariant(t, f"_{t}")
 
@@ -236,6 +238,9 @@ def main():
 
         # mimiku formes
         processVariant("Busted", "_Busted")
+
+
+        processVariant("Pom_Pom", "_PomPom")
 
         # alcremie formes
         for t in (
