@@ -9052,6 +9052,10 @@ export default
     "animationframes": 17,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/09XX/096X/0965.png": {
+    "animationframes": 5,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/09XX/096X/0966.png": {
     "animationframes": 16,
     "sheetstyle": "pmd"
@@ -9142,6 +9146,10 @@ export default
   },
   "modules/pokemon-assets/img/pmd-overworld/09XX/098X/0983s.png": {
     "animationframes": 6,
+    "sheetstyle": "pmd"
+  },
+  "modules/pokemon-assets/img/pmd-overworld/09XX/098X/0984.png": {
+    "animationframes": 4,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/09XX/098X/0985.png": {
