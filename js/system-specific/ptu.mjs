@@ -21,7 +21,7 @@ async function OnCreateChatMessage(message) {
     if (!targetId || !sourceId) return;
 
     const target = await fromUuid(targetId);
-    const source = target.scene.tokens.find(t=>t.actor.id === sourceId)
+    const source = target.scene.tokens.find(t=>t.actorId === sourceId);
     if (!source || !target) return;
 
     // get the ball image
@@ -48,15 +48,17 @@ async function OnCreateChatMessage(message) {
   // Handle the Damage Hit Indicator and sounds
   //
   if (message?.flags?.ptu?.appliedDamage?.isHealing === false) {
-    const target = await fromUuid(message.flags.ptu.appliedDamage.uuid);
+    const target = await fromUuid(message.flags?.ptu?.appliedDamage?.uuid);
+    if (!target) return;
 
     // check if the target fainted
-    if ((target.system.health.value ?? 0) <= 0) return;
+    if ((target.system?.health?.value ?? 0) <= 0) return;
 
     // check if 1/5 hp or less
-    const lowHp = target.system.health.value <= target.system.health.max / 5;
-
-    const token = game.scenes.active.tokens.find(t=>t.actor.uuid === target.uuid);
+    const lowHp = target.system?.health?.value <= target.system?.health?.max / 5;
+    const token = game.scenes.active.tokens.find(t=>t.actor?.uuid === target.uuid);
+    if (!token) return;
+    
     game.modules.get("pokemon-assets").api.scripts.IndicateDamage(target, token, lowHp);
     return;
   }
