@@ -21,7 +21,7 @@ async function OnCreateChatMessage(message) {
     if (!targetId || !sourceId) return;
 
     const target = await fromUuid(targetId);
-    const source = target.scene.tokens.find(t=>t.actor.id === sourceId)
+    const source = target.scene.tokens.find(t=>t.actorId === sourceId);
     if (!source || !target) return;
 
     // get the ball image
