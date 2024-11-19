@@ -104,7 +104,7 @@ function _getPrototypeTokenUpdates(actor, species) {
     return null;
   })();
 
-  if (!src) return;
+  if (!src) return {};
   
   const updates = {
     "prototypeToken.texture.src": src,
@@ -132,6 +132,27 @@ function OnPreCreateActor(actor) {
   actor.updateSource(updates);
 }
 
+/**
+ *  Whenever a token would be created, try to populate its sprite
+ */
+function OnCreateToken(token) {
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
+  const actor = token.actor;
+  if (!actor) return;
+  if (actor.type !== "pokemon") return;
+  if (actor.prototypeToken.randomImg) return;
+
+  // check if the 'ptu' flag is set
+  if (!token.flags.ptu) return;
+
+  const species = actor.itemTypes.species?.at(0);
+  if (!species) return;
+
+  const actorUpdates = _getPrototypeTokenUpdates(actor, species);
+  const updates = foundry.utils.expandObject(actorUpdates)?.prototypeToken ?? {};
+  token.update(updates);
+}
+
 
 /**
  * Update the token source if we're updating a pokemon's species
@@ -155,5 +176,6 @@ export function register() {
     Hooks.on("createChatMessage", OnCreateChatMessage);
   }
   Hooks.on("preCreateActor", OnPreCreateActor);
+  Hooks.on("createToken", OnCreateToken);
   Hooks.on("createItem", OnCreateItem);
 }
