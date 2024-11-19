@@ -1,4 +1,4 @@
-import { early_isGM, sleep } from "../utils.mjs";
+import { early_isGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 
 /**
@@ -12,6 +12,7 @@ async function OnCreateChatMessage(message) {
   // Handle Capture Animations
   //
   if (message?.flags?.ptu?.context?.type === "capture-calculation") {
+    if (!game.settings.get(MODULENAME, "playCaptureAnimation")) return;
     const context = message?.flags?.ptu?.context;
     const contextTarget = context.targets?.[0];
     if (!context || !contextTarget) return;
@@ -48,6 +49,7 @@ async function OnCreateChatMessage(message) {
   // Handle the Damage Hit Indicator and sounds
   //
   if (message?.flags?.ptu?.appliedDamage?.isHealing === false) {
+    if (!game.settings.get(MODULENAME, "playDamageAnimation")) return;
     const target = await fromUuid(message.flags?.ptu?.appliedDamage?.uuid);
     if (!target) return;
 
@@ -95,7 +97,6 @@ function _getPrototypeTokenUpdates(actor, species) {
       `${pmdPath}${dexString}${regionalVariant}.png`,
       `${pmdPath}${dexString}.png`,
     ]) {
-      console.log("testing", testSrc);
       if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
         return testSrc;
       }
@@ -103,7 +104,7 @@ function _getPrototypeTokenUpdates(actor, species) {
     return null;
   })();
 
-  if (!src) return;
+  if (!src) return {};
   
   const updates = {
     "prototypeToken.texture.src": src,
@@ -122,12 +123,34 @@ function _getPrototypeTokenUpdates(actor, species) {
  * @returns 
  */
 function OnPreCreateActor(actor) {
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
   if (actor.type !== "pokemon") return;
   const species = actor.items.find(i=>i.type === "species");
   if (!species) return;
 
   const updates = _getPrototypeTokenUpdates(actor, species);
   actor.updateSource(updates);
+}
+
+/**
+ *  Whenever a token would be created, try to populate its sprite
+ */
+function OnCreateToken(token) {
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
+  const actor = token.actor;
+  if (!actor) return;
+  if (actor.type !== "pokemon") return;
+  if (actor.prototypeToken.randomImg) return;
+
+  // check if the 'ptu' flag is set
+  if (!token.flags.ptu) return;
+
+  const species = actor.itemTypes.species?.at(0);
+  if (!species) return;
+
+  const actorUpdates = _getPrototypeTokenUpdates(actor, species);
+  const updates = foundry.utils.expandObject(actorUpdates)?.prototypeToken ?? {};
+  token.update(updates);
 }
 
 
@@ -138,6 +161,7 @@ function OnPreCreateActor(actor) {
  * @param {*} userId 
  */
 function OnCreateItem(species, metadata, userId) {
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
   if (game.user.id !== userId) return;
   if (species.type !== "species") return;
   const actor = species.parent;
@@ -152,5 +176,6 @@ export function register() {
     Hooks.on("createChatMessage", OnCreateChatMessage);
   }
   Hooks.on("preCreateActor", OnPreCreateActor);
+  Hooks.on("createToken", OnCreateToken);
   Hooks.on("createItem", OnCreateItem);
 }
