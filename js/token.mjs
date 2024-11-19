@@ -62,7 +62,7 @@ function OnRenderTokenConfig(config, html, context) {
   
   const updateDefaults = async function () {
     src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
-    const predefined = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src]
+    const predefined = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
     defaultSettings = {
       sheetstyle: "trainer",
       animationframes: 4,
@@ -75,7 +75,7 @@ function OnRenderTokenConfig(config, html, context) {
       $(html).find(`[name="flags.pokemon-assets.spritesheet"]`).prop("checked", true);
       $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`).prop("hidden", true).prop("readonly", true).val(predefined.sheetstyle);
       $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(predefined.animationframes);
-      $(html).find(`[name="flags.pokemon-assets.separateidle"]`).prop("hidden", true).prop("readonly", true).prop("checked", predefined.separateidle);
+      $(html).find(`[name="flags.pokemon-assets.separateidle"]`).prop("hidden", true).prop("readonly", true).prop("checked", predefined.separateidle ?? false);
 
       const texture = await getTexture(form);
       await updateAnchors(form, texture);
@@ -99,7 +99,7 @@ function OnRenderTokenConfig(config, html, context) {
       $(html).find(`[name="flags.pokemon-assets.separateidle"]`)
         .prop("hidden", false)
         .prop("readonly", false)
-        .prop("checked", predefined.separateidle);
+        .prop("checked", defaultSettings.separateidle);
     } else {
       $(html).find(".spritesheet-config")
         .hide();
@@ -121,7 +121,7 @@ function OnRenderTokenConfig(config, html, context) {
       $(html).find(`[name="flags.pokemon-assets.separateidle"]`)
         .prop("hidden", false)
         .prop("readonly", false)
-        .prop("checked", predefined.separateidle);
+        .prop("checked", defaultSettings.separateidle);
     }
   }
 
