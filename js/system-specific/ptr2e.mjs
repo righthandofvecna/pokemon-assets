@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, sleep } from "../utils.mjs";
+import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 
 /**
@@ -14,6 +14,7 @@ async function OnCreateChatMessage(message) {
   // Handle Capture Animations
   //
   if (message.type === "capture") {
+    if (!game.settings.get(MODULENAME, "playCaptureAnimation")) return;
     const sourceId = message.actor.uuid;
     const targetId = message.system.target;
     const { source, target } = (()=>{
@@ -50,6 +51,7 @@ async function OnCreateChatMessage(message) {
   // Handle the Damage Hit Indicator and sounds
   //
   if (message.type === "damage-applied") {
+    if (!game.settings.get(MODULENAME, "playDamageAnimation")) return;
     const target = message.system.target;
 
     // check that the damage applied is positive
@@ -74,7 +76,7 @@ async function OnCreateChatMessage(message) {
  * @returns 
  */
 function OnPreCreateActor(actor) {
-  // console.log("OnPreCreateActor", ...[...arguments].map(a=>foundry.utils.deepClone(a)));
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
   if (actor.type !== "pokemon") return;
   const species = actor.system.species;
   const slug = species.slug;

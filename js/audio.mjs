@@ -1,5 +1,5 @@
 
-import { early_isGM } from "./utils.mjs";
+import { early_isGM, MODULENAME } from "./utils.mjs";
 
 // make globally accessible helpers, to help 
 
@@ -8,6 +8,7 @@ async function playlistOnce() {
 }
 
 async function doPreloadScenePlaylist(scene) {
+  if (!game.settings.get(MODULENAME, "autoPlayAudio")) return;
   // stop the music from the current scene
   const oldScene = game.scenes.active;
   if (oldScene !== scene) {
@@ -57,9 +58,9 @@ function OnReady() {
 }
 
 function OnDeleteCombat(tracker, info, id) {
-  // game.scenes.active.playlist.playNext();
   const scene = tracker?.scene;
   if (scene && scene.getFlag("pokemon-assets", "playlistHasEnd") && scene.playlist) {
+    if (!game.settings.get(MODULENAME, "autoPlayAudio")) return;
     scene.playlist.playNext();
   }
 }
