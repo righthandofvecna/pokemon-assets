@@ -1,4 +1,4 @@
-import { early_isGM, MODULENAME } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 
 /**
@@ -136,6 +136,7 @@ function OnPreCreateActor(actor) {
  *  Whenever a token would be created, try to populate its sprite
  */
 function OnCreateToken(token) {
+  if (!isTheGM()) return;
   if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
   const actor = token.actor;
   if (!actor) return;
@@ -161,6 +162,7 @@ function OnCreateToken(token) {
  * @param {*} userId 
  */
 function OnCreateItem(species, metadata, userId) {
+  if (!isTheGM()) return;
   if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
   if (game.user.id !== userId) return;
   if (species.type !== "species") return;
