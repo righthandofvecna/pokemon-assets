@@ -67,7 +67,7 @@ async function OnCreateChatMessage(message) {
 }
 
 
-function _getPrototypeTokenUpdates(actor, species) {
+function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
   const slug = species.slug;
   const dexNum = species.system.number;
   const regionalVariant = (()=>{
@@ -83,19 +83,22 @@ function _getPrototypeTokenUpdates(actor, species) {
     if (actor.system.gender == "female") return "f";
     return "";
   })();
+  const form = actor.system.form ? `_${actor.system.form}` : "";
   const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
   const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
   const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
   const dexString = `${dexNum}`.padStart(4, "0");
 
+  const variant = formOverride || regionalVariant || form;
+
   // check if everything is populated!
   const src = (()=>{
     for (const testSrc of [
-      `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${gender}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${regionalVariant}.png`,
-      `${pmdPath}${dexString}.png`,
+      `${pmdPath}${dexString}${gender}${shiny}${variant}.png`,
+      `${pmdPath}${dexString}${shiny}${variant}.png`,
+      `${pmdPath}${dexString}${gender}${variant}.png`,
+      `${pmdPath}${dexString}${variant}.png`,
+      formOverride == null ? `${pmdPath}${dexString}.png` : "INVALID",
     ]) {
       if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
         return testSrc;
@@ -146,6 +149,9 @@ function OnCreateToken(token) {
   // check if the 'ptu' flag is set
   if (!token.flags.ptu) return;
 
+  // check that the pokemon-assets flags are not set
+  if (token.flags[MODULENAME] !== undefined) return;
+
   const species = actor.itemTypes.species?.at(0);
   if (!species) return;
 
@@ -173,6 +179,59 @@ function OnCreateItem(species, metadata, userId) {
   actor.update(updates);
 }
 
+
+/**
+ * Overridden for the purposes of mega evolutions
+ */
+function TokenImageRuleElement_afterPrepareData(wrapped, ...args) {
+  wrapped(...args);
+  if (!this.test()) return;
+
+  if (game.settings.get(MODULENAME, "autoOverrideMegaEvolutionSprite")) {
+    // check if this is a mega evolution that we have a sprite for
+    const foundMegaEvo = (()=>{
+      const basename = this.value.substring(this.value.lastIndexOf("/"), this.value.lastIndexOf("."));
+      if (!basename) return false;
+
+      const alternateForm = basename.substring(basename.indexOf("_"));
+      if (!alternateForm) return false;
+
+      const species = this.actor.itemTypes.species?.at(0);
+      if (!species) return false;
+
+      const actorUpdates = _getPrototypeTokenUpdates(this.actor, species, alternateForm);
+      const updates = foundry.utils.expandObject(actorUpdates)?.prototypeToken ?? {};
+      if (!updates.texture) return false;
+
+      this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, updates);
+      return true;
+    })();
+    if (foundMegaEvo) return;
+  }
+
+  // if not, disable spritesheet processing
+  this.actor.synthetics.tokenOverrides.flags ??= {};
+  this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= { spritesheet: false };
+  this.actor.synthetics.tokenOverrides.rotation ??= 0; // force rotation to be 0
+}
+
+/**
+ * Overridden for the purposes of mega evolutions, setting flags
+ */
+function PTUTokenDocument_prepareDerivedData(wrapped, ...args) {
+  wrapped(...args);
+  if (!(this.actor && this.scene)) return;
+  const { tokenOverrides } = this.actor.synthetics;
+
+  if (tokenOverrides.flags) {
+    this.flags = foundry.utils.mergeObject(this.flags, tokenOverrides.flags);
+  }
+
+  if (tokenOverrides.rotation !== undefined) {
+    this.rotation = tokenOverrides.rotation;
+  }
+}
+
 export function register() {
   if (early_isGM) {
     Hooks.on("createChatMessage", OnCreateChatMessage);
@@ -180,4 +239,7 @@ export function register() {
   Hooks.on("preCreateActor", OnPreCreateActor);
   Hooks.on("createToken", OnCreateToken);
   Hooks.on("createItem", OnCreateItem);
+
+  libWrapper.register("pokemon-assets", "CONFIG.PTU.rule.elements.builtin.TokenImage.prototype.afterPrepareData", TokenImageRuleElement_afterPrepareData, "WRAPPER");
+  libWrapper.register("pokemon-assets", "CONFIG.PTU.Token.documentClass.prototype.prepareDerivedData", PTUTokenDocument_prepareDerivedData, "WRAPPER");
 }
