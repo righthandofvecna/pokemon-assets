@@ -32,6 +32,16 @@ export function register() {
 		hint: "Automatically set the token sprite of a Pokemon to one defined in this module when the actor is created."
 	});
 
+	game.settings.register(MODULENAME, "autoOverrideMegaEvolutionSprite", {
+		name: "Auto Override Mega Evolution Sprite",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: true,
+		config: ["ptu"].includes(game.system.id),
+		hint: "Automatically set the token sprite of a mega-evolved Pokemon to one defined in this module."
+	}); // PTU only?
+
   game.settings.register(MODULENAME, "playDamageAnimation", {
 		name: "Play Damage Animation",
 		default: true,
