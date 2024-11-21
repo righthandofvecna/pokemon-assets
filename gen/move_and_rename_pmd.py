@@ -241,6 +241,7 @@ def main():
 
 
         processVariant("Pom_Pom", "_PomPom")
+        processVariant("Trooper", "_Trooper")
 
         # alcremie formes
         for t in (

@@ -8568,6 +8568,10 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/08XX/087X/0870_Trooper.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/08XX/087X/0872.png": {
     "animationframes": 3,
     "sheetstyle": "pmd"
