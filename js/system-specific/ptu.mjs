@@ -83,18 +83,21 @@ function _getPrototypeTokenUpdates(actor, species) {
     if (actor.system.gender == "female") return "f";
     return "";
   })();
+  const form = actor.system.form ? `_${actor.system.form}` : "";
   const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
   const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
   const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
   const dexString = `${dexNum}`.padStart(4, "0");
 
+  const variant = regionalVariant || form;
+
   // check if everything is populated!
   const src = (()=>{
     for (const testSrc of [
-      `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${gender}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${regionalVariant}.png`,
+      `${pmdPath}${dexString}${gender}${shiny}${variant}.png`,
+      `${pmdPath}${dexString}${shiny}${variant}.png`,
+      `${pmdPath}${dexString}${gender}${variant}.png`,
+      `${pmdPath}${dexString}${variant}.png`,
       `${pmdPath}${dexString}.png`,
     ]) {
       if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
