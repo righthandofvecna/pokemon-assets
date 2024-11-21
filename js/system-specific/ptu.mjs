@@ -149,6 +149,9 @@ function OnCreateToken(token) {
   // check if the 'ptu' flag is set
   if (!token.flags.ptu) return;
 
+  // check that the pokemon-assets flags are not set
+  if (token.flags[MODULENAME] !== undefined) return;
+
   const species = actor.itemTypes.species?.at(0);
   if (!species) return;
 
