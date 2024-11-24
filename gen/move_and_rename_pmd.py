@@ -47,6 +47,7 @@ def unregisterGlobalVariant(dexnumber, v):
 
 
 toSkip = set((
+    "0000", # skip missingno, manually intervened
     "0050", # skip diglett, manually intervened
     "0051", # skip dugtrio, manually intervened
 ))
@@ -164,7 +165,13 @@ def main():
             "Hangry",
             "Hero",
             "Zen",
-            "Crowned"
+            "Crowned",
+            "Neutral",
+            "Original",
+            "Noice",
+            "Droopy",
+            "Substitute",
+            "Egg"
             ):
             processVariant(t, f"_{t}")
 
@@ -189,7 +196,7 @@ def main():
             processVariant(s, f"_{s}")
 
         # color formes
-        for t in ("Blue", "Red", "White", "Yellow", "Orange", "Green", "Indigo", "Violet", "Purple" ):
+        for t in ("Blue", "Red", "White", "Yellow", "Orange", "Green", "Indigo", "Violet", "Purple", "Brass" ):
             processVariant(t, f"_{t}")
         
         # spiky pichu
