@@ -1,4 +1,4 @@
-
+import { MODULENAME } from "./utils.mjs";
 import { SpritesheetGenerator } from "./spritesheets.mjs";
 
 const WALK_SPEED = 4;
@@ -659,6 +659,71 @@ export function register() {
       }
       return super._onAnimationUpdate(changed, context);
     }
+
+    initializeEdges({deleted=false}={}) {
+      if (!game.settings.get(MODULENAME, "tokenCollision")) return;
+
+      // the token has been deleted
+      if ( deleted ) {
+        canvas.edges.delete(`${this.id}_tl`);
+        canvas.edges.delete(`${this.id}_tr`);
+        canvas.edges.delete(`${this.id}_bl`);
+        canvas.edges.delete(`${this.id}_tr`);
+        return;
+      }
+
+      // re-create the edges for the token
+      const { x, y } = this.document;
+      const w = canvas.grid.sizeX * this.document.width;
+      const h = canvas.grid.sizeY * this.document.height;
+      const w2 = w / 2;
+      const h2 = h / 2;
+      this._setEdge(`${this.id}_tl`, [x,      y + h2, x + w2, y]);
+      this._setEdge(`${this.id}_tr`, [x + w2, y,      x + w,  y + h2]);
+      this._setEdge(`${this.id}_br`, [x + w,  y + h2, x + w2, y + h]);
+      this._setEdge(`${this.id}_bl`, [x + w2, y + h,  x,      y + h2]);
+    }
+
+    _setEdge(id, c) {
+      canvas.edges.set(id, new foundry.canvas.edges.Edge({x: c[0], y: c[1]}, {x: c[2], y: c[3]}, {
+        id,
+        object: this,
+        type: "wall",
+        direction: CONST.WALL_DIRECTIONS.LEFT,
+        light: CONST.WALL_SENSE_TYPES.NONE,
+        sight: CONST.WALL_SENSE_TYPES.NONE,
+        sound: CONST.WALL_SENSE_TYPES.NONE,
+        move: CONST.WALL_MOVEMENT_TYPES.NORMAL,
+        threshold: {
+          light: 0,
+          sight: 0,
+          sound: 0,
+          attenuation: false,
+        }
+      }));
+    }
+
+    /** @inheritDoc */
+    _onCreate(data, options, userId) {
+      super._onCreate(data, options, userId);
+      this.initializeEdges();
+    }
+
+    /** @inheritDoc */
+    _onUpdate(changed, options, userId) {
+      super._onUpdate(changed, options, userId);
+      if ("x" in changed || "y" in changed || "width" in changed || "height" in changed) {
+        this.initializeEdges();
+      }
+    }
+
+    /** @inheritDoc */
+    _onDelete(options, userId) {
+      super._onDelete(options, userId);
+      console.log("deleting", this.id);
+      this.initializeEdges({deleted: true});
+    }
+
   };
 
   CONFIG.Token.objectClass = TilesetToken;
