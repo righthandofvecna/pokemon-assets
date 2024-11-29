@@ -62,4 +62,14 @@ export function register() {
 		hint: "When a capture attempt is made, play the Pokemon capture sounds and animations."
 	});
 
+  game.settings.register(MODULENAME, "tokenCollision", {
+		name: "Token Collisions",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: true,
+		config: true,
+		hint: "Treat tokens as walls for the purpose of movement."
+	});
+
 };
