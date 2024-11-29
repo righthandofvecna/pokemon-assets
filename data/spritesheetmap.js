@@ -6,8 +6,8 @@ export default
   },
   "modules/pokemon-assets/img/pmd-overworld/00XX/000X/0000_Egg.png": {
     "animationframes": 7,
-    "sheetstyle": "pmd",
-    "separateidle": true
+    "separateidle": true,
+    "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/00XX/000X/0000_Substitute.png": {
     "animationframes": 9,
