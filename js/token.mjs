@@ -680,7 +680,7 @@ export function register() {
         canvas.edges.delete(`${this.id}_tl`);
         canvas.edges.delete(`${this.id}_tr`);
         canvas.edges.delete(`${this.id}_bl`);
-        canvas.edges.delete(`${this.id}_tr`);
+        canvas.edges.delete(`${this.id}_br`);
         return;
       }
 
@@ -777,6 +777,12 @@ export function register() {
         const offset = i*2;
         this._setEdge(`${this.id}_${suffixList[i]}`, [pointList[offset + 0], pointList[offset + 1], pointList[offset + 2], pointList[offset + 3]]);
         polygonList.push([pointList[offset + 0], pointList[offset + 1]], [pointList[offset + 2], pointList[offset + 3]]);
+      }
+
+      // remove unused edges
+      for (const direction of ["t","r","b","l","tl","tr","bl","br"]) {
+        if (suffixList.includes(direction)) continue;
+        canvas.edges.delete(`${this.id}_${direction}`);
       }
     }
 
