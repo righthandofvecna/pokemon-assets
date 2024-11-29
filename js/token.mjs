@@ -349,6 +349,13 @@ function TokenDocument_lockMovement() {
   };
 }
 
+/** Initialize all the edges for tokens when the canvas refreshes */
+function OnInitializeEdges() {
+  for (const token of canvas.tokens.placeables) {
+    token?.initializeEdges?.();
+  }
+}
+
 export function register() {
   class TilesetToken extends CONFIG.Token.objectClass {
     #index;
@@ -665,6 +672,11 @@ export function register() {
 
       // the token has been deleted
       if ( deleted ) {
+        canvas.edges.delete(`${this.id}_t`);
+        canvas.edges.delete(`${this.id}_b`);
+        canvas.edges.delete(`${this.id}_l`);
+        canvas.edges.delete(`${this.id}_r`);
+
         canvas.edges.delete(`${this.id}_tl`);
         canvas.edges.delete(`${this.id}_tr`);
         canvas.edges.delete(`${this.id}_bl`);
@@ -673,15 +685,99 @@ export function register() {
       }
 
       // re-create the edges for the token
-      const { x, y } = this.document;
-      const w = canvas.grid.sizeX * this.document.width;
-      const h = canvas.grid.sizeY * this.document.height;
-      const w2 = w / 2;
-      const h2 = h / 2;
-      this._setEdge(`${this.id}_tl`, [x,      y + h2, x + w2, y]);
-      this._setEdge(`${this.id}_tr`, [x + w2, y,      x + w,  y + h2]);
-      this._setEdge(`${this.id}_br`, [x + w,  y + h2, x + w2, y + h]);
-      this._setEdge(`${this.id}_bl`, [x + w2, y + h,  x,      y + h2]);
+      const { x: docX, y: docY, width, height } = this.document;
+      const { sizeX: gridX, sizeY: gridY } = canvas.grid;
+      const w = gridX * Math.max(width, 1);
+      const h = gridY * Math.max(height, 1);
+      const wDia = gridX / 2;
+      const hDia = gridY / 2;
+      const wOrth = w - (wDia * 2);
+      const hOrth = h - (hDia * 2);
+      const { x, y } = canvas.grid.getSnappedPoint({ x: docX, y: docY }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_CORNER });
+
+      const pointList = [];
+      const suffixList = [];
+
+      // if the width or height of the token is < 1, we have to do one corner square, unless it's centered
+      let position = "center";
+      if (width < 1 || height < 1) {
+        const docL = docX;
+        const docR = docX + (gridX * width);
+        const docT = docY;
+        const docB = docY + (gridY * height);
+        if (docL < x + (w / 4)) {
+          if (docT < y + (h / 4)) {
+            position = "tl";
+          } else if (docB > y + (3 * h / 4)) {
+            position = "bl";
+          }
+        } else if (docR > x + (3 * w / 4)) {
+          if (docT < y + (h / 4)) {
+            position = "tr";
+          } else if (docB > y + (3 * h / 4)) {
+            position = "br";
+          }
+        }
+      }
+
+      // currently at the top-left point
+      if (position == "tl") {
+        suffixList.push("l", "t");
+        pointList.push(x, y, x + wDia, y);
+      } else {
+        suffixList.push("tl");
+        pointList.push(x + wDia, y);
+        if (wOrth > 0) {
+          suffixList.push("t");
+          pointList.push(x + wDia + wOrth, y);
+        }
+      }
+      // currently at the top-right point
+      if (position == "tr") {
+        suffixList.push("t", "r");
+        pointList.push(x + w, y, x + w, y + hDia);
+      } else {
+        suffixList.push("tr");
+        pointList.push(x + w, y + hDia);
+        if (hOrth > 0) {
+          suffixList.push("r");
+          pointList.push(x + w, y + hDia + hOrth);
+        }
+      }
+      // currently at the bottom-right point
+      if (position == "br") {
+        suffixList.push("r", "b");
+        pointList.push(x + w, y + h, x + wDia, y + h);
+      } else {
+        suffixList.push("br");
+        pointList.push(x + wDia + wOrth, y + h);
+        if (wOrth > 0) {
+          suffixList.push("b");
+          pointList.push(x + wDia, y + h);
+        }
+      }
+      // currently at the bottom-left point
+      if (position == "bl") {
+        suffixList.push("b", "l");
+        pointList.push(x, y + h, x, y + hDia);
+      } else {
+        suffixList.push("bl");
+        pointList.push(x, y + hDia + hOrth);
+        if (hOrth > 0) {
+          suffixList.push("l");
+          pointList.push(x, y + hDia);
+        }
+      }
+
+      // create edges
+      pointList.unshift(pointList[pointList.length-1]);
+      pointList.unshift(pointList[pointList.length-2]);
+      const polygonList = [];
+      for (let i = 0; i < suffixList.length; i++) {
+        const offset = i*2;
+        this._setEdge(`${this.id}_${suffixList[i]}`, [pointList[offset + 0], pointList[offset + 1], pointList[offset + 2], pointList[offset + 3]]);
+        polygonList.push([pointList[offset + 0], pointList[offset + 1]], [pointList[offset + 2], pointList[offset + 3]]);
+      }
     }
 
     _setEdge(id, c) {
@@ -741,4 +837,5 @@ export function register() {
   Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("preUpdateToken", OnPreUpdateToken);
   Hooks.on("createCombatant", OnCreateCombatant);
+  Hooks.on("initializeEdges", OnInitializeEdges);
 }
