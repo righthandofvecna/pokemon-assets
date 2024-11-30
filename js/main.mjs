@@ -6,6 +6,7 @@ import * as token from "./token/index.mjs";
 import * as spritesheets from "./spritesheets.mjs";
 import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
+import * as regionEvents from "./region-events.mjs";
 import * as system from "./system-specific/index.mjs";
 
 Hooks.on("init", ()=>{
@@ -16,5 +17,6 @@ Hooks.on("init", ()=>{
   spritesheets.register();
   scripts.register();
   pixelate.register();
+  regionEvents.register();
   system.register();
 })
