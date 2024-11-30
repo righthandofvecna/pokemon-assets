@@ -14,7 +14,7 @@ const SLIDE_SPEED = WALK_SPEED;
  * @param {*} context 
  */
 function OnRenderTokenConfig(config, html, context) {
-  const form = $(html).find("form").get(0);
+  const form = $(html).find("form").get(0) ?? config.form;
 
   let src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
   let defaultSettings =  {
