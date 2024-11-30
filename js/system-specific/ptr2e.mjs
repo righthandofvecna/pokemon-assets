@@ -72,13 +72,15 @@ async function OnCreateChatMessage(message) {
 
 /**
  * Whenever an actor would be created, try to populate its sprite
- * @param {*} actor
+ * @param {PTR2eActor} actor
+ * @param {object} actorData
  * @returns 
  */
-function OnPreCreateActor(actor) {
+function OnPreCreateActor(actor, actorData) {
   if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
   if (actor.type !== "pokemon") return;
-  const species = actor.system.species;
+  const species = actorData.items.find(i=>i.type === "species")?.system;
+  if (!species) return;
   const slug = species.slug;
   const dexNum = species.number;
   const regionalVariant = (()=>{
@@ -88,10 +90,10 @@ function OnPreCreateActor(actor) {
     if (slug.startsWith("paldean-")) return "_paldean";
     return "";
   })();
-  const shiny = actor.system.shiny ? "s" : "";
+  const shiny = actorData.system.shiny ? "s" : "";
   const gender = (()=>{
-    if (actor.system.gender == "male") return "m";
-    if (actor.system.gender == "female") return "f";
+    if (actorData.system.gender == "male") return "m";
+    if (actorData.system.gender == "female") return "f";
     return "";
   })();
   const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
