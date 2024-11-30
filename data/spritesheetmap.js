@@ -7030,16 +7030,18 @@ export default
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/07XX/070X/0705_hisuian.png": {
-    "animationframes": 6,
-    "sheetstyle": "pmd"
+    "animationframes": 7,
+    "sheetstyle": "pmd",
+    "separateidle": true
   },
   "modules/pokemon-assets/img/pmd-overworld/07XX/070X/0705s.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/07XX/070X/0705s_hisuian.png": {
-    "animationframes": 6,
-    "sheetstyle": "pmd"
+    "animationframes": 7,
+    "sheetstyle": "pmd",
+    "separateidle": true
   },
   "modules/pokemon-assets/img/pmd-overworld/07XX/070X/0706.png": {
     "animationframes": 4,
