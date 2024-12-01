@@ -14,21 +14,12 @@ async function PokemonCenter(nurse, doHeal) {
     y,
   };
 
-  const talkSound = await game.audio.create({
-    src: "modules/pokemon-assets/audio/bgs/a-button.mp3",
-  });
-  await talkSound.load();
-
   const music = game.scenes.active?.playlistSound?.sound;
   let volume = music?.volume ?? 1;
 
   const talk = async function(text, ms=1500) {
     game.canvas.interface.createScrollingText(textPosition, text);
-    await sleep(ms/2);
-    await Promise.all([
-      talkSound.play({ volume: Math.clamp(volume * 1.5, 0.09, 1) }),
-      sleep(ms/2),
-    ])
+    await Promise.all([Interact(), sleep(ms)]);
   }
   await talk("Hello, and welcome to the Pokémon Center.").then(()=>{
     return talk("We restore your tired Pokémon to full health.")
@@ -73,7 +64,7 @@ async function PokemonCenter(nurse, doHeal) {
   });
 
   await recoverySound.load();
-  await recoverySound.play({ volume: Math.clamp(volume * 1.5, 0.09, 1) });
+  await recoverySound.play({ volume: Math.clamp(game.settings.get("core", "globalInterfaceVolume"), 0, 1) });
 
   await doHeal();
   await recoverySoundDone;
@@ -268,8 +259,6 @@ async function SwitchScenes(newScene, newAttributes, ...args) {
     ...token.toObject(),
     ...newAttributes,
   };
-
-  console.log(user, scene, tokenData);
 
   await newScene.createEmbeddedDocuments("Token", [tokenData]);
   await token.delete();
@@ -527,7 +516,7 @@ async function Interact() {
  * @returns 
  */
 function TokenHasDirection(token, directions) {
-  return directions.includes(token?.object?.direction);
+  return !token?.object?.isTileset || directions.includes(token?.object?.direction);
 }
 
 class PainterTemplate extends MeasuredTemplate {

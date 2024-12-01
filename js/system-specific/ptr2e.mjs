@@ -205,7 +205,6 @@ const heal = async function () {
   }
 };
 
-await game.modules.get("pokemon-assets")?.api?.scripts?.Interact();
 await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonCenter(await fromUuid("${tokenUuid}"), heal);`
     }
   };
@@ -245,7 +244,7 @@ export function register() {
   }
   Hooks.on("preCreateActor", OnPreCreateActor);
 
-  const module = game.modules.get("pokemon-assets");
+  const module = game.modules.get(MODULENAME);
   module.api ??= {};
   module.api.controls = {
     ...(module.api.controls ?? {}),

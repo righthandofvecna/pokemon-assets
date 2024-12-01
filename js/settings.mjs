@@ -89,7 +89,7 @@ export function register() {
 		scope: "client",
 		requiresReload: false,
 		config: true,
-		hint: "When you interact with a Scene Region with a \"Token Interaction\" trigger, play the Pokemon \"iteract\" sound."
+		hint: "When you interact with a Scene Region with a \"Token Interaction\" trigger, play the Pokemon \"interact\" sound."
 	});
 
 };

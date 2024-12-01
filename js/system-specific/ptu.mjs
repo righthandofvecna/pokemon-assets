@@ -232,6 +232,95 @@ function PTUTokenDocument_prepareDerivedData(wrapped, ...args) {
   }
 }
 
+
+/* ------------------------------------------------------------------------- */
+/*                            PTR1e Region Controls                          */
+/* ------------------------------------------------------------------------- */
+
+
+/**
+ * Pokemon Center config for PTR2e
+ * @param {*} regionConfig 
+ */
+async function PokemonCenter(regionConfig) {
+  const currentScene = regionConfig?.options?.document?.parent;
+
+  const allTokensSelect = currentScene.tokens.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b);
+
+  const tokenUuid = await new Promise(async (resolve)=>{
+    Dialog.prompt({
+      title: 'Select Nurse Token',
+      content: `
+          <div class="form-group">
+            <label for="token">Nurse Token</label>
+            <select name="token">
+              ${allTokensSelect}
+            </select>
+          </div>
+      `,
+      callback: (html) => resolve(html.find('[name="token"]')?.val() ?? null),
+    }).catch(()=>{
+      resolve(null);
+    });
+  });
+
+  if (!tokenUuid) return;
+
+  // get the direction we need to look in order to trigger this
+  // TODO: default to "looking at nurse"
+  const directions = (await game.modules.get("pokemon-assets").api.scripts.UserChooseDirections({
+    prompt: "Which direction(s) should the token be facing in order to be able to speak to the nurse?",
+    directions: ["upleft", "up", "upright"],
+  })) ?? [];
+  if (directions.length === 0) return;
+
+  // create the document
+  const pokemonCenterData = {
+    type: "executeScript",
+    name: "Pokemon Center",
+    flags: {
+      [MODULENAME]: {
+        "hasTokenInteract": true,
+      },
+    },
+    system: {
+      events: [],
+      source: `if (arguments.length < 4) return;
+
+// only for the triggering user
+const regionTrigger = arguments[3];
+if (regionTrigger.user !== game.user) return;
+
+const { token } = arguments[3]?.data;
+if (!token || !game.modules.get("pokemon-assets")?.api?.scripts?.TokenHasDirection(token, ${JSON.stringify(directions)})) return;
+
+const toHeal = game.actors.filter(a=>a.isOwner);
+
+const heal = async function () {
+  const actorUpdates = [];
+  for (const actor of toHeal) {
+    if (!actor) continue;
+    actorUpdates.push({
+      "_id": actor.id,
+      "system.health.value": actor.system.health.total,
+      "system.health.injuries": Math.max(0, actor.system.health.injuries - 3)
+    });
+    await actor.deleteEmbeddedDocuments("Item", actor.items.filter(i=>i.type === "condition" && !i.isGranted).map(i => i.id))
+  }
+  if (actorUpdates.length > 0) {
+    await Actor.updateDocuments(actorUpdates);
+  }
+};
+
+await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonCenter(await fromUuid("${tokenUuid}"), heal);`
+    }
+  };
+  await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [pokemonCenterData]);
+  return;
+}
+
+
+
 export function register() {
   if (early_isGM) {
     Hooks.on("createChatMessage", OnCreateChatMessage);
@@ -242,4 +331,15 @@ export function register() {
 
   libWrapper.register("pokemon-assets", "CONFIG.PTU.rule.elements.builtin.TokenImage.prototype.afterPrepareData", TokenImageRuleElement_afterPrepareData, "WRAPPER");
   libWrapper.register("pokemon-assets", "CONFIG.PTU.Token.documentClass.prototype.prepareDerivedData", PTUTokenDocument_prepareDerivedData, "WRAPPER");
+
+  const module = game.modules.get(MODULENAME);
+  module.api ??= {};
+  module.api.controls = {
+    ...(module.api.controls ?? {}),
+    "pokemonCenter": {
+      "label": "Pokemon Center",
+      "callback": PokemonCenter,
+    },
+  }
+
 }
