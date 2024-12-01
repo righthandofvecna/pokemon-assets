@@ -163,18 +163,33 @@ async function PokemonCenter(regionConfig) {
 
   if (!tokenUuid) return;
 
+  // get the direction we need to look in order to trigger this
+  // TODO: default to "looking at nurse"
+  const directions = (await game.modules.get("pokemon-assets").api.scripts.UserChooseDirections({
+    prompt: "",
+    directions: ["upleft", "up", "upright"],
+  })) ?? [];
+  if (directions.length === 0) return;
+
   // create the document
   const pokemonCenterData = {
     type: "executeScript",
     name: "Pokemon Center",
+    flags: {
+      [MODULENAME]: {
+        "hasTokenInteract": true,
+      },
+    },
     system: {
-      events: ["tokenMoveIn"],
+      events: [],
       source: `if (arguments.length < 4) return;
 
 // only for the triggering user
 const regionTrigger = arguments[3];
 if (regionTrigger.user !== game.user) return;
 
+const { token } = arguments[3]?.data;
+if (!token || !game.modules.get("pokemon-assets")?.api?.scripts?.TokenHasDirection(token, ${JSON.stringify(directions)})) return;
 
 const toHeal = game.actors.filter(a=>a.isOwner);
 
@@ -207,8 +222,12 @@ async function PokemonComputer(regionConfig) {
   const pokemonComputerData = {
     type: "executeScript",
     name: "Pokemon Computer",
+    flags: {
+      [MODULENAME]: {
+        "hasTokenInteract": true,
+      },
+    },
     system: {
-      events: ["tokenMoveIn"],
       source: `await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...arguments);`,
     }
   };

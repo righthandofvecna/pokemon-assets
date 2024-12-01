@@ -1,42 +1,45 @@
 {
-    "name": "pokemon-assets",
-    "title": "Pokemon Assets",
-    "description": "Pokemon images, fonts, sounds, and behaviors",
-    "authors": [
+  "name": "pokemon-assets",
+  "title": "Pokemon Assets",
+  "description": "Pokemon images, fonts, sounds, and behaviors",
+  "authors": [
+    {
+      "name": "RightHandOfVecna",
+      "url": "https://github.com/righthandofvecna"
+    }
+  ],
+  "version": "0.2.2",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12.331"
+  },
+  "relationships": {
+    "requires": [
       {
-        "name": "RightHandOfVecna",
-        "url": "https://github.com/righthandofvecna"
-      }
-    ],
-    "version": "0.2.2",
-    "compatibility": {
-      "minimum": "12",
-      "verified": "12.331"
-    },
-    "relationships": {
-      "requires": [
-        {
-          "id": "lib-wrapper",
-          "type": "module",
-          "compatibility": {
-            "minimum": "1.0.0.0",
-            "verified": "1.13.2.0"
-          }
-        },
-        {
-          "id": "sequencer",
-          "type": "module",
-          "compatibility": {
-            "minimum": "3.1.0",
-            "verified": "3.4.3"
-          }
+        "id": "lib-wrapper",
+        "type": "module",
+        "compatibility": {
+          "minimum": "1.0.0.0",
+          "verified": "1.13.2.0"
         }
-      ]
-    },
-    "esmodules": [
-        "js/main.mjs"
-    ],
-    "url": "https://github.com/righthandofvecna/pokemon-assets",
-    "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",
-    "download": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.zip"
-  }
+      },
+      {
+        "id": "sequencer",
+        "type": "module",
+        "compatibility": {
+          "minimum": "3.1.0",
+          "verified": "3.4.3"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "js/main.mjs"
+  ],
+  "styles": [
+    "css/main.css"
+  ],
+  "url": "https://github.com/righthandofvecna/pokemon-assets",
+  "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",
+  "download": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.zip"
+}

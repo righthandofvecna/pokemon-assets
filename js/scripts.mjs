@@ -504,6 +504,17 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
   await sequence.play();
 }
 
+
+/**
+ * Check if the token is facing one of the given directions
+ * @param {TilesetToken} token 
+ * @param {array} directions 
+ * @returns 
+ */
+function TokenHasDirection(token, directions) {
+  return directions.includes(token?.object?.direction);
+}
+
 class PainterTemplate extends MeasuredTemplate {
   #initialLayer;
   #events;
@@ -635,6 +646,37 @@ async function UserPaintArea() {
   return { x, y };
 }
 
+async function UserChooseDirections({ prompt, directions } = { prompt: "Select a direction", directions: ["all"] }) {
+  const isAll = directions.includes("all") || directions.length >= 8;
+  if (isAll) {
+    directions = ["upleft", "up", "upright", "left", "right", "downleft", "down", "downright"];
+  }
+  const selectedDirections = await new Promise(async (resolve)=>{
+    Dialog.prompt({
+      title: 'Select Directions',
+      content: `
+          <p>${prompt}</p>
+          <div class="directional-chooser">
+            <label class="upleft"><input type="checkbox" name="upleft" ${directions.includes("upleft") ? "checked" : ""}><span><i class="fa-solid fa-arrow-up-left"></i></span></label>
+            <label class="up"><input type="checkbox" name="up" ${directions.includes("up") ? "checked" : ""}><span><i class="fa-solid fa-arrow-up"></i></span></label>
+            <label class="upright"><input type="checkbox" name="upright" ${directions.includes("upright") ? "checked" : ""}><span><i class="fa-solid fa-arrow-up-right"></i></span></label>
+            <label class="left"><input type="checkbox" name="left" ${directions.includes("left") ? "checked" : ""}><span><i class="fa-solid fa-arrow-left"></i></span></label>
+            <span class="center"></span>
+            <label class="right"><input type="checkbox" name="right" ${directions.includes("right") ? "checked" : ""}><span><i class="fa-solid fa-arrow-right"></i></span></label>
+            <label class="downleft"><input type="checkbox" name="downleft" ${directions.includes("downleft") ? "checked" : ""}><span><i class="fa-solid fa-arrow-down-left"></i></span></label>
+            <label class="down"><input type="checkbox" name="down" ${directions.includes("down") ? "checked" : ""}><span><i class="fa-solid fa-arrow-down"></i></span></label>
+            <label class="downright"><input type="checkbox" name="downright" ${directions.includes("downright") ? "checked" : ""}><span><i class="fa-solid fa-arrow-down-right"></i></span></label>
+          </div>
+      `,
+      callback: (html) => resolve(html.find('.directional-chooser input[type="checkbox"]:checked').toArray().map(el=>el.name).filter(n=>n!=="all") ?? null),
+    }).catch(()=>{
+      resolve(null);
+    });
+  });
+
+  return selectedDirections;
+}
+
 
 
 export function register() {
@@ -651,6 +693,8 @@ export function register() {
     HandleJumps,
     ThrowPokeball,
     IndicateDamage,
+    TokenHasDirection,
     UserPaintArea,
+    UserChooseDirections,
   };
 }
