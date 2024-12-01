@@ -1,4 +1,4 @@
-
+import { MODULENAME } from "./utils.mjs";
 
 
 /**
@@ -9,7 +9,7 @@
 function Scene_prepareBaseData(wrapped, ...args) {
   wrapped(...args);
   const hasCombat = !!game.combats.find(c=>c.active && c.scene.uuid === this.uuid);
-  if (this.getFlag("pokemon-assets", "diagonals") && !(this.getFlag("pokemon-assets", "outOfCombat") && hasCombat)) {
+  if (this.getFlag(MODULENAME, "diagonals") && !(this.getFlag(MODULENAME, "outOfCombat") && hasCombat)) {
     this.grid.diagonals = CONST.GRID_DIAGONALS.ILLEGAL;
   }
 }
@@ -28,7 +28,7 @@ async function OnRenderSceneConfig(sceneConfig, html, context) {
 
   const data = {
     ...context,
-    flags: scene.flags["pokemon-assets"],
+    flags: scene.flags[MODULENAME],
   }
 
   const tabs = htmlEl.querySelector(".sheet-tabs.tabs");
@@ -65,7 +65,7 @@ async function OnRenderRegionConfig(regionConfig, html) {
 
   behaviorControls.appendChild(puzzleLink);
 
-  const controls = game.modules.get("pokemon-assets").api.controls;
+  const controls = game.modules.get(MODULENAME).api.controls;
   puzzleLink.addEventListener("click", async function (event) {
     event.preventDefault();
     const options = Object.entries(controls).reduce((o, [k, v])=>o+`<option value="${k}">${v.label}</option>`, "");
@@ -128,9 +128,7 @@ async function CreateDoor(regionConfig) {
   if (!otherScene) return;
 
   await otherScene.view();
-  const doorLocation = await game.modules.get("pokemon-assets").api.scripts.UserPaintArea();
-
-  console.log("doorLocation", doorLocation);
+  const doorLocation = await game.modules.get(MODULENAME).api.scripts.UserPaintArea();
 
   // create the document
   const doorData = {
@@ -138,7 +136,7 @@ async function CreateDoor(regionConfig) {
     name: `Door To ${otherScene.name}`,
     system: {
       events: ["tokenEnter"],
-      source: `game.modules.get("pokemon-assets")?.api?.scripts?.SwitchScenes?.(await fromUuid("${otherScene.uuid}"), { x: ${doorLocation.x}, y: ${doorLocation.y} }, ...arguments);`
+      source: `game.modules.get("${MODULENAME}")?.api?.scripts?.SwitchScenes?.(await fromUuid("${otherScene.uuid}"), { x: ${doorLocation.x}, y: ${doorLocation.y} }, ...arguments);`
     }
   };
   await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [doorData]);
@@ -183,7 +181,7 @@ async function CreateJump(regionConfig) {
     name: `Jump ${direction.titleCase()}`,
     system: {
       events: ["tokenMove"],
-      source: `game.modules.get("pokemon-assets")?.api?.scripts?.HandleJumps?.("${direction}", ...arguments);`
+      source: `game.modules.get("${MODULENAME}")?.api?.scripts?.HandleJumps?.("${direction}", ...arguments);`
     }
   };
   await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [jumpData]);
@@ -204,7 +202,7 @@ async function CreateIce(regionConfig) {
     name: `Slippery Floor`,
     system: {
       events: ["tokenMove"],
-      source: `game.modules.get("pokemon-assets")?.api?.scripts?.HandleIce?.(...arguments);`
+      source: `game.modules.get("${MODULENAME}")?.api?.scripts?.HandleIce?.(...arguments);`
     }
   };
   await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [iceData]);
@@ -248,7 +246,7 @@ async function CreateTrainer(regionConfig) {
     name: `Trainer Watch: ${currentScene.tokens.find(t=>t.uuid === tokenUuid)?.name ?? "Unknown"}`,
     system: {
       events: ["tokenMove"],
-      source: `await game.modules.get("pokemon-assets")?.api?.scripts?.TrainerEyesMeet?.(await fromUuid("${tokenUuid}"), ...arguments);`
+      source: `await game.modules.get("${MODULENAME}")?.api?.scripts?.TrainerEyesMeet?.(await fromUuid("${tokenUuid}"), ...arguments);`
     }
   };
   await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [trainerData]);
@@ -269,20 +267,36 @@ async function CreateImageShow(regionConfig) {
   });
   if (!imageSrc) return;
 
-  const title = imageSrc.substring(imageSrc.lastIndexOf("/") + 1, imageSrc.lastIndexOf(".")).replace("_", " ").replace("-", " ").titleCase();
+  const title = imageSrc.substring(imageSrc.lastIndexOf("/") + 1, imageSrc.lastIndexOf(".")).replaceAll("_", " ").replaceAll("-", " ").titleCase();
+
+  // get the direction we need to look in order to trigger this
+  const directions = (await game.modules.get(MODULENAME).api.scripts.UserChooseDirections({
+    prompt: "Which direction(s) should the token be facing in order to be able to display this image?",
+    directions: ["upleft", "up", "upright"],
+  })) ?? [];
+  if (directions.length === 0) return;
 
   // create the document
   const trainerData = {
     type: "executeScript",
     name: `Show Image: ${title}`,
+    flags: {
+      [MODULENAME]: {
+        "hasTokenInteract": true,
+      },
+    },
     system: {
-      events: ["tokenMoveIn"],
+      events: [],
       source: `if (arguments.length < 4) return;
 
 // only for the triggering user
 const regionTrigger = arguments[3];
 if (regionTrigger.user !== game.user) return;
 
+const { token } = arguments[3]?.data;
+if (!token || !game.modules.get("${MODULENAME}")?.api?.scripts?.TokenHasDirection(token, ${JSON.stringify(directions)})) return;
+
+await game.modules.get("${MODULENAME}")?.api?.scripts?.Interact();
 new ImagePopout("${imageSrc}", { title: "${title}" }).render(true);`
     }
   };
@@ -292,11 +306,11 @@ new ImagePopout("${imageSrc}", { title: "${title}" }).render(true);`
 
 
 export function register() {
-  libWrapper.register("pokemon-assets", "Scene.prototype.prepareBaseData", Scene_prepareBaseData, "WRAPPER");
+  libWrapper.register(MODULENAME, "Scene.prototype.prepareBaseData", Scene_prepareBaseData, "WRAPPER");
   Hooks.on("renderSceneConfig", OnRenderSceneConfig);
   Hooks.on("renderRegionConfig", OnRenderRegionConfig);
 
-  const module = game.modules.get("pokemon-assets");
+  const module = game.modules.get(MODULENAME);
   module.api ??= {};
   module.api.controls = {
     ...(module.api.controls ?? {}),

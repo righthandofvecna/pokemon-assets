@@ -166,7 +166,7 @@ async function PokemonCenter(regionConfig) {
   // get the direction we need to look in order to trigger this
   // TODO: default to "looking at nurse"
   const directions = (await game.modules.get("pokemon-assets").api.scripts.UserChooseDirections({
-    prompt: "",
+    prompt: "Which direction(s) should the token be facing in order to be able to speak to the nurse?",
     directions: ["upleft", "up", "upright"],
   })) ?? [];
   if (directions.length === 0) return;
