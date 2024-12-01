@@ -320,6 +320,38 @@ await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonCenter(await from
 }
 
 
+/**
+ * Pokemon Computer config
+ * @param {*} regionConfig 
+ */
+async function PokemonComputer(regionConfig) {
+  // get the direction we need to look in order to trigger this
+  const directions = (await game.modules.get("pokemon-assets").api.scripts.UserChooseDirections({
+    prompt: "Which direction(s) should the token be facing in order to be able to activate the computer?",
+    directions: ["upleft", "up", "upright"],
+  })) ?? [];
+  if (directions.length === 0) return;
+
+  // create the document
+  const pokemonComputerData = {
+    type: "executeScript",
+    name: "Pokemon Computer",
+    flags: {
+      [MODULENAME]: {
+        "hasTokenInteract": true,
+      },
+    },
+    system: {
+      source: `const { token } = arguments[3]?.data;
+if (!token || !game.modules.get("pokemon-assets")?.api?.scripts?.TokenHasDirection(token, ${JSON.stringify(directions)})) return;
+await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...arguments);`,
+    }
+  };
+  await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [pokemonComputerData]);
+  return;
+}
+
+
 
 export function register() {
   if (early_isGM) {
@@ -339,6 +371,10 @@ export function register() {
     "pokemonCenter": {
       "label": "Pokemon Center",
       "callback": PokemonCenter,
+    },
+    "pokemonComputer": {
+      "label": "Pokemon Computer",
+      "callback": PokemonComputer,
     },
   }
 

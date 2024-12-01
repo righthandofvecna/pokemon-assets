@@ -78,7 +78,6 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/wall-bump.mp3`)
         .locally(true)
-        .volume(game.settings.get("core", "globalInterfaceVolume"))
         .async()
       .play();
   }

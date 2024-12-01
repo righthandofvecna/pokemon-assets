@@ -103,7 +103,10 @@ async function PokemonComputer(scene, regionDocument, regionBehavior, event) {
     .async()
   .play();
 
-  actor?.folder?.renderPartySheet?.();
+  switch (game.system.id) {
+    case "ptr2e": return actor?.folder?.renderPartySheet?.();
+    case "ptu": return new CONFIG.PTU.ui.party.sheetClass({ actor }).render(true)
+  }
 }
 
 
@@ -502,7 +505,6 @@ async function Interact() {
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/a-button.mp3`)
         .locally(true)
-        .volume(game.settings.get("core", "globalInterfaceVolume"))
         .async()
       .play();
   }
