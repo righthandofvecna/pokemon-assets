@@ -46,6 +46,10 @@ async function RegionBehavior_handleRegionEvent(wrapped, event) {
 }
 
 
+function _norm_angle(a) {
+  return a < 0 ? a + 360 : (a >= 360 ? a - 360 : a);
+}
+
 /**
  * Trigger the "tokenInteract" region behavior for all selected tokens
  */
@@ -60,6 +64,32 @@ function OnInteract() {
         region._triggerEvent("tokenInteract", { token });
       }
     })
+    // check if we are facing/adjacent to an item pile
+    if (game.modules.get("item-piles")?.active) {
+      const tObj = token.object;
+      const { x: tx, y: ty } = canvas.grid.getCenterPoint(tObj.center);
+      const { sizeX, sizeY } = canvas.grid;
+      const adjacent = game.canvas.tokens.placeables.filter(o=>{
+        if (o === tObj || !o.document?.flags?.["item-piles"]?.data?.enabled) return false;
+        const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
+        return (Math.abs(ox - tx) * 2 <= Math.max(o.w, sizeX) + Math.max(tObj.w, sizeX)) && (Math.abs(oy - ty) * 2 <= Math.max(o.h, sizeY) + Math.max(tObj.h, sizeY));
+      })
+      
+      const facing = (()=>{
+        // if we're not a token with facing, we're done!
+        if (!tObj.isTileset) return adjacent;
+        // otherwise, check the direction to the other token
+        return adjacent.filter(o=>{
+          const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
+          const direction = (Math.atan2(oy - ty, ox - tx) * 180 / Math.PI) - 90;
+          return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(token.rotation + 22.5) / 8);
+        })
+      })();
+
+      if (facing.length > 0) {
+        facing.forEach(ip=>game.itempiles.API.renderItemPileInterface(ip.document, { inspectingTarget: token?.actor?.uuid }));
+      }
+    }
   });
 }
 
