@@ -1,5 +1,5 @@
-import { MODULENAME } from "./utils.mjs";
-import { SpritesheetGenerator } from "./spritesheets.mjs";
+import { MODULENAME } from "../utils.mjs";
+import { SpritesheetGenerator } from "../spritesheets.mjs";
 
 const WALK_SPEED = 4;
 const RUN_SPEED = 8;
@@ -14,7 +14,7 @@ const SLIDE_SPEED = WALK_SPEED;
  * @param {*} context 
  */
 function OnRenderTokenConfig(config, html, context) {
-  const form = $(html).find("form").get(0);
+  const form = $(html).find("form").get(0) ?? config.form;
 
   let src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
   let defaultSettings =  {
@@ -332,22 +332,7 @@ function OnCreateCombatant(combatant) {
 }
 
 
-function PlaceablesLayer_getMovableObjects(wrapped, ids, includeLocked) {
-  return wrapped(ids, includeLocked).filter(t=>includeLocked || (t?.document?.movable ?? true));
-}
 
-
-
-function TokenDocument_lockMovement() {
-  const lockId = foundry.utils.randomID();
-  if (this._movementLocks === undefined)
-    this._movementLocks = new Set();
-  this._movementLocks.add(lockId);
-  const thisToken = this;
-  return function () {
-    thisToken._movementLocks.delete(lockId);
-  };
-}
 
 /** Initialize all the edges for tokens when the canvas refreshes */
 function OnInitializeEdges() {
@@ -835,9 +820,6 @@ export function register() {
       return (this._movementLocks?.size ?? 0) === 0;
     }
   });
-  CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
-
-  libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
 
   Hooks.on("renderTokenConfig", OnRenderTokenConfig);
   Hooks.on("updateToken", OnUpdateToken);

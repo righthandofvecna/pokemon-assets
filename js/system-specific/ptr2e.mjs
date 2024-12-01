@@ -72,13 +72,15 @@ async function OnCreateChatMessage(message) {
 
 /**
  * Whenever an actor would be created, try to populate its sprite
- * @param {*} actor
+ * @param {PTR2eActor} actor
+ * @param {object} actorData
  * @returns 
  */
-function OnPreCreateActor(actor) {
+function OnPreCreateActor(actor, actorData) {
   if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
   if (actor.type !== "pokemon") return;
-  const species = actor.system.species;
+  const species = actorData.items.find(i=>i.type === "species")?.system;
+  if (!species) return;
   const slug = species.slug;
   const dexNum = species.number;
   const regionalVariant = (()=>{
@@ -88,10 +90,10 @@ function OnPreCreateActor(actor) {
     if (slug.startsWith("paldean-")) return "_paldean";
     return "";
   })();
-  const shiny = actor.system.shiny ? "s" : "";
+  const shiny = actorData.system.shiny ? "s" : "";
   const gender = (()=>{
-    if (actor.system.gender == "male") return "m";
-    if (actor.system.gender == "female") return "f";
+    if (actorData.system.gender == "male") return "m";
+    if (actorData.system.gender == "female") return "f";
     return "";
   })();
   const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
@@ -161,18 +163,33 @@ async function PokemonCenter(regionConfig) {
 
   if (!tokenUuid) return;
 
+  // get the direction we need to look in order to trigger this
+  // TODO: default to "looking at nurse"
+  const directions = (await game.modules.get("pokemon-assets").api.scripts.UserChooseDirections({
+    prompt: "Which direction(s) should the token be facing in order to be able to speak to the nurse?",
+    directions: ["upleft", "up", "upright"],
+  })) ?? [];
+  if (directions.length === 0) return;
+
   // create the document
   const pokemonCenterData = {
     type: "executeScript",
     name: "Pokemon Center",
+    flags: {
+      [MODULENAME]: {
+        "hasTokenInteract": true,
+      },
+    },
     system: {
-      events: ["tokenMoveIn"],
+      events: [],
       source: `if (arguments.length < 4) return;
 
 // only for the triggering user
 const regionTrigger = arguments[3];
 if (regionTrigger.user !== game.user) return;
 
+const { token } = arguments[3]?.data;
+if (!token || !game.modules.get("pokemon-assets")?.api?.scripts?.TokenHasDirection(token, ${JSON.stringify(directions)})) return;
 
 const toHeal = game.actors.filter(a=>a.isOwner);
 
@@ -205,8 +222,12 @@ async function PokemonComputer(regionConfig) {
   const pokemonComputerData = {
     type: "executeScript",
     name: "Pokemon Computer",
+    flags: {
+      [MODULENAME]: {
+        "hasTokenInteract": true,
+      },
+    },
     system: {
-      events: ["tokenMoveIn"],
       source: `await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...arguments);`,
     }
   };
@@ -223,7 +244,7 @@ export function register() {
   }
   Hooks.on("preCreateActor", OnPreCreateActor);
 
-  const module = game.modules.get("pokemon-assets");
+  const module = game.modules.get(MODULENAME);
   module.api ??= {};
   module.api.controls = {
     ...(module.api.controls ?? {}),

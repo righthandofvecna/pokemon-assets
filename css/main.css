@@ -1,0 +1,42 @@
+.dialog .directional-chooser {
+  width: max-content;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0.5em;
+  display: grid;
+  grid-template-columns: 2em 2em 2em;
+  grid-template-rows: 2em 2em 2em;
+  gap: 2px;
+}
+.dialog .directional-chooser label input[type="checkbox"] {
+  display: none;
+}
+.dialog .directional-chooser label span {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.dialog .directional-chooser label span i {
+  text-align: center;
+}
+.dialog .directional-chooser label input:checked + span {
+  background-color: var(--color-checkbox-checked);
+  color: var(--color-text-light-highlight);
+}
+.dialog .directional-chooser label span:hover {
+  text-shadow: 0 0 2px var(--color-shadow-primary);
+}
+.dialog .directional-chooser label.upleft span {
+  border-top-left-radius: 5px;
+}
+.dialog .directional-chooser label.upright span {
+  border-top-right-radius: 5px;
+}
+.dialog .directional-chooser label.downleft span {
+  border-bottom-left-radius: 5px;
+}
+.dialog .directional-chooser label.downright span {
+  border-bottom-right-radius: 5px;
+}

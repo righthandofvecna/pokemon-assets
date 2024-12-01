@@ -72,4 +72,24 @@ export function register() {
 		hint: "Treat tokens as walls for the purpose of movement."
 	});
 
+  game.settings.register(MODULENAME, "playCollisionSound", {
+		name: "Play Collision Sound",
+		default: true,
+		type: Boolean,
+		scope: "client",
+		requiresReload: false,
+		config: true,
+		hint: "When you attempt to move into a wall or other obstruction using the keyboard, play the Pokemon \"bump\" sound."
+	});
+
+  game.settings.register(MODULENAME, "playInteractSound", {
+		name: "Play Interact Sound",
+		default: true,
+		type: Boolean,
+		scope: "client",
+		requiresReload: false,
+		config: true,
+		hint: "When you interact with a Scene Region with a \"Token Interaction\" trigger, play the Pokemon \"interact\" sound."
+	});
+
 };

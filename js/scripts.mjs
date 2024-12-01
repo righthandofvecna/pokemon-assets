@@ -1,5 +1,5 @@
 
-import { isTheGM, sleep } from "./utils.mjs";
+import { isTheGM, MODULENAME, sleep } from "./utils.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
@@ -14,21 +14,12 @@ async function PokemonCenter(nurse, doHeal) {
     y,
   };
 
-  const talkSound = await game.audio.create({
-    src: "modules/pokemon-assets/audio/bgs/a-button.mp3",
-  });
-  await talkSound.load();
-
   const music = game.scenes.active?.playlistSound?.sound;
   let volume = music?.volume ?? 1;
 
   const talk = async function(text, ms=1500) {
     game.canvas.interface.createScrollingText(textPosition, text);
-    await sleep(ms/2);
-    await Promise.all([
-      talkSound.play({ volume: Math.clamp(volume * 1.5, 0.09, 1) }),
-      sleep(ms/2),
-    ])
+    await Promise.all([Interact(), sleep(ms)]);
   }
   await talk("Hello, and welcome to the Pokémon Center.").then(()=>{
     return talk("We restore your tired Pokémon to full health.")
@@ -73,7 +64,7 @@ async function PokemonCenter(nurse, doHeal) {
   });
 
   await recoverySound.load();
-  await recoverySound.play({ volume: Math.clamp(volume * 1.5, 0.09, 1) });
+  await recoverySound.play({ volume: Math.clamp(game.settings.get("core", "globalInterfaceVolume"), 0, 1) });
 
   await doHeal();
   await recoverySoundDone;
@@ -268,8 +259,6 @@ async function SwitchScenes(newScene, newAttributes, ...args) {
     ...token.toObject(),
     ...newAttributes,
   };
-
-  console.log(user, scene, tokenData);
 
   await newScene.createEmbeddedDocuments("Token", [tokenData]);
   await token.delete();
@@ -504,6 +493,32 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
   await sequence.play();
 }
 
+/**
+ * Play the interaction sound!
+ */
+async function Interact() {
+  if (game.settings.get(MODULENAME, "playInteractSound")) {
+    await new Sequence({ moduleName: MODULENAME, softFail: true })
+      .sound()
+        .file(`modules/pokemon-assets/audio/bgs/a-button.mp3`)
+        .locally(true)
+        .volume(game.settings.get("core", "globalInterfaceVolume"))
+        .async()
+      .play();
+  }
+}
+
+
+/**
+ * Check if the token is facing one of the given directions
+ * @param {TilesetToken} token 
+ * @param {array} directions 
+ * @returns 
+ */
+function TokenHasDirection(token, directions) {
+  return !token?.object?.isTileset || directions.includes(token?.object?.direction);
+}
+
 class PainterTemplate extends MeasuredTemplate {
   #initialLayer;
   #events;
@@ -635,6 +650,37 @@ async function UserPaintArea() {
   return { x, y };
 }
 
+async function UserChooseDirections({ prompt, directions } = { prompt: "Select a direction", directions: ["all"] }) {
+  const isAll = directions.includes("all") || directions.length >= 8;
+  if (isAll) {
+    directions = ["upleft", "up", "upright", "left", "right", "downleft", "down", "downright"];
+  }
+  const selectedDirections = await new Promise(async (resolve)=>{
+    Dialog.prompt({
+      title: 'Select Directions',
+      content: `
+          <p>${prompt}</p>
+          <div class="directional-chooser">
+            <label class="upleft"><input type="checkbox" name="upleft" ${directions.includes("upleft") ? "checked" : ""}><span><i class="fa-solid fa-arrow-up-left"></i></span></label>
+            <label class="up"><input type="checkbox" name="up" ${directions.includes("up") ? "checked" : ""}><span><i class="fa-solid fa-arrow-up"></i></span></label>
+            <label class="upright"><input type="checkbox" name="upright" ${directions.includes("upright") ? "checked" : ""}><span><i class="fa-solid fa-arrow-up-right"></i></span></label>
+            <label class="left"><input type="checkbox" name="left" ${directions.includes("left") ? "checked" : ""}><span><i class="fa-solid fa-arrow-left"></i></span></label>
+            <span class="center"></span>
+            <label class="right"><input type="checkbox" name="right" ${directions.includes("right") ? "checked" : ""}><span><i class="fa-solid fa-arrow-right"></i></span></label>
+            <label class="downleft"><input type="checkbox" name="downleft" ${directions.includes("downleft") ? "checked" : ""}><span><i class="fa-solid fa-arrow-down-left"></i></span></label>
+            <label class="down"><input type="checkbox" name="down" ${directions.includes("down") ? "checked" : ""}><span><i class="fa-solid fa-arrow-down"></i></span></label>
+            <label class="downright"><input type="checkbox" name="downright" ${directions.includes("downright") ? "checked" : ""}><span><i class="fa-solid fa-arrow-down-right"></i></span></label>
+          </div>
+      `,
+      callback: (html) => resolve(html.find('.directional-chooser input[type="checkbox"]:checked').toArray().map(el=>el.name).filter(n=>n!=="all") ?? null),
+    }).catch(()=>{
+      resolve(null);
+    });
+  });
+
+  return selectedDirections;
+}
+
 
 
 export function register() {
@@ -651,6 +697,9 @@ export function register() {
     HandleJumps,
     ThrowPokeball,
     IndicateDamage,
+    Interact,
+    TokenHasDirection,
     UserPaintArea,
+    UserChooseDirections,
   };
 }
