@@ -1,5 +1,5 @@
 
-import { isTheGM, sleep } from "./utils.mjs";
+import { isTheGM, MODULENAME, sleep } from "./utils.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
@@ -504,6 +504,21 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
   await sequence.play();
 }
 
+/**
+ * Play the interaction sound!
+ */
+async function Interact() {
+  if (game.settings.get(MODULENAME, "playInteractSound")) {
+    await new Sequence({ moduleName: MODULENAME, softFail: true })
+      .sound()
+        .file(`modules/pokemon-assets/audio/bgs/a-button.mp3`)
+        .locally(true)
+        .volume(game.settings.get("core", "globalInterfaceVolume"))
+        .async()
+      .play();
+  }
+}
+
 
 /**
  * Check if the token is facing one of the given directions
@@ -693,6 +708,7 @@ export function register() {
     HandleJumps,
     ThrowPokeball,
     IndicateDamage,
+    Interact,
     TokenHasDirection,
     UserPaintArea,
     UserChooseDirections,

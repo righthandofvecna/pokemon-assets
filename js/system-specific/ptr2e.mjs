@@ -205,6 +205,7 @@ const heal = async function () {
   }
 };
 
+await game.modules.get("pokemon-assets")?.api?.scripts?.Interact();
 await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonCenter(await fromUuid("${tokenUuid}"), heal);`
     }
   };

@@ -53,25 +53,14 @@ function OnInteract() {
   const selected = game.canvas.tokens.placeables.filter(o => o.controlled).map(o => o.document);
   if (selected.length === 0) return;
   // send interact event
-  let interacted;
   selected.forEach(token=>{
     token.regions.forEach(region=>{
       // if has tokenInteract
       if (region.behaviors.some(b=>b.getFlag(MODULENAME, "hasTokenInteract"))) {
         region._triggerEvent("tokenInteract", { token });
-        interacted = true;
       }
     })
   });
-  if (interacted && game.settings.get(MODULENAME, "playInteractSound")) {
-    new Sequence({ moduleName: "pokemon-assets", softFail: true })
-      .sound()
-        .file(`modules/pokemon-assets/audio/bgs/a-button.mp3`)
-        .locally(true)
-        .volume(game.settings.get("core", "globalInterfaceVolume"))
-        .async()
-      .play();
-  }
 }
 
 
