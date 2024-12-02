@@ -89,7 +89,7 @@ function Tile_onCreate(wrapper, data, options, userId) {
 function Tile_onUpdate(wrapper, changed, options, userId) {
   wrapper(changed, options, userId);
   if ("flags" in changed && MODULENAME in changed.flags) {
-    this.initializeEdges({ deleted: !changed.flags[MODULENAME]?.solid });
+    this.initializeEdges({ deleted: !(changed?.flags[MODULENAME]?.solid ?? this?.document?.flags[MODULENAME]?.solid) });
   } else if ("x" in changed || "y" in changed || "width" in changed || "height" in changed) {
     this.initializeEdges();
   }
