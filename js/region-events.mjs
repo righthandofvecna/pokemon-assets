@@ -80,6 +80,11 @@ function _is_adjacent(a, b, requireFacing=true) {
  * Trigger the "tokenInteract" region behavior for all selected tokens
  */
 async function OnInteract() {
+  if ( game.paused && !game.user.isGM ) {
+    ui.notifications.warn("GAME.PausedWarning", {localize: true});
+    return this;
+  }
+
   const selected = game.canvas.tokens.placeables.filter(o => o.controlled).map(o => o.document);
   if (selected.length === 0) return;
   // send interact event
