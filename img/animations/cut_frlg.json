@@ -1,0 +1,112 @@
+{
+    "meta": {
+        "image": "cut_frlg.png",
+        "format": "RGBA8888",
+        "scale": 1
+    },
+    "frames": {
+        "cut_frlg.png_0": {
+            "frame": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "cut_frlg.png_1": {
+            "frame": {
+                "x": 16,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "cut_frlg.png_2": {
+            "frame": {
+                "x": 32,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "cut_frlg.png_3": {
+            "frame": {
+                "x": 48,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "cut_frlg.png_4": {
+            "frame": {
+                "x": 64,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        }
+    },
+    "animations": {
+        "play": [
+            "cut_frlg.png_0",
+            "cut_frlg.png_1",
+            "cut_frlg.png_2",
+            "cut_frlg.png_3",
+            "cut_frlg.png_4",
+            "cut_frlg.png_3",
+            "cut_frlg.png_4",
+            "cut_frlg.png_3",
+            "cut_frlg.png_4"
+        ]
+    }
+}

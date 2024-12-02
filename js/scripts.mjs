@@ -541,6 +541,19 @@ async function TriggerRockSmash(tile) {
 async function TriggerCut(tile) {
   if (!game.user.isGM) return;
 
+  await sleep(300);
+  await new Sequence()
+    .animation()
+      .on(tile)
+      .delay(100)
+      .hide()
+    .effect()
+      .atLocation(tile)
+      .file("modules/pokemon-assets/img/animations/cut_frlg.json")
+      .playbackRate(0.25)
+      .size(1, { gridUnits: true })
+      .async()
+    .play();
   await tile.delete();
 }
 
