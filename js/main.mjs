@@ -2,7 +2,7 @@
 import * as settings from "./settings.mjs";
 import * as audio from "./audio.mjs";
 import * as controls from "./controls.mjs";
-import * as token from "./token/index.mjs";
+import * as placeables from "./placeables/index.mjs";
 import * as spritesheets from "./spritesheets.mjs";
 import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
@@ -13,7 +13,7 @@ Hooks.on("init", ()=>{
   settings.register();
   audio.register();
   controls.register();
-  token.register();
+  placeables.register();
   spritesheets.register();
   scripts.register();
   pixelate.register();

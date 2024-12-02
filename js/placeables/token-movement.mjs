@@ -62,9 +62,11 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
       const shifted = obj._getShiftedPosition(...offsets);
       if (obj.x == shifted.x && obj.y == shifted.y) {
         // bumped!
-        bumped ||= Math.round(obj.document.rotation / 45) == Math.round(angle / 45);
         if (obj.document.getFlag("pokemon-assets", "spritesheet")) {
           update.rotation = angle;
+          bumped ||= Math.round(obj.document.rotation / 45) == Math.round(angle / 45);
+        } else {
+          bumped = true;
         }
       } else {
         foundry.utils.mergeObject(update, shifted)

@@ -339,6 +339,9 @@ function OnInitializeEdges() {
   for (const token of canvas.tokens.placeables) {
     token?.initializeEdges?.();
   }
+  for (const tile of canvas.tiles.placeables) {
+    tile?.initializeEdges?.();
+  }
 }
 
 export function register() {
@@ -653,21 +656,13 @@ export function register() {
     }
 
     initializeEdges({deleted=false}={}) {
-      if (!game.settings.get(MODULENAME, "tokenCollision")) return;
-
       // the token has been deleted
       if ( deleted ) {
-        canvas.edges.delete(`${this.id}_t`);
-        canvas.edges.delete(`${this.id}_b`);
-        canvas.edges.delete(`${this.id}_l`);
-        canvas.edges.delete(`${this.id}_r`);
-
-        canvas.edges.delete(`${this.id}_tl`);
-        canvas.edges.delete(`${this.id}_tr`);
-        canvas.edges.delete(`${this.id}_bl`);
-        canvas.edges.delete(`${this.id}_br`);
+        ["t","r","b","l","tl","tr","bl","br"].forEach(d=>canvas.edges.delete(`${this.id}_${d}`));
         return;
       }
+
+      if (!game.settings.get(MODULENAME, "tokenCollision")) return;
 
       // re-create the edges for the token
       const { x: docX, y: docY, width, height } = this.document;
@@ -807,7 +802,6 @@ export function register() {
     /** @inheritDoc */
     _onDelete(options, userId) {
       super._onDelete(options, userId);
-      console.log("deleting", this.id);
       this.initializeEdges({deleted: true});
     }
 
