@@ -1,5 +1,6 @@
 
-import { MODULENAME } from "./utils.mjs";
+import { MODULENAME, sleep } from "./utils.mjs";
+import * as socket from "./socket.mjs";
 
 
 function RegionBehaviorConfig_getFields(wrapped) {
@@ -51,9 +52,34 @@ function _norm_angle(a) {
 }
 
 /**
+ * 
+ * @param {object} a the thing that has the rotation
+ * @param {number} a.x
+ * @param {number} a.y
+ * @param {number} a.w
+ * @param {number} a.h
+ * @param {number} a.r
+ * @param {object} b the thing we want to check for adjacency
+ * @param {number} b.x
+ * @param {number} b.y
+ * @param {number} b.w
+ * @param {number} b.h
+ * @param {boolean} requireFacing whether or not we should require a to be facing b
+ */
+function _is_adjacent(a, b, requireFacing=true) {
+  if (!((Math.abs(b.x - a.x) * 2 <= a.w + b.w) && (Math.abs(b.y - a.y) * 2 <= a.h + b.h))) {
+    return false;
+  }
+  if (!requireFacing) return true;
+  // check facing
+  const direction = (Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI) - 90;
+  return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(a.r + 22.5) / 8);
+}
+
+/**
  * Trigger the "tokenInteract" region behavior for all selected tokens
  */
-function OnInteract() {
+async function OnInteract() {
   const selected = game.canvas.tokens.placeables.filter(o => o.controlled).map(o => o.document);
   if (selected.length === 0) return;
   // send interact event
@@ -63,34 +89,94 @@ function OnInteract() {
       if (region.behaviors.some(b=>b.getFlag(MODULENAME, "hasTokenInteract"))) {
         region._triggerEvent("tokenInteract", { token });
       }
-    })
-    // check if we are facing/adjacent to an item pile
-    if (game.modules.get("item-piles")?.active) {
-      const tObj = token.object;
-      const { x: tx, y: ty } = canvas.grid.getCenterPoint(tObj.center);
-      const { sizeX, sizeY } = canvas.grid;
-      const adjacent = game.canvas.tokens.placeables.filter(o=>{
-        if (o === tObj || !o.document?.flags?.["item-piles"]?.data?.enabled) return false;
-        const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
-        return (Math.abs(ox - tx) * 2 <= Math.max(o.w, sizeX) + Math.max(tObj.w, sizeX)) && (Math.abs(oy - ty) * 2 <= Math.max(o.h, sizeY) + Math.max(tObj.h, sizeY));
-      })
-      
-      const facing = (()=>{
-        // if we're not a token with facing, we're done!
-        if (!tObj.isTileset) return adjacent;
-        // otherwise, check the direction to the other token
-        return adjacent.filter(o=>{
-          const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
-          const direction = (Math.atan2(oy - ty, ox - tx) * 180 / Math.PI) - 90;
-          return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(token.rotation + 22.5) / 8);
-        })
-      })();
-
-      if (facing.length > 0) {
-        facing.forEach(ip=>game.itempiles.API.renderItemPileInterface(ip.document, { inspectingTarget: token?.actor?.uuid }));
-      }
-    }
+    });
   });
+
+  // if we only have one token selected, do the other "interact" behavior as well.
+  if (selected.length !== 1) return;
+
+  const token = selected[0];
+  const tObj = token.object;
+  const { x: tx, y: ty } = canvas.grid.getCenterPoint(tObj.center);
+  const { sizeX, sizeY } = canvas.grid;
+  const tokenBounds = { x: tx, y: ty, w: Math.max(tObj.w, sizeX), h: Math.max(tObj.h, sizeY), r: token.rotation};
+  const requireFacing = !!tObj?.isTileset;
+
+  // check if we are facing/adjacent to an item pile
+  if (game.modules.get("item-piles")?.active) {
+    const facingTokens = game.canvas.tokens.placeables.filter(o=>{
+      if (o === tObj || !o.document?.flags?.["item-piles"]?.data?.enabled) return false;
+      const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
+      return _is_adjacent(
+        tokenBounds,
+        { x: ox, y: oy, w: Math.max(o.w, sizeX), h: Math.max(o.h, sizeY) },
+        requireFacing,
+      );
+    });
+
+    if (facingTokens.length > 0) {
+      facingTokens.forEach(ip=>game.itempiles.API.renderItemPileInterface(ip.document, { inspectingTarget: token?.actor?.uuid }));
+    }
+  };
+
+  // check if we are facing/adjacent to an tile (either with Rock Smash or Cut or Strength)
+  const facingTiles = game.canvas.tiles.placeables.filter(tile=>{
+    const tileAssetsFlags = tile?.document?.flags?.[MODULENAME];
+    if (!tileAssetsFlags?.smashable && !tileAssetsFlags?.cuttable && !tileAssetsFlags?.strengthable) return false;
+    console.log(tile);
+    const { x: ox, y: oy } = canvas.grid.getCenterPoint(tile.center);
+    return _is_adjacent(
+      tokenBounds,
+      { x: ox, y: oy, w: Math.max(tile.bounds.width, sizeX), h: Math.max(tile.bounds.height, sizeY)},
+      requireFacing,
+    );
+  });
+  if (facingTiles.length > 0) {
+    // let's wait until we lift the enter key
+    do {
+      await sleep(100);
+    } while (keyboard.downKeys.has("Enter"));
+
+    const smashable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.smashable);
+    const cuttable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.cuttable);
+    const strengthable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.strengthable);
+
+    const soc = socket.current();
+
+    smashable.forEach(async (rs)=>{
+      // TODO: check if we *can* use Rock Smash
+      if (await new Promise((resolve)=>Dialog.confirm({
+        title: "Rock Smash",
+        content: "This rock appears to be breakable. Would you like to use Rock Smash?",
+        yes: ()=>resolve(true),
+        no: ()=>resolve(false),
+      }))) {
+        // TODO: figure out who has Rock Smash, if anyone
+        console.log("X used Rock Smash!");
+        // TODO: show the message
+        // TODO: play the smashing animation
+        await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
+      };
+    });
+
+    cuttable.forEach(async (rs)=>{
+      // TODO: check if we *can* use Cut
+      if (await new Promise((resolve)=>Dialog.confirm({
+        title: "Cut",
+        content: "This tree looks like it can be cut down. Would you like to use Cut?",
+        yes: ()=>resolve(true),
+        no: ()=>resolve(false),
+      }))) {
+        // TODO: figure out who has Cut, if anyone
+        console.log("X used Cut!");
+        // TODO: show the message
+        // TODO: play the cutting animation
+        await soc.executeAsGM("triggerCut", rs.document.uuid);
+      };
+    });
+    
+    // console.log(facingTiles);
+  }
 }
 
 

@@ -8,6 +8,7 @@ import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
 import * as regionEvents from "./region-events.mjs";
 import * as system from "./system-specific/index.mjs";
+import * as socket from "./socket.mjs";
 
 Hooks.on("init", ()=>{
   settings.register();
@@ -19,4 +20,5 @@ Hooks.on("init", ()=>{
   pixelate.register();
   regionEvents.register();
   system.register();
+  socket.register();
 })

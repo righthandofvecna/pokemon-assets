@@ -12,7 +12,7 @@ async function OnRenderTileConfig(sheet, html, context) {
 
   $(form.querySelector(`.sheet-tabs`)).append(`<a class="item" data-tab="puzzle"><i class="fa-solid fa-puzzle-piece"></i> Puzzle</a>`);
 
-  const { solid } = tile?.flags?.[MODULENAME] ?? {};
+  const { solid, cuttable, smashable, strengthable } = tile?.flags?.[MODULENAME] ?? {};
 
   const tabs = form.getElementsByClassName("tab");
   $(tabs[tabs.length-1]).after(`<div class="tab" data-tab="puzzle">
@@ -21,6 +21,24 @@ async function OnRenderTileConfig(sheet, html, context) {
       <label>Acts as a Wall</label>
       <div class="form-fields">
         <input type="checkbox" name="flags.${MODULENAME}.solid" ${solid ? "checked" : ""}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Destroyed by "Rock Smash"</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.${MODULENAME}.smashable" ${smashable ? "checked" : ""}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Destroyed by "Cut"</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.${MODULENAME}.cuttable" ${cuttable ? "checked" : ""}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Movable by "Strength"</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.${MODULENAME}.strengthable" ${strengthable ? "checked" : ""}>
       </div>
     </div>
   </div>`);

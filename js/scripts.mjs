@@ -1,5 +1,6 @@
 
 import { isTheGM, MODULENAME, sleep } from "./utils.mjs";
+import * as socket from "./socket.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
@@ -510,6 +511,39 @@ async function Interact() {
   }
 }
 
+/**
+ * Play the Rock Smash animation and destroy the tile.
+ * @param {TileDocument} tile the tile document to destroy using Rock Smash
+ */
+async function TriggerRockSmash(tile) {
+  if (!game.user.isGM) return;
+
+  await sleep(300);
+  await new Sequence()
+    .animation()
+      .on(tile)
+      .delay(100)
+      .hide()
+    .effect()
+      .atLocation(tile)
+      .file("modules/pokemon-assets/img/animations/rock_smash_frlg.json")
+      .playbackRate(0.25)
+      .size(1, { gridUnits: true })
+      .async()
+    .play();
+  await tile.delete();
+}
+
+/**
+ * Play the Cut animation and destroy the tile.
+ * @param {TileDocument} tile the tile document to destroy using Cut
+ */
+async function TriggerCut(tile) {
+  if (!game.user.isGM) return;
+
+  await tile.delete();
+}
+
 
 /**
  * Check if the token is facing one of the given directions
@@ -686,7 +720,7 @@ async function UserChooseDirections({ prompt, directions } = { prompt: "Select a
 
 
 export function register() {
-  const module = game.modules.get("pokemon-assets");
+  const module = game.modules.get(MODULENAME);
   module.api ??= {};
   module.api.scripts = {
     PokemonCenter,
@@ -703,5 +737,9 @@ export function register() {
     TokenHasDirection,
     UserPaintArea,
     UserChooseDirections,
+    TriggerRockSmash,
   };
+
+  socket.registerSocket("triggerRockSmash", async (tileId)=>TriggerRockSmash(await fromUuid(tileId)));
+  socket.registerSocket("triggerCut", async (tileId)=>TriggerCut(await fromUuid(tileId)));
 }
