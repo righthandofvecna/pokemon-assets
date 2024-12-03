@@ -54,15 +54,20 @@ async function OnRenderTokenConfig(config, html, context) {
     };
     form.querySelector(".spritesheet-config").replaceWith(rendered);
 
+    // check that the anchoring fields exist
+    for (const tf of ["fit", "anchorX", "anchorY"]) {
+      if (!form.querySelector(`[name='texture.${tf}']`)) {
+        $(form).append(`<input name="texture.${tf}" value="${config?.token?.texture?.[tf]}" hidden />`);
+      }
+    }
+
     // update the anchors
     if (!data.spritesheet) {
       // reset the anchors if they exist
-      for (const tf of ["fit", "anchorX", "anchorY"]) {
-        const el = form.querySelector(`[name='texture.${tf}']`);
-        if (!!el) {
-          el.value = token?.texture?.[tf] ?? el.value;
-        }
-      }
+      form.querySelector("[name='texture.fit']").value = "contain";
+      form.querySelector("[name='texture.anchorX']").value = 0.5;
+      form.querySelector("[name='texture.anchorY']").value = 0.5;
+      return;
     };
 
     const texture = await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
@@ -83,13 +88,6 @@ async function OnRenderTokenConfig(config, html, context) {
         default: return 1.02 + (0.5 / (-ratio * scale));
       }
     })();
-
-    // check that the anchoring fields exist
-    for (const tf of ["fit", "anchorX", "anchorY"]) {
-      if (!form.querySelector(`[name='texture.${tf}']`)) {
-        $(form).append(`<input name="texture.${tf}" value="${config?.token?.texture?.[tf]}" hidden />`);
-      }
-    }
 
     // set the anchoring fields
     form.querySelector("[name='texture.fit']").value = "width";
