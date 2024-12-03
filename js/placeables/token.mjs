@@ -1,4 +1,4 @@
-import { MODULENAME } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 
 const WALK_SPEED = 4;
@@ -215,6 +215,7 @@ function getDirectionFromAngle(angle) {
 
 
 function OnCreateCombatant(combatant) {
+  if (!isTheGM()) return;
   if (!combatant?.token?.getFlag("pokemon-assets", "spritesheet")) return;
   combatant.update({
     "img": combatant?.actor?.img ?? "icons/svg/mystery-man.svg",
@@ -708,6 +709,8 @@ export function register() {
   Hooks.on("renderTokenConfig", OnRenderTokenConfig);
   Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("preUpdateToken", OnPreUpdateToken);
-  Hooks.on("createCombatant", OnCreateCombatant);
   Hooks.on("initializeEdges", OnInitializeEdges);
+  if (early_isGM()) {
+    Hooks.on("createCombatant", OnCreateCombatant);
+  }
 }
