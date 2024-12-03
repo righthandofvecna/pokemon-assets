@@ -13,168 +13,97 @@ const SLIDE_SPEED = WALK_SPEED;
  * @param {*} html 
  * @param {*} context 
  */
-function OnRenderTokenConfig(config, html, context) {
+async function OnRenderTokenConfig(config, html, context) {
   const form = $(html).find("form").get(0) ?? config.form;
+  const token = config.token;
+  console.log("OnRenderTokenConfig", token);
 
-  let src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
-  let defaultSettings =  {
-    sheetstyle: "trainer",
-    animationframes: 4,
-    separateidle: false,
-    ...(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {}),
-  };
+  /**
+   * Recalculate all the computed fields, create them if they don't exist, and update them.
+   */
+  const refreshConfig = async function () {
+    const src = form.querySelector("[name='texture.src'] input[type='text']")?.value ?? form.querySelector("[name='texture.src'][type='text']")?.value;
+    const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
 
-  const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
-  const isSpritesheet = config.token.getFlag("pokemon-assets", "spritesheet") ?? isPredefined;
-  const sheetStyle = config.token.getFlag("pokemon-assets", "sheetstyle") ?? defaultSettings.sheetstyle;
-  const animationFrames = config.token.getFlag("pokemon-assets", "animationframes") ?? defaultSettings.animationframes;
-  const hasSeparateIdle = config.token.getFlag("pokemon-assets", "separateidle") ?? defaultSettings.separateidle;
-
-  $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${isSpritesheet ? "checked" : ""}>`);
-  // add control for what size
-  const sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
-    return allOptions + `<option value="${val}" ${sheetStyle === val ? "selected" : ""}>${label}</option>`;
-  }, "");
-  $(html).find("[name='texture.src']").closest(".form-group").after(`
-    <div class="spritesheet-config" ${!isPredefined && isSpritesheet ? '' : 'style="display: none"'}>
-      <div class="form-group sheet-style">
-        <label>Sheet Style</label>
-        <div class="form-fields">
-          <select name="flags.pokemon-assets.sheetstyle">${sheetSizeOptions}</select>
-        </div>
-        <p class="hint">What the sheet's layout style is.</p>
-      </div>
-      <div class="form-group sheet-frames" ${sheetStyle === "pmd" ? '' : 'style="display: none"'}>
-        <label>Sheet Frames</label>
-        <div class="form-fields">
-          <input type="number" name="flags.pokemon-assets.animationframes" value="${animationFrames}" ${sheetStyle === "pmd" ? '' : 'hidden readonly'}>
-        </div>
-        <p class="hint">How many frames per animation this spritesheet has.</p>
-      </div>
-      <div class="form-group sheet-idle">
-        <label for="flags.pokemon-assets.separateidle">Separate Idle Frame</label>
-        <div class="form-fields">
-          <input type="checkbox" name="flags.pokemon-assets.separateidle" ${hasSeparateIdle ? "checked" : ""}>
-        </div>
-        <p class="hint">Whether or not the first frame of each direction on the sheet should be included when playing the walking animation.</p>
-      </div>
-    </div>`);
-  
-  const updateDefaults = async function () {
-    src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
-    const predefined = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
-    defaultSettings = {
-      sheetstyle: "trainer",
-      animationframes: 4,
-      separateidle: false,
-      ...(predefined ?? {}),
+    const data = {
+      spritesheet: isPredefined || (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked ?? config.token.getFlag("pokemon-assets", "spritesheet")),
+      sheetstyle: form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? config.token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer",
+      animationframes: (parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || config.token.getFlag("pokemon-assets", "animationframes")) ?? 4,
+      separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? config.token.getFlag("pokemon-assets", "separateidle") ?? false,
+      ...(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {}),
     };
 
-    if (predefined) {
-      $(html).find(".spritesheet-config").hide();
-      $(html).find(`[name="flags.pokemon-assets.spritesheet"]`).prop("checked", true);
-      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`).prop("hidden", true).prop("readonly", true).val(predefined.sheetstyle);
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(predefined.animationframes);
-      $(html).find(`[name="flags.pokemon-assets.separateidle"]`).prop("hidden", true).prop("readonly", true).prop("checked", predefined.separateidle ?? false);
+    // Populate the dropdown for the types of spritesheet layouts available
+    data.sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
+      return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${label}</option>`;
+    }, "");
 
-      const texture = await getTexture(form);
-      await updateAnchors(form, texture);
-    } else if (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) {
-      $(html).find(".spritesheet-config").show();
-      
-      $(html).find(".spritesheet-config .sheet-style").show();
-      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`)
-        .prop("hidden", false)
-        .prop("readonly", false)
-        .val(defaultSettings.sheetstyle);
-      
-      let hideAnimationFrames = defaultSettings.sheetstyle === "trainer" || defaultSettings.sheetstyle === "trainer3";
-      $(html).find(".spritesheet-config .sheet-frames").toggle(!hideAnimationFrames);
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
-        .prop("hidden", hideAnimationFrames)
-        .prop("readonly", hideAnimationFrames)
-        .val(defaultSettings.animationframes);
-      
-      $(html).find(".spritesheet-config .sheet-idle").show();
-      $(html).find(`[name="flags.pokemon-assets.separateidle"]`)
-        .prop("hidden", false)
-        .prop("readonly", false)
-        .prop("checked", defaultSettings.separateidle);
-    } else {
-      $(html).find(".spritesheet-config")
-        .hide();
-      
-      $(html).find(".spritesheet-config .sheet-style").show();
-      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`)
-        .prop("hidden", false)
-        .prop("readonly", false)
-        .val(defaultSettings.sheetstyle);
-      
-      let hideAnimationFrames = defaultSettings.sheetstyle === "trainer" || defaultSettings.sheetstyle === "trainer3";
-      $(html).find(".spritesheet-config .sheet-frames").toggle(!hideAnimationFrames);
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
-        .prop("hidden", hideAnimationFrames)
-        .prop("readonly", hideAnimationFrames)
-        .val(defaultSettings.animationframes);
-      
-      $(html).find(".spritesheet-config .sheet-idle").show();
-      $(html).find(`[name="flags.pokemon-assets.separateidle"]`)
-        .prop("hidden", false)
-        .prop("readonly", false)
-        .prop("checked", defaultSettings.separateidle);
-    }
-  }
+    // checkbox for whether or not this should be a spritesheet!
+    if (!form.querySelector("[name='flags.pokemon-assets.spritesheet']")) {
+      $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${data.spritesheet ? "checked" : ""}>`);
+    };
+    form.querySelector("[name='flags.pokemon-assets.spritesheet']").checked = data.spritesheet;
+    form.querySelector("[name='flags.pokemon-assets.spritesheet']").readonly = isPredefined;
 
-  const getTexture = async function (form) {
-    // get the texture so this can be calculated
-    const src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
-    if (!src) return;
+    // additional spritesheet-specific configurations
+    data.isPmd = data.sheetstyle == "pmd";
+    data.hide = !data.spritesheet || isPredefined;
+    const rendered = $(await renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
+    if (!form.querySelector(".spritesheet-config")) {
+      $(html).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
+    };
+    form.querySelector(".spritesheet-config").replaceWith(rendered);
 
-    return await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
-  }
+    // update the anchors
+    if (!data.spritesheet) {
+      // reset the anchors if they exist
+      for (const tf of ["fit", "anchorX", "anchorY"]) {
+        const el = form.querySelector(`[name='texture.${tf}']`);
+        if (!!el) {
+          el.value = token?.texture?.[tf] ?? el.value;
+        }
+      }
+    };
 
-  const updateAnchors = async function (form, texture) {
-    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) return;
-
-    const { width, height } = texture;
+    const texture = await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
+    const { width, height } = texture ?? {};
     if (!width || !height) return;
-
-    const newSheetStyle = form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? sheetStyle;
     const directions = (()=>{
-      switch (newSheetStyle) {
+      switch (data.sheetstyle) {
         case "pmd": return 8;
         default: return 4;
       }
     })();
-    const newAnimationFrames = parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || 4;
 
-    const ratio = (height / width) * (newAnimationFrames / directions);
+    const ratio = (height / width) * (data.animationframes / directions);
     const scale = form.querySelector("input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
-      switch (newSheetStyle) {
+      switch (data.sheetstyle) {
         case "pmd": return 0.5;
         default: return 1.02 + (0.5 / (-ratio * scale));
       }
     })();
 
-    // set the fields
-    form.querySelector("select[name='texture.fit']").value = "width";
-    form.querySelector("input[name='texture.anchorX']").value = 0.5;
-    form.querySelector("input[name='texture.anchorY']").value = Math.ceil(100 * anchorY) / 100;
+    // check that the anchoring fields exist
+    for (const tf of ["fit", "anchorX", "anchorY"]) {
+      if (!form.querySelector(`[name='texture.${tf}']`)) {
+        $(form).append(`<input name="texture.${tf}" value="${config?.token?.texture?.[tf]}" hidden />`);
+      }
+    }
+
+    // set the anchoring fields
+    form.querySelector("[name='texture.fit']").value = "width";
+    form.querySelector("[name='texture.anchorX']").value = 0.5;
+    form.querySelector("[name='texture.anchorY']").value = Math.ceil(100 * anchorY) / 100;
   };
+
+  await refreshConfig();
 
   //
   // listeners
   //
 
-  const OnUpdateFilePicker = async function () {
-    if (await updateDefaults()) return;
-
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  };
-
-  $(html).find("[name='texture.src'] input[type='text']").on("change", OnUpdateFilePicker);
+  $(html).find("[name='texture.src'] input[type='text'], input[name='texture.src'][type='text']").on("change", refreshConfig);
   // dumb workaround to listen on the filepicker button too
   $(html).find("[name='texture.src'] button").on("click", function () {
     const filePicker = $(this).closest("file-picker")?.get(0)?.picker;
@@ -182,56 +111,20 @@ function OnRenderTokenConfig(config, html, context) {
     filePicker.callback = ((callback)=>{
       return function () {
         if (callback) callback(...arguments);
-        OnUpdateFilePicker();
+        refreshConfig();
       }
     })(filePicker.callback);
   })
 
   // listen for the "spritesheet" toggle
-  $(html).find("[name='flags.pokemon-assets.spritesheet']").on("change", async function () {
-    if (await updateDefaults()) return;
+  $(html).find("[name='flags.pokemon-assets.spritesheet']").on("change", refreshConfig);
 
-    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) {
-      $(html).find(".spritesheet-config").hide();
-    } else {
-      $(html).find(".spritesheet-config").show();
-    }
+  $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", refreshConfig);
 
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  });
-
-  $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", async function () {
-    const newSheetStyle = $(this).get(0).value ?? "trainer";
-    if (newSheetStyle === "trainer") {
-      $(html).find(`.spritesheet-config .sheet-frames`).hide();
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(4);
-    } else if (newSheetStyle === "trainer3") {
-      $(html).find(`.spritesheet-config .sheet-frames`).hide();
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(3);
-    } else if (newSheetStyle === "pkmn") {
-      $(html).find(`.spritesheet-config .sheet-frames`).hide();
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(2);
-    } else if (newSheetStyle === "pmd") {
-      $(html).find(`.spritesheet-config .sheet-frames`).show();
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", false).prop("readonly", false).val(4);
-      // TODO: infer a sensible number for this?
-    }
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  });
-
-  $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", async function () {
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  });
+  $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", refreshConfig);
 
   // listen for the "scale" value
-  $(html).find("[name='scale']").on("change", async function () {
-    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) return;
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  });
+  $(html).find("[name='scale']").on("change", refreshConfig);
 }
 
 
