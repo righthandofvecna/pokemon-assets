@@ -148,38 +148,54 @@ async function OnInteract() {
     const strengthable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.strengthable);
 
     const soc = socket.current();
+    const logic = game.modules.get(MODULENAME).api.logic;
+    const fieldMoveParty = logic.FieldMoveParty(token);
 
-    smashable.forEach(async (rs)=>{
-      // TODO: check if we *can* use Rock Smash
-      if (await new Promise((resolve)=>Dialog.confirm({
+    const hasFieldMoveRockSmash = fieldMoveParty.find(logic.CanUseRockSmash);
+    const hasFieldMoveCut = fieldMoveParty.find(logic.CanUseCut);
+    const hasFieldMoveStrength = fieldMoveParty.find(logic.CanUseStrength);
+
+    if (!!hasFieldMoveRockSmash) {
+      smashable.forEach(async (rs)=>{
+        if (await new Promise((resolve)=>Dialog.confirm({
+          title: "Rock Smash",
+          content: "This rock appears to be breakable. Would you like to use Rock Smash?",
+          yes: ()=>resolve(true),
+          no: ()=>resolve(false),
+        }))) {
+          console.log(`${hasFieldMoveRockSmash.name} used Rock Smash!`);
+          // TODO: show the message
+          // TODO: play the smashing animation
+          await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
+        };
+      });
+    } else if (smashable.length > 0) {
+      Dialog.prompt({
         title: "Rock Smash",
-        content: "This rock appears to be breakable. Would you like to use Rock Smash?",
-        yes: ()=>resolve(true),
-        no: ()=>resolve(false),
-      }))) {
-        // TODO: figure out who has Rock Smash, if anyone
-        console.log("X used Rock Smash!");
-        // TODO: show the message
-        // TODO: play the smashing animation
-        await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
-      };
-    });
+        content: "This rock appears to be breakable.",
+      });
+    }
 
-    cuttable.forEach(async (rs)=>{
-      // TODO: check if we *can* use Cut
-      if (await new Promise((resolve)=>Dialog.confirm({
+    if (!!hasFieldMoveCut) {
+      cuttable.forEach(async (rs)=>{
+        if (await new Promise((resolve)=>Dialog.confirm({
+          title: "Cut",
+          content: "This tree looks like it can be cut down. Would you like to use Cut?",
+          yes: ()=>resolve(true),
+          no: ()=>resolve(false),
+        }))) {
+          console.log(`${hasFieldMoveCut.name} used Cut!`);
+          // TODO: show the message
+          // TODO: play the cutting animation
+          await soc.executeAsGM("triggerCut", rs.document.uuid);
+        };
+      });
+    } else if (cuttable.length > 0) {
+      Dialog.prompt({
         title: "Cut",
-        content: "This tree looks like it can be cut down. Would you like to use Cut?",
-        yes: ()=>resolve(true),
-        no: ()=>resolve(false),
-      }))) {
-        // TODO: figure out who has Cut, if anyone
-        console.log("X used Cut!");
-        // TODO: show the message
-        // TODO: play the cutting animation
-        await soc.executeAsGM("triggerCut", rs.document.uuid);
-      };
-    });
+        content: "This tree looks like it can be cut down.",
+      });
+    }
   }
 }
 

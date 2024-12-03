@@ -127,9 +127,7 @@ async function GrassShake(scene, regionDocument, regionBehavior, event) {
     const { x, y } =  event?.data?.destination ?? { x: 0, y: 0 };
     return canvas.grid.getSnappedPoint(
       { x: x + (sizeX / 2), y: y + (sizeY / 2), },
-      {
-        mode: CONST.GRID_SNAPPING_MODES.CENTER
-      }
+      { mode: CONST.GRID_SNAPPING_MODES.CENTER }
     );
   })();
 

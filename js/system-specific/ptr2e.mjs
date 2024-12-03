@@ -246,6 +246,22 @@ await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...argum
 
 
 
+/**
+ * Returns a function which takes in an actor and returns a boolean, true if the actor has the given move
+ * @param {string} slug 
+ */
+function HasMoveFunction(slug) {
+  /**
+   * Returns whether or not the actor can use the move "slug"
+   * @param {PTR2eActor} actor
+   * @return true if the actor can use the given move
+   */
+  return function (actor) {
+    return actor.itemTypes.move.some(m=>m.system.slug === slug);
+  };
+}
+
+
 
 export function register() {
   if (early_isGM) {
@@ -266,4 +282,14 @@ export function register() {
       "callback": PokemonComputer,
     },
   }
+
+  module.api.logic ??= {};
+  /**
+   * Return all the actors this token can make use of for the purposes of field moves
+   * @param {TokenDocument} token 
+   */
+  module.api.logic.FieldMoveParty ??= (token)=>[token?.actor, token.actor?.party?.owner, ...(token.actor?.party?.party ?? [])].filter((t, i, a)=>!!t && i === a.indexOf(t));
+  module.api.logic.CanUseRockSmash ??= HasMoveFunction("rock-smash");
+  module.api.logic.CanUseCut ??= HasMoveFunction("cut");
+  module.api.logic.CanUseStrength ??= HasMoveFunction("strength");
 }
