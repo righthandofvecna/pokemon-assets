@@ -528,6 +528,7 @@ async function TriggerRockSmash(tile) {
       .file("modules/pokemon-assets/img/animations/rock_smash_frlg.json")
       .playbackRate(0.25)
       .size(1, { gridUnits: true })
+      .belowTokens()
       .async()
     .play();
   await tile.delete();
@@ -553,6 +554,7 @@ async function TriggerCut(tile) {
       .file("modules/pokemon-assets/img/animations/cut_frlg.json")
       .playbackRate(0.25)
       .size(1, { gridUnits: true })
+      .belowTokens()
       .async()
     .play();
   await tile.delete();
