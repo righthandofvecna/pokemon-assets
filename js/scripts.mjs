@@ -520,6 +520,8 @@ async function TriggerRockSmash(tile) {
 
   await sleep(300);
   await new Sequence()
+    .sound()
+      .file(`modules/pokemon-assets/audio/bgs/field-move-rock-smash.mp3`)
     .animation()
       .on(tile)
       .delay(100)
@@ -543,6 +545,8 @@ async function TriggerCut(tile) {
 
   await sleep(300);
   await new Sequence()
+    .sound()
+      .file(`modules/pokemon-assets/audio/bgs/field-move-cut.mp3`)
     .animation()
       .on(tile)
       .delay(100)
