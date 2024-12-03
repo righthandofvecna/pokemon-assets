@@ -155,7 +155,7 @@ async function OnInteract() {
     const hasFieldMoveCut = fieldMoveParty.find(logic.CanUseCut);
     const hasFieldMoveStrength = fieldMoveParty.find(logic.CanUseStrength);
 
-    if (!!hasFieldMoveRockSmash) {
+    if (!!hasFieldMoveRockSmash && game.settings.get(MODULENAME, "canUseRockSmash")) {
       smashable.forEach(async (rs)=>{
         if (await new Promise((resolve)=>Dialog.confirm({
           title: "Rock Smash",
@@ -176,7 +176,7 @@ async function OnInteract() {
       });
     }
 
-    if (!!hasFieldMoveCut) {
+    if (!!hasFieldMoveCut && game.settings.get(MODULENAME, "canUseCut")) {
       cuttable.forEach(async (rs)=>{
         if (await new Promise((resolve)=>Dialog.confirm({
           title: "Cut",

@@ -92,4 +92,24 @@ export function register() {
 		hint: "When you interact with a Scene Region with a \"Token Interaction\" trigger, play the Pokemon \"interact\" sound."
 	});
 
+  game.settings.register(MODULENAME, "canUseRockSmash", {
+		name: "Field Move: Can Use Rock Smash",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Whether or not a character that knows Rock Smash can use it as a field move to destroy destructible rocks."
+	});
+
+  game.settings.register(MODULENAME, "canUseCut", {
+		name: "Field Move: Can Use Cut",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Whether or not a character that knows Cut can use it as a field move to destroy destructible plants."
+	});
+
 };
