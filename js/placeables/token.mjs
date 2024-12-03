@@ -16,7 +16,6 @@ const SLIDE_SPEED = WALK_SPEED;
 async function OnRenderTokenConfig(config, html, context) {
   const form = $(html).find("form").get(0) ?? config.form;
   const token = config.token;
-  console.log("OnRenderTokenConfig", token);
 
   /**
    * Recalculate all the computed fields, create them if they don't exist, and update them.
@@ -26,10 +25,10 @@ async function OnRenderTokenConfig(config, html, context) {
     const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
 
     const data = {
-      spritesheet: isPredefined || (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked ?? config.token.getFlag("pokemon-assets", "spritesheet")),
-      sheetstyle: form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? config.token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer",
-      animationframes: (parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || config.token.getFlag("pokemon-assets", "animationframes")) ?? 4,
-      separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? config.token.getFlag("pokemon-assets", "separateidle") ?? false,
+      spritesheet: isPredefined || (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked ?? token.getFlag("pokemon-assets", "spritesheet")),
+      sheetstyle: form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer",
+      animationframes: (parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || token.getFlag("pokemon-assets", "animationframes")) ?? 4,
+      separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? token.getFlag("pokemon-assets", "separateidle") ?? false,
       ...(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {}),
     };
 
@@ -57,7 +56,7 @@ async function OnRenderTokenConfig(config, html, context) {
     // check that the anchoring fields exist
     for (const tf of ["fit", "anchorX", "anchorY"]) {
       if (!form.querySelector(`[name='texture.${tf}']`)) {
-        $(form).append(`<input name="texture.${tf}" value="${config?.token?.texture?.[tf]}" hidden />`);
+        $(form).append(`<input name="texture.${tf}" value="${token?.texture?.[tf]}" hidden />`);
       }
     }
 

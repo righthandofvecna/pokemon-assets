@@ -133,7 +133,6 @@ async function GrassShake(scene, regionDocument, regionBehavior, event) {
     );
   })();
 
-  console.log(arguments, destination);
   if (!destination) return;
 
   await new Sequence({ moduleName: "pokemon-assets", softFail: true })

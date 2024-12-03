@@ -4,7 +4,6 @@ import { MODULENAME } from "../utils.mjs";
 
 async function OnRenderTileConfig(sheet, html, context) {
   const form = $(html).find("form").get(0) ?? config.form;
-  console.log(arguments);
   const tile = sheet.object;
 
   // exit if the puzzle settings page already exists

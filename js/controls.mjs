@@ -92,8 +92,6 @@ async function OnRenderRegionConfig(regionConfig, html) {
 
 
 function OnGetSceneControlButtons(controls) {
-  console.log("OnGetSceneControlButtons", arguments);
-
   const tiles = controls.find(c=>c.name === "tiles");
   const regions = controls.find(c=>c.name === "regions");
 
@@ -129,7 +127,6 @@ function OnGetSceneControlButtons(controls) {
 
 function TilesLayer_onClickLeft2(wrapper, event) {
   wrapper(event);
-  console.log("TilesLayer_onClickLeft2", event);
   const { x, y } = canvas.grid.getSnappedPoint({
     x: canvas.mousePosition.x - canvas.grid.sizeX / 2,
     y: canvas.mousePosition.y - canvas.grid.sizeY / 2

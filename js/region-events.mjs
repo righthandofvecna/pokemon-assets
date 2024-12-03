@@ -130,7 +130,6 @@ async function OnInteract() {
   const facingTiles = game.canvas.tiles.placeables.filter(tile=>{
     const tileAssetsFlags = tile?.document?.flags?.[MODULENAME];
     if (!tileAssetsFlags?.smashable && !tileAssetsFlags?.cuttable && !tileAssetsFlags?.strengthable) return false;
-    console.log(tile);
     const { x: ox, y: oy } = canvas.grid.getCenterPoint(tile.center);
     return _is_adjacent(
       tokenBounds,
@@ -181,8 +180,6 @@ async function OnInteract() {
         await soc.executeAsGM("triggerCut", rs.document.uuid);
       };
     });
-    
-    // console.log(facingTiles);
   }
 }
 
