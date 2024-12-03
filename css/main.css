@@ -40,3 +40,25 @@
 .dialog .directional-chooser label.downright span {
   border-bottom-right-radius: 5px;
 }
+#controls .control-tool[data-tool="breakable-rock"] {
+  background-color: #805030;
+}
+#controls .control-tool[data-tool="breakable-rock"] i {
+  background-image: url("../img/items-overworld/breakable_rock_frlg.png");
+  background-size: contain;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
+}
+#controls .control-tool[data-tool="cuttable-plant"] {
+  background-color: lightgreen;
+}
+#controls .control-tool[data-tool="cuttable-plant"] i {
+  background-image: url("../img/items-overworld/cuttable_plant_frlg.png");
+  background-size: contain;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
+}
