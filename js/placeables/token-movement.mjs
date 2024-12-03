@@ -1,4 +1,5 @@
 import { MODULENAME } from "../utils.mjs";
+import * as socket from "../socket.mjs";
 
 
 /**
@@ -68,6 +69,7 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
         } else {
           bumped = true;
         }
+        if ( bumped && obj.document._pushing ) obj._tryPush?.(...offsets);
       } else {
         foundry.utils.mergeObject(update, shifted)
       }
@@ -84,6 +86,20 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
       .play();
   }
   return objects;
+}
+
+function TilesetToken_tryPush(dx, dy) {
+  const shifted = Tile.prototype._getShiftedPosition.bind(this)(dx, dy);
+  const collides = this.checkCollision(this.getCenterPoint(shifted), { mode: "closest" });
+  console.log("collides", collides);
+  if (!collides) return;
+  const walls = collides.edges.filter(e=>e.object instanceof Wall);
+  // check if we collided with a tile that can be pushed
+  if (walls.size === 0) {
+    const pushables = collides.edges.filter(e=>e.object instanceof Tile && e.object?.document?.flags?.[MODULENAME]?.pushable).map(e=>e.object);
+    pushables.forEach(tile=>socket.current().executeAsGM("pushTile", tile?.document?.uuid, dx, dy))
+  }
+  // TODO: open unlocked doors??
 }
 
 
@@ -108,4 +124,5 @@ export function register() {
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype.moveMany", PlaceablesLayer_moveMany, "OVERRIDE");
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
   CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
+  CONFIG.Token.objectClass.prototype._tryPush = TilesetToken_tryPush;
 }

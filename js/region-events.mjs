@@ -129,7 +129,7 @@ async function OnInteract() {
   // check if we are facing/adjacent to an tile (either with Rock Smash or Cut or Strength)
   const facingTiles = game.canvas.tiles.placeables.filter(tile=>{
     const tileAssetsFlags = tile?.document?.flags?.[MODULENAME];
-    if (!tileAssetsFlags?.smashable && !tileAssetsFlags?.cuttable && !tileAssetsFlags?.strengthable) return false;
+    if (!tileAssetsFlags?.smashable && !tileAssetsFlags?.cuttable && !tileAssetsFlags?.pushable) return false;
     const { x: ox, y: oy } = canvas.grid.getCenterPoint(tile.center);
     return _is_adjacent(
       tokenBounds,
@@ -145,7 +145,7 @@ async function OnInteract() {
 
     const smashable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.smashable);
     const cuttable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.cuttable);
-    const strengthable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.strengthable);
+    const pushable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.pushable);
 
     const soc = socket.current();
     const logic = game.modules.get(MODULENAME).api.logic;
@@ -157,7 +157,7 @@ async function OnInteract() {
 
     if (!!hasFieldMoveRockSmash && game.settings.get(MODULENAME, "canUseRockSmash")) {
       smashable.forEach(async (rs)=>{
-        if (await new Promise((resolve)=>Dialog.confirm({
+        if (token._smashing || await new Promise((resolve)=>Dialog.confirm({
           title: "Rock Smash",
           content: "This rock appears to be breakable. Would you like to use Rock Smash?",
           yes: ()=>resolve(true),
@@ -166,6 +166,8 @@ async function OnInteract() {
           console.log(`${hasFieldMoveRockSmash.name} used Rock Smash!`);
           // TODO: show the message
           // TODO: play the smashing animation
+          // set a volatile local variable that this token is currently using Rock Smash
+          token._smashing = true;
           await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
         };
       });
@@ -178,7 +180,7 @@ async function OnInteract() {
 
     if (!!hasFieldMoveCut && game.settings.get(MODULENAME, "canUseCut")) {
       cuttable.forEach(async (rs)=>{
-        if (await new Promise((resolve)=>Dialog.confirm({
+        if (token._cutting || await new Promise((resolve)=>Dialog.confirm({
           title: "Cut",
           content: "This tree looks like it can be cut down. Would you like to use Cut?",
           yes: ()=>resolve(true),
@@ -187,6 +189,8 @@ async function OnInteract() {
           console.log(`${hasFieldMoveCut.name} used Cut!`);
           // TODO: show the message
           // TODO: play the cutting animation
+          // set a volatile local variable that this token is currently using Cut
+          token._cutting = true;
           await soc.executeAsGM("triggerCut", rs.document.uuid);
         };
       });
@@ -194,6 +198,25 @@ async function OnInteract() {
       Dialog.prompt({
         title: "Cut",
         content: "This tree looks like it can be cut down.",
+      });
+    }
+
+    if (!!hasFieldMoveStrength && game.settings.get(MODULENAME, "canUseStrength") && pushable.length > 0) {
+      if (!token._pushing && await new Promise((resolve)=>Dialog.confirm({
+        title: "Strength",
+        content: "It's a big boulder, but a Pokémon may be able to push it aside. Would you like to use Strength?",
+        yes: ()=>resolve(true),
+        no: ()=>resolve(false),
+      }))) {
+        console.log(`${hasFieldMoveCut.name} used Strength! ${hasFieldMoveCut.name}'s Strength made it possible to move boulders around!`);
+        // TODO: show the message
+        // set a volatile local variable that this token is currently using Strength
+        token._pushing = true;
+      };
+    } else if (pushable.length > 0) {
+      Dialog.prompt({
+        title: "Strength",
+        content: "It's a big boulder, but a Pokémon may be able to push it aside.",
       });
     }
   }

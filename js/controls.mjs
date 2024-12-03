@@ -93,7 +93,7 @@ async function OnRenderRegionConfig(regionConfig, html) {
 
 function OnGetSceneControlButtons(controls) {
   const tiles = controls.find(c=>c.name === "tiles");
-  const regions = controls.find(c=>c.name === "regions");
+  // const regions = controls.find(c=>c.name === "regions");
 
   tiles.tools.push({
     icon: "fa-solid fa-pickaxe",
@@ -123,6 +123,27 @@ function OnGetSceneControlButtons(controls) {
       ],
     },
   });
+  tiles.tools.push({
+    icon: "fa-solid fa-curling-stone",
+    name: "movable-boulder",
+    title: "Place Movable Boulder",
+    toolclip: {
+      heading: "Place Movable Boulder",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
+
+  // regions.tools.push({
+  //   icon: "fa-solid fa-person-ski-jumping",
+  //   name: "Place Jump / Slide",
+  //   title: "Place Jump / Slide",
+  //   onClick: toggled => canvas.forceSnapVertices = true,
+  // });
 }
 
 function TilesLayer_onClickLeft2(wrapper, event) {
@@ -153,6 +174,19 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         height: canvas.grid.sizeY,
         texture: {
           src: "modules/pokemon-assets/img/items-overworld/cuttable_plant_frlg.png",
+        },
+        x,
+        y,
+      }])
+      break;
+    case "movable-boulder":
+      canvas.scene.createEmbeddedDocuments("Tile", [{
+        "flags.pokemon-assets.solid": true,
+        "flags.pokemon-assets.pushable": true,
+        width: canvas.grid.sizeX,
+        height: canvas.grid.sizeY,
+        texture: {
+          src: "modules/pokemon-assets/img/items-overworld/movable_boulder_frlg.png",
         },
         x,
         y,

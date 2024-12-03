@@ -1,4 +1,5 @@
 import { MODULENAME } from "../utils.mjs";
+import { registerSocket } from "../socket.mjs";
 
 
 
@@ -11,7 +12,7 @@ async function OnRenderTileConfig(sheet, html, context) {
 
   $(form.querySelector(`.sheet-tabs`)).append(`<a class="item" data-tab="puzzle"><i class="fa-solid fa-puzzle-piece"></i> Puzzle</a>`);
 
-  const { solid, cuttable, smashable, strengthable } = tile?.flags?.[MODULENAME] ?? {};
+  const { solid, cuttable, smashable, pushable } = tile?.flags?.[MODULENAME] ?? {};
 
   const tabs = form.getElementsByClassName("tab");
   $(tabs[tabs.length-1]).after(`<div class="tab" data-tab="puzzle">
@@ -37,7 +38,7 @@ async function OnRenderTileConfig(sheet, html, context) {
     <div class="form-group">
       <label>Movable by "Strength"</label>
       <div class="form-fields">
-        <input type="checkbox" name="flags.${MODULENAME}.strengthable" ${strengthable ? "checked" : ""}>
+        <input type="checkbox" name="flags.${MODULENAME}.pushable" ${pushable ? "checked" : ""}>
       </div>
     </div>
   </div>`);
@@ -100,12 +101,38 @@ function Tile_onDelete(wrapper, options, userId) {
   this.initializeEdges({deleted: true});
 }
 
+async function PushTile(tileUuid, dx, dy) {
+  const tile = await fromUuid(tileUuid);
+  if (!tile) return;
+  // check if the tile is pushable
+  if (!tile?.flags?.[MODULENAME]?.pushable) return;
+  // try pushing the tile
+  const shifted = tile.object._getShiftedPosition(dx, dy);
+  if (shifted.x !== tile.x || shifted.y !== tile.y) {
+    await tile.update(shifted);
+  }
+}
+
+function Tile_getShiftedPosition(wrapped, dx, dy) {
+  const shifted = wrapped(dx, dy);
+  if (!this.document?.flags?.[MODULENAME]?.pushable) return shifted;
+
+  const origin = this.center;
+  const delta = { x: origin.x - this.document._source.x, y: origin.y - this.document._source.y };
+  const source = new foundry.canvas.sources.PointMovementSource({object: this});
+  source.initialize({x: origin.x, y: origin.y, elevation: this.document.elevation});
+  const collides = CONFIG.Canvas.polygonBackends.move.testCollision(origin, {x: shifted.x + delta.x, y: shifted.y + delta.y }, {type: "move", mode: "any", source});
+  return collides ? {x: this.document._source.x, y: this.document._source.y} : shifted;
+}
+
 
 export function register() {
   CONFIG.Tile.objectClass.prototype.initializeEdges = Tile_initializeEdges;
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onCreate", Tile_onCreate, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onUpdate", Tile_onUpdate, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onDelete", Tile_onDelete, "WRAPPER");
+  libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._getShiftedPosition", Tile_getShiftedPosition, "WRAPPER");
 
   Hooks.on("renderTileConfig", OnRenderTileConfig);
+  registerSocket("pushTile", PushTile);
 }

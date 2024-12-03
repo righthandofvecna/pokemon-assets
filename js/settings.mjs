@@ -112,4 +112,14 @@ export function register() {
 		hint: "Whether or not a character that knows Cut can use it as a field move to destroy destructible plants."
 	});
 
+  game.settings.register(MODULENAME, "canUseStrength", {
+		name: "Field Move: Can Use Strength",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Whether or not a character that knows Strength can use it as a field move to push movable boulders."
+	});
+
 };
