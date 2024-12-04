@@ -113,7 +113,7 @@ async function PushTile(tileUuid, dx, dy) {
   // try pushing the tile
   const shifted = tile.object._getShiftedPosition(dx, dy);
   if (shifted.x !== tile.x || shifted.y !== tile.y) {
-    await tile.update(shifted, { animate: true });
+    await tile.update(shifted, { animate: true, animation: { easing: "easeOutExpo", duration: 600 } });
   }
 }
 
@@ -129,7 +129,7 @@ function Tile_getShiftedPosition(wrapped, dx, dy) {
   return collides ? {x: this.document._source.x, y: this.document._source.y} : shifted;
 }
 
-async function Tile_animate(to, { duration, easing, movementSpeed, name, ontick, ...options }={}) {
+async function Tile_animate(to, { duration, easing, name, ontick, ...options }={}) {
   // restrict "to" to x and y
   to = { x: to.x, y: to.y };
   
