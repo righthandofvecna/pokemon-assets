@@ -93,7 +93,6 @@ async function OnRenderRegionConfig(regionConfig, html) {
 
 function OnGetSceneControlButtons(controls) {
   const tiles = controls.find(c=>c.name === "tiles");
-  // const regions = controls.find(c=>c.name === "regions");
 
   tiles.tools.push({
     icon: "fa-solid fa-pickaxe",
@@ -137,13 +136,6 @@ function OnGetSceneControlButtons(controls) {
       ],
     },
   });
-
-  // regions.tools.push({
-  //   icon: "fa-solid fa-person-ski-jumping",
-  //   name: "Place Jump / Slide",
-  //   title: "Place Jump / Slide",
-  //   onClick: toggled => canvas.forceSnapVertices = true,
-  // });
 }
 
 function TilesLayer_onClickLeft2(wrapper, event) {
