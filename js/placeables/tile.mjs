@@ -93,6 +93,10 @@ function Tile_onUpdate(wrapper, changed, options, userId) {
   } else if ("x" in changed || "y" in changed || "width" in changed || "height" in changed) {
     this.initializeEdges();
   }
+
+  if (("x" in changed || "y" in changed) && options.animate === true) {
+    this.animate({ x: changed.x ?? this.x, y: changed.y ?? this.y }, options.animation);
+  }
 }
 
 /** @inheritDoc */
@@ -109,7 +113,7 @@ async function PushTile(tileUuid, dx, dy) {
   // try pushing the tile
   const shifted = tile.object._getShiftedPosition(dx, dy);
   if (shifted.x !== tile.x || shifted.y !== tile.y) {
-    await tile.update(shifted);
+    await tile.update(shifted, { animate: true });
   }
 }
 
@@ -125,6 +129,50 @@ function Tile_getShiftedPosition(wrapped, dx, dy) {
   return collides ? {x: this.document._source.x, y: this.document._source.y} : shifted;
 }
 
+async function Tile_animate(to, { duration, easing, movementSpeed, name, ontick, ...options }={}) {
+  // restrict "to" to x and y
+  to = { x: to.x, y: to.y };
+  
+  this._animating = true;
+  const animationData = { x: this.x, y: this.y };
+  const priorAnimationData = foundry.utils.deepClone(animationData);
+  const animateFrame = (context) => {
+    if ( context.time >= context.duration ) foundry.utils.mergeObject(animationData, context.to);
+    const changes = foundry.utils.diffObject(priorAnimationData, animationData);
+    foundry.utils.mergeObject(priorAnimationData, animationData);
+    foundry.utils.mergeObject(this.document, animationData, {insertKeys: false});
+    const positionChanged = ("x" in changes) || ("y" in changes);
+    this.renderFlags.set({
+      refreshPosition: positionChanged,
+    });
+  };
+
+  let context = {};
+  context.to = to;
+
+  const changes = foundry.utils.diffObject(animationData, to);
+  const attributes = [...Object.keys(changes)].map(k=>({ attribute: k, parent: animationData, to: changes[k] }));
+
+  duration ??= 100;
+  animateFrame(context);
+  // Dispatch the animation
+  context.promise = CanvasAnimation.animate(attributes, {
+    name: "move",
+    context: this,
+    duration,
+    easing,
+    priority: PIXI.UPDATE_PRIORITY.OBJECTS + 1, // Before perception updates and Token render flags
+    ontick: (dt, anim) => {
+      context.time = anim.time;
+      if ( ontick ) ontick(dt, anim, animationData);
+      animateFrame(context);
+    }
+  });
+  await context.promise.finally(() => {
+    this._animating = false;
+  });
+}
+
 
 export function register() {
   CONFIG.Tile.objectClass.prototype.initializeEdges = Tile_initializeEdges;
@@ -132,6 +180,7 @@ export function register() {
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onUpdate", Tile_onUpdate, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onDelete", Tile_onDelete, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._getShiftedPosition", Tile_getShiftedPosition, "WRAPPER");
+  CONFIG.Tile.objectClass.prototype.animate = Tile_animate;
 
   Hooks.on("renderTileConfig", OnRenderTileConfig);
   registerSocket("pushTile", PushTile);
