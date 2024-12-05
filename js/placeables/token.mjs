@@ -244,6 +244,7 @@ export function register() {
     #direction;
     #animationData;
     #animationPromise;
+    #priorAnimationData;
 
     constructor(document) {
       super(document);
@@ -252,6 +253,7 @@ export function register() {
 
     #initialize() {
       this.#animationData = this._getAnimationData();
+      this.#priorAnimationData = foundry.utils.deepClone(this.#animationData);
     }
 
     /** @override */
@@ -373,7 +375,8 @@ export function register() {
 
     _canDrag() {
       const scene = this?.document?.parent;
-      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && this.inCombat)))
+      const hasCombat = !!game.combats.find(c=>c.active && c.scene.uuid === scene.uuid);
+      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && hasCombat)))
         return false;
       return super._canDrag();
     }
@@ -453,50 +456,112 @@ export function register() {
 
     /** @override */
     async animate(to, {duration, easing, movementSpeed, name, ontick, ...options}={}) {
-      // const super_animate = super.animate;
-      return this.#animationPromise = (async (p)=>{
-        await p;
-        if (this.isTileset) {
-          // check what properties are being animated
-          const updatedProperties = Object.keys(to);
-  
-          movementSpeed ??= (()=>{
-            if (this.document._sliding) return SLIDE_SPEED;
-            const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
-            const manhattan = (Math.abs((to.x ?? this.#animationData.x) - this.#animationData.x) / sizeX) + (Math.abs((to.y ?? this.#animationData.y) - this.#animationData.y) / sizeY);
-            if (manhattan < RUN_DISTANCE) {
-              return WALK_SPEED;
-            }
-            return RUN_SPEED;
-          })();
-  
-          if (updatedProperties.length == 1 && updatedProperties.includes("rotation")) {
-            // rotation should be instantaneous.
-            duration = 0;
-          }
+      // Get the name and the from and to animation data
+      if ( name === undefined ) name = this.animationName;
+      else name ||= Symbol(this.animationName);
+      const from = this.#animationData;
+      if (to.rotation != undefined) {
+        from.rotation = to.rotation ?? from.rotation;
+        delete to.rotation;
+      }
+      to = foundry.utils.filterObject(to, from);
+      let context = this.animationContexts.get(name);
+      if ( context ) to = foundry.utils.mergeObject(context.to, to, {inplace: false});
+
+      // Conclude the current animation
+      CanvasAnimation.terminateAnimation(name);
+      if ( context ) this.animationContexts.delete(name);
+
+      movementSpeed ??= (()=>{
+        if (this.document._sliding) return SLIDE_SPEED;
+        const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
+        const manhattan = (Math.abs((to.x ?? from.x) - from.x) / sizeX) + (Math.abs((to.y ?? from.y) - from.y) / sizeY);
+        if (manhattan < RUN_DISTANCE) {
+          return WALK_SPEED;
         }
-        return await super.animate(to, {duration, easing, movementSpeed, name, ontick, ...options}).then(()=>{
-          this.#initialize();
-        });
-      })(this.#animationPromise);
+        return RUN_SPEED;
+      })();
+      // Get the animation duration and create the animation context
+      duration ??= this._getAnimationDuration(from, to, {movementSpeed, ...options});
+      context = {name, to, duration, time: 0, preAnimate: [], postAnimate: [], onAnimate: []};
+
+      // Animate the first frame
+      this._animateFrame(context);
+
+      // If the duration of animation is not positive, we can immediately conclude the animation
+      if ( duration <= 0 ) return;
+
+      // Set the animation context
+      this.animationContexts.set(name, context);
+
+      // Prepare the animation data changes
+      const changes = foundry.utils.diffObject(from, to);
+      const attributes = this._prepareAnimation(from, changes, context, options);
+
+      // Dispatch the animation
+      context.promise = CanvasAnimation.animate(attributes, {
+        name,
+        context: this,
+        duration,
+        easing,
+        priority: PIXI.UPDATE_PRIORITY.OBJECTS + 1, // Before perception updates and Token render flags
+        wait: Promise.allSettled(context.preAnimate.map(fn => fn(context))),
+        ontick: (dt, anim) => {
+          context.time = anim.time;
+          if ( ontick ) ontick(dt, anim, this.#animationData);
+          this._animateFrame(context);
+        }
+      });
+      await context.promise.finally(() => {
+        if ( this.animationContexts.get(name) === context ) this.animationContexts.delete(name);
+        for ( const fn of context.postAnimate ) fn(context);
+      });
     }
 
-    /** @override */
-    _getAnimationDuration(from, to, options) {
-      if (!this.isTileset) return super._getAnimationDuration(from, to, options);
+    /**
+     * Prepare the animation data changes: performs special handling required for animating rotation (none).
+     * @param {TokenAnimationData} from                         The animation data to animate from
+     * @param {Partial<TokenAnimationData>} changes             The animation data changes
+     * @param {Omit<TokenAnimationContext, "promise">} context  The animation context
+     * @param {object} [options]                                The options that configure the animation behavior
+     * @param {string} [options.transition="fade"]              The desired texture transition type
+     * @returns {CanvasAnimationAttribute[]}                    The animation attributes
+     * @protected
+     */
+    _prepareAnimation(from, changes, context, options = {}) {
+      const attributes = [];
 
-      // exclude rotation from animation duration calculations
-      return super._getAnimationDuration({
-        ...from,
-        rotation: to.rotation,
-      }, {
-        ...to,
-      }, options);
+      // Token.#handleRotationChanges(from, changes);
+      // this.#handleTransitionChanges(changes, context, options, attributes);
+
+      // Create animation attributes from the changes
+      const recur = (changes, parent) => {
+        for ( const [attribute, to] of Object.entries(changes) ) {
+          const type = foundry.utils.getType(to);
+          if ( type === "Object" ) recur(to, parent[attribute]);
+          else if ( type === "number" || type === "Color" ) attributes.push({attribute, parent, to});
+        }
+      };
+      recur(changes, this.#animationData);
+      return attributes;
+    }
+
+    /**
+     * Handle a single frame of a token animation.
+     * @param {TokenAnimationContext} context    The animation context
+     */
+    _animateFrame(context) {
+      if ( context.time >= context.duration ) foundry.utils.mergeObject(this.#animationData, context.to);
+      const changes = foundry.utils.diffObject(this.#priorAnimationData, this.#animationData);
+      foundry.utils.mergeObject(this.#priorAnimationData, this.#animationData);
+      foundry.utils.mergeObject(this.document, this.#animationData, {insertKeys: false});
+      for ( const fn of context.onAnimate ) fn(context);
+      this._onAnimationUpdate(changes, context);
     }
 
     _onAnimationUpdate(changed, context) {
-      const isRelevant = new Set(Object.keys(changed)).intersection(new Set(["x", "y", "rotation"])).size != 0;
-      if (!isRelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
+      const irrelevant = !["x", "y", "rotation"].some(p=>foundry.utils.hasProperty(changed, p));
+      if (irrelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
 
       // get tile size
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
@@ -546,7 +611,7 @@ export function register() {
       return super._onAnimationUpdate(changed, context);
     }
 
-    initializeEdges({deleted=false}={}) {
+    initializeEdges({ changes, deleted=false}={}) {
       // the token has been deleted
       if ( deleted ) {
         ["t","r","b","l","tl","tr","bl","br"].forEach(d=>canvas.edges.delete(`${this.id}_${d}`));
@@ -556,7 +621,11 @@ export function register() {
       if (!game.settings.get(MODULENAME, "tokenCollision")) return;
 
       // re-create the edges for the token
-      const { x: docX, y: docY, width, height } = this.document;
+      const docX = changes?.x ?? this.document.x;
+      const docY = changes?.y ?? this.document.y;
+      const width = changes?.width ?? this.document.width;
+      const height = changes?.height ?? this.document.height;
+
       const { sizeX: gridX, sizeY: gridY } = canvas.grid;
       const w = gridX * Math.max(width, 1);
       const h = gridY * Math.max(height, 1);
@@ -686,7 +755,7 @@ export function register() {
     _onUpdate(changed, options, userId) {
       super._onUpdate(changed, options, userId);
       if ("x" in changed || "y" in changed || "width" in changed || "height" in changed) {
-        this.initializeEdges();
+        this.initializeEdges({ changes: changed });
       }
     }
 
