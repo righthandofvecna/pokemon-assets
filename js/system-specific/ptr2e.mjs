@@ -70,39 +70,30 @@ async function OnCreateChatMessage(message) {
 }
 
 
-/**
- * Whenever an actor would be created, try to populate its sprite
- * @param {PTR2eActor} actor
- * @param {object} actorData
- * @returns 
- */
-function OnPreCreateActor(actor, actorData) {
-  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
-  if (actor.type !== "pokemon") return;
-  const species = actorData.items.find(i=>i.type === "species")?.system;
-  if (!species) return;
-  const slug = species.slug;
-  const dexNum = species.number;
-  const regionalVariant = (()=>{
-    if (slug.startsWith("alolan-")) return "_alolan";
-    if (slug.startsWith("galarian-")) return "_galarian";
-    if (slug.startsWith("hisuian-")) return "_hisuian";
-    if (slug.startsWith("paldean-")) return "_paldean";
-    return "";
-  })();
-  const shiny = actorData.system.shiny ? "s" : "";
-  const gender = (()=>{
-    if (actorData.system.gender == "male") return "m";
-    if (actorData.system.gender == "female") return "f";
-    return "";
-  })();
-  const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
-  const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
-  const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
-  const dexString = `${dexNum}`.padStart(4, "0");
-
-  // check if everything is populated!
-  const src = (()=>{
+async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
+  const result = await wrapped(config, ...args);
+  const forms = new Set((config.forms ?? []).map(f=>f.toLowerCase()));
+  if (forms.has("token")) {
+    const dexNum = config.dexId;
+    const regionalVariant = (()=>{
+      if (forms.has("alolan")) return "_alolan";
+      if (forms.has("galarian")) return "_galarian";
+      if (forms.has("hisuian")) return "_hisuian";
+      if (forms.has("paldean")) return "_paldean";
+      return "";
+    })();
+    const shiny = config.shiny ? "s" : "";
+    const gender = (()=>{
+      if (config.gender == "male") return "m";
+      if (config.gender == "female") return "f";
+      return "";
+    })();
+    const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
+    const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
+    const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
+    const dexString = `${dexNum}`.padStart(4, "0");
+  
+    // check if everything is populated!
     for (const testSrc of [
       `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
       `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
@@ -111,22 +102,36 @@ function OnPreCreateActor(actor, actorData) {
       `${pmdPath}${dexString}.png`,
     ]) {
       if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
-        return testSrc;
+        result.result = testSrc;
+        return result;
       }
     }
-    return null;
-  })();
+  }
+  return result;
+}
 
-  if (!src) return;
-  
+
+function OnPreCreateToken(token, tokenData) {
+  console.log("OnPreCreateToken", arguments);
+  let src = tokenData?.texture?.src ?? token?.texture?.src;
+  if (!src || !(src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) return;
+
+  const data = {...SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src]};
+  data.spritesheet = true;
   const updates = {
-    "prototypeToken.texture.src": src,
-    "prototypeToken.flags.pokemon-assets": {
-      spritesheet: true,
-      ...SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src],
-    }
+    "flags.pokemon-assets": data,
   };
-  actor.updateSource(updates);
+  if ("scale" in data || "anchor" in data) {
+    updates["flags.ptr2e.autoscale"] = false;
+    updates["texture.scaleX"] = updates["texture.scaleY"] = data.scale ?? 1;
+    updates["texture.fit"] = "width";
+    updates["texture.anchorX"] = 0.5;
+    updates["texture.anchorY"] = data.anchor ?? 0.5;
+    delete data.scale;
+    delete data.anchor;
+  }
+
+  token.updateSource(updates);
 }
 
 
@@ -267,7 +272,9 @@ export function register() {
   if (early_isGM) {
     Hooks.on("createChatMessage", OnCreateChatMessage);
   }
-  Hooks.on("preCreateActor", OnPreCreateActor);
+
+  Hooks.on("preCreateToken", OnPreCreateToken);
+  libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
 
   const module = game.modules.get(MODULENAME);
   module.api ??= {};
