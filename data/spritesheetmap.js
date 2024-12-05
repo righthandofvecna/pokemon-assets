@@ -69,6 +69,10 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/00XX/000X/0006_Gigantamax.png": {
+    "animationframes": 1,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/00XX/000X/0006_MEGA_X.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
@@ -869,6 +873,10 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/00XX/008X/0080_galarian.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/00XX/008X/0080s.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
@@ -1181,6 +1189,10 @@ export default
     "animationframes": 6,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/01XX/011X/0110_galarian.png": {
+    "animationframes": 6,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/01XX/011X/0110s.png": {
     "animationframes": 6,
     "sheetstyle": "pmd"
@@ -1279,6 +1291,10 @@ export default
   },
   "modules/pokemon-assets/img/pmd-overworld/01XX/012X/0122.png": {
     "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
+  "modules/pokemon-assets/img/pmd-overworld/01XX/012X/0122_galarian.png": {
+    "animationframes": 12,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/01XX/012X/0122s.png": {
@@ -6565,6 +6581,10 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/06XX/066X/0664.png": {
+    "animationframes": 3,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/06XX/066X/0666.png": {
     "animationframes": 12,
     "sheetstyle": "pmd"
@@ -7031,8 +7051,8 @@ export default
   },
   "modules/pokemon-assets/img/pmd-overworld/07XX/070X/0705_hisuian.png": {
     "animationframes": 7,
-    "sheetstyle": "pmd",
-    "separateidle": true
+    "separateidle": true,
+    "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/07XX/070X/0705s.png": {
     "animationframes": 4,
@@ -7040,8 +7060,8 @@ export default
   },
   "modules/pokemon-assets/img/pmd-overworld/07XX/070X/0705s_hisuian.png": {
     "animationframes": 7,
-    "sheetstyle": "pmd",
-    "separateidle": true
+    "separateidle": true,
+    "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/07XX/070X/0706.png": {
     "animationframes": 4,
@@ -9624,1655 +9644,2481 @@ export default
     "sheetstyle": "trainer"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_f_pe_013xjbv5.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_f_pe_01mbms4g.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_f_pe_01oq1jne.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_f_pe_01q8oh6a.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_f_pe_01s2w2yh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_f_pe_01u6r4qu.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_f_pe_01wef1s2.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_m_pe_014gqk6z.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_m_pe_014xuyly.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_m_pe_015fw2o5.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_m_pe_01bj2c1x.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_m_pe_01fjyg9o.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_m_pe_01qmo09d.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_acetrainer_m_pe_01z73g5m.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aetherfoundationemployee_f_pe_01mfnzfi.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aetherfoundationemployee_f_pe_01x8qykl.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aetherfoundationemployee_m_pe_01fx3z93.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aetherfoundationemployee_m_pe_01w9w30g.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aquagrunt_f_pe_015b1yoz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aquagrunt_f_pe_01y8itub.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aquagrunt_m_pe_01osvclo.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aromalady_f_pe_0136g5dm.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_aromalady_f_pe_01s45y2w.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_artist_f_pe_015qb2jh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_artist_m_pe_019s5qmo.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_artist_m_pe_01c19l73.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_artist_m_pe_01gwjq1w.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_artist_m_pe_01w42z89.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_backers_f_pe_015jb73c.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_backers_m_pe_01em86pi.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_backers_pe_01jmzofq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_backers_pe_01ysioj1.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_backpacker_f_pe_01u23udh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_backpacker_m_pe_014tzyry.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_backpacker_m_pe_016ejwdc.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_backpacker_m_pe_01ymef8n.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_baker_f_pe_01p3idju.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_battlegirl_f_pe_01be4p5l.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_battlegirl_f_pe_01hspmrj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_battlegirl_f_pe_01tbo50i.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_battlegirl_pe_0137s72e.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_beauty_f_pe_011rs8co.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_beauty_f_pe_013o7zhm.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_beauty_f_pe_01a7b36q.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_beauty_f_pe_01e4s7um.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_beauty_f_pe_01h5ujs1.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_beauty_f_pe_01pe9eir.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_beauty_f_pe_01wmrtxi.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_beauty_pe_014cy3ra.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_bellhop_m_pe_01f035dp.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_biker_m_pe_01vly3zb.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_biker_m_pe_01ycfn38.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_birdkeeper_f_pe_01c2z7oz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_birdkeeper_m_pe_014j4y3s.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_birdkeeper_m_pe_01nzdfdi.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_birdkeeper_m_pe_01o93n88.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_blackbelt_m_pe_012fuuzw.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_blackbelt_m_pe_015bnryv.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_blackbelt_m_pe_015h47o6.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_blackbelt_m_pe_01hrtexy.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_blackbelt_m_pe_01k3y9j1.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_blackbelt_m_pe_01lq16fw.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_blackbelt_m_pe_01onuy31.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_blackbelt_m_pe_01t1jg5d.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_boarder_m_pe_012o4evy.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_bodybuilder_f_pe_01ksqczq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_bodybuilder_m_pe_01yzi9z8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_bugcatcher_m_pe_019hm960.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_bugcatcher_m_pe_01cgzbbj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_bugcatcher_m_pe_01mv4a1g.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_bugcatcher_m_pe_01nwdrii.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_bugmaniac_m_pe_01zw27p3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_burglar_m_pe_01nxulr2.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_burglar_m_pe_01wadco4.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_butler_m_pe_01uzskl9.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cabbie_m_pe_01ddv45w.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cafemaster_m_pe_01aw4h39.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cafemaster_m_pe_01r8bc49.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cameraman_m_pe_01c4s06m.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_camper_m_pe_013jzzt8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_camper_m_pe_017505nk.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_channeler_f_pe_01eicicr.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_clown_f_pe_01hsly3h.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_clown_m_pe_01fb21pn.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_collector_m_pe_017x218m.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_collector_m_pe_01u760rm.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cook_m_pe_014ftsxl.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cook_m_pe_01c1tq3y.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cook_m_pe_01e3wabv.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_courier_m_pe_0198jss7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_courier_m_pe_01j17wiz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cyclist_f_pe_013p1pbo.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cyclist_f_pe_01i27uc6.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cyclist_m_pe_01mreie2.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_cyclist_m_pe_01wi411q.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_dancer_m_pe_01vgwbgs.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_delinquent_m_pe_015enan8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_depotagent_m_pe_01sfp8hn.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_diamondclan_m_pe_01s8qv97.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_diver_m_pe_01mcjmyu.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_doctor_m_pe_0151ph9n.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_doctor_m_pe_01mjs9uf.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_dragontamer_f_pe_01htzwmh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_dragontamer_m_pe_01487uqh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_dragontamer_m_pe_01exk42m.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_elder_m_pe_01g7l2k3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_elder_pe_016bmf2u.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_expert_m_pe_018hblfe.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_expert_m_pe_01wrr382.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_fairytalegirl_f_pe_0107ycuc.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_festivalboy_m_pe_016kvz5b.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_firebreather_m_pe_01ehei6c.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_firefighter_m_pe_01jtzzst.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_fisher_f_pe_01cllm10.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_fisher_m_pe_018qg75q.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_fisher_m_pe_01fz5kw8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_fisher_m_pe_01l9eqem.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_fisher_m_pe_01u7hcq8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_fisher_m_pe_01yfknko.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_flaregrunt_f_pe_01on2nt9.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_flaregrunt_m_pe_013i9ln6.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_furisodegirl_f_pe_0135y8k8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_galacticgrunt_f_pe_01gwvwps.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_galacticgrunt_m_pe_01etzl66.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gambler_m_pe_0133cv0x.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gambler_m_pe_01c2ui0z.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gardener_f_pe_01grqmnb.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gardener_m_pe_01tdz96g.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_011r1eu8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_011zjtsg.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_012h51g8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_013flqt5.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_01cwk6ju.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_01d2k6d0.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_01ea5iyf.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_01fxeusr.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_01ovakhj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_01u5ow3v.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_gentleman_m_pe_01wdmfq0.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_guitarist_f_pe_01goobv7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_guitarist_m_pe_01hrk1do.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_guitarist_m_pe_01vmzlkb.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_harlequin_m_pe_01mc88x3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_hexmaniac_f_pe_01pq6q3r.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_hiker_m_pe_0132b75i.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_hiker_m_pe_019zuin4.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_hiker_m_pe_01fr9ze2.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_hiker_m_pe_01xm5q99.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_hoopster_m_pe_01jtfyj9.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_idol_f_pe_01qds5mg.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_infielder_m_pe_019paegz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_janitor_m_pe_011vmjcc.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_janitor_m_pe_01bw814x.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_janitor_m_pe_01iktxxs.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_jogger_m_pe_01iuxd8u.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_jogger_m_pe_01rwo4jf.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_juggler_m_pe_01z6hrou.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_kimonogirl_f_pe_019cjfmp.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_kindler_m_pe_0111kha6.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lady_f_pe_01chqazt.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lady_f_pe_01i0cp7d.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lady_f_pe_01i11457.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lady_f_pe_01nxxm3r.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lady_f_pe_01wat3py.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lass_f_pe_011gswkz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lass_f_pe_015dmi20.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lass_f_pe_016ch67y.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lass_f_pe_01dkcw9s.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lass_f_pe_01hvz58t.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lass_f_pe_01nazv54.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lass_f_pe_01wmztzm.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lass_f_pe_01zdunzm.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_linebacker_m_pe_01aq4fmk.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_lord_m_pe_01blxek3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_madame_f_pe_012rf6hy.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_madame_f_pe_012rzdti.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_madame_f_pe_0140mvzk.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_madame_f_pe_017yp4mt.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_madame_f_pe_01zf1zdy.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_magmagrunt_f_pe_018kzrls.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_magmagrunt_m_pe_01i6lzj3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_maid_f_pe_01o3rzuf.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_maid_f_pe_01obnrho.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_maid_f_pe_01yrkdzq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_medium_f_pe_01fy4qhn.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_model_f_pe_01luyqni.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_model_f_pe_01uiezu7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_model_m_pe_01k2n7op.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_musician_m_pe_01equbis.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_neoplasmagrunt_f_pe_01ff1zdv.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_neoplasmagrunt_m_pe_013tyrq9.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_ninjaboy_m_pe_016jrmmu.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_ninjaboy_m_pe_01z7p8pr.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_nurse_f_pe_01kgeg3l.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_nurse_f_pe_01secdtq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_nurse_f_pe_01wnszz3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_nurse_pe_unknown.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_nurseryaide_f_pe_01ag9mca.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officer_m_pe_011p5ly8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officer_m_pe_01cnfxpu.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officer_m_pe_01s1xru6.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officer_pe_unknown.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_f_pe_011nimxc.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_f_pe_01qdzdz3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_f_pe_01rn8g6m.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_f_pe_01xc3o5h.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_m_pe_011h7gpc.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_m_pe_01lj1w9b.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_m_pe_01orxmng.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_m_pe_01rkr93l.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_m_pe_01xei6xl.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_m_pe_01yzkgzg.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_officeworker_m_pe_01zblpg7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_ogreclan_m_pe_01pgnqs9.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_parasollady_f_pe_01d72an9.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_parasollady_f_pe_01h9he9p.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_parasollady_f_pe_01o3092r.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_picnicker_f_pe_011szhnf.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_picnicker_f_pe_01jsn4px.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pilot_m_pe_01siz8x4.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_plasmagrunt_f_pe_01vc7wzu.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_plasmagrunt_m_pe_01uihh6o.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokefan_f_pe_015wr3st.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokefan_f_pe_01d2o465.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokefan_f_pe_01js4ih8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokefan_f_pe_01klkypd.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokefan_m_pe_011ziwlp.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokefan_m_pe_019ctnsx.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokefan_m_pe_01lppizz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokefan_m_pe_01ym0zey.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokekid_pe_01gg59sj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemaniac_m_pe_01hyuc4i.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemaniac_m_pe_01o16sys.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_f_pe_01bdm55p.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_f_pe_01jlrddb.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_f_pe_01l17qxw.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_f_pe_01nvbqll.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_m_pe_017jwemv.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_m_pe_01dbr1lx.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_m_pe_01h9q3eh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_m_pe_01q1zkhh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonbreeder_m_pe_01wkumtp.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonranger_f_pe_014glf3c.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonranger_f_pe_01mntxa9.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonranger_f_pe_01mxnt4w.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonranger_m_pe_0105xzoa.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonranger_m_pe_0127vrlm.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_pokemonranger_m_pe_018obxkl.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_postman_m_pe_017mc31x.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_preschooler_f_pe_01br9qyq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_preschooler_f_pe_01jvs9yp.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_preschooler_f_pe_01vmzt2k.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_preschooler_m_pe_011uoj5m.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_preschooler_m_pe_01fmg9z4.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_preschooler_m_pe_01u8586x.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_psychic_f_pe_01i7kynl.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_psychic_f_pe_01jjoxfz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_psychic_m_pe_012an4av.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_psychic_m_pe_015kyxly.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_psychic_m_pe_01blt0ip.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_punkgirl_f_pe_01228pvv.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_punkgirl_f_pe_01d8k30o.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_punkgirl_f_pe_01eao04q.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_punkguy_m_pe_01gfvzfc.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_punkguy_m_pe_01mk4p4g.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_railstaff_m_pe_017b7srk.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rancher_f_pe_01hrnqec.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rancher_f_pe_01j4vzoy.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rancher_m_pe_015yifil.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rancher_m_pe_018mvru7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_reporter_f_pe_01mbl0n7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_richboy_m_pe_0116k7rm.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_richboy_m_pe_01dtvfj7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_richboy_m_pe_01e16jzq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_richboy_m_pe_01eomzlr.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_risingstar_f_pe_0165plco.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_risingstar_f_pe_01bi7q2f.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_risingstar_m_pe_013zznqr.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_risingstar_m_pe_01xt1e8b.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rocker_m_pe_01mcxznk.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rocketgrunt_f_pe_0149lvt5.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rocketgrunt_m_pe_01mqq19h.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rollerskater_f_pe_01obmmju.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_rollerskater_m_pe_01iyqubs.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_roughneck_m_pe_016rdupx.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_roughneck_m_pe_01c2zqsx.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_ruinmaniac_m_pe_019qv38w.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_ruinmaniac_m_pe_01eko7vj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_ruinmaniac_m_pe_01rqekr6.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sage_m_pe_018bfi6p.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sage_m_pe_01o1e34e.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sage_pe_012io2n2.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sailor_m_pe_01969zwh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sailor_m_pe_01egxv5i.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sailor_m_pe_01k1ct39.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sailor_m_pe_01vwqqxp.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_f_pe_015gw514.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_f_pe_01b8skxh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_f_pe_01d1bjqe.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_f_pe_01ghil1p.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_f_pe_01vypdz1.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_m_pe_0140i6xj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_m_pe_01jpj1c3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_m_pe_01ll2v4i.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_m_pe_01m81rns.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_schoolkid_m_pe_01mhoom6.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_f_pe_016k6x7v.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_f_pe_01gpr4vj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_m_pe_0142s3o5.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_m_pe_018bjeki.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_m_pe_01dhp55s.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_m_pe_01g36uvx.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_m_pe_01otq2vz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_m_pe_01p3c3zu.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_scientist_m_pe_01rjvqfw.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_securitycorps_f_pe_015nku4i.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_securitycorps_m_pe_01l99xj2.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_shadowtriad_m_pe_01v8vlnh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sightseer_f_pe_01k8hftt.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_sightseer_m_pe_01598hdh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_skier_f_pe_01l0pmsc.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_skier_f_pe_01p5iq1z.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_skier_m_pe_01cwltnq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_skullgrunt_f_pe_017t285d.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_skullgrunt_m_pe_01rgljtb.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_skytrainer_f_pe_01in1ruw.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_skytrainer_m_pe_01crlfu3.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_smasher_f_pe_019oc06r.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_soapberryserver_f_pe_01pt8yzz.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_streetthug_m_pe_01pqco9r.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_streetthug_m_pe_01u5gupj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_striker_m_pe_01b732wn.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_suitactor_pe_012cl0km.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_supernerd_m_pe_01na5ojt.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_supernerd_m_pe_01q1eksd.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_surfer_m_pe_01bnyevw.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_f_pe_01338lun.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_f_pe_01clcv1j.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_f_pe_01f4jys1.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_f_pe_01j9ynze.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_f_pe_01kzvq7u.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_f_pe_01lf99hn.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_f_pe_01mwtbcq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_m_pe_015ec58i.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_m_pe_0185qu2t.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_m_pe_01dkf42q.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_m_pe_01gidn26.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_m_pe_01gubimv.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_m_pe_01itrku7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_m_pe_01jnvxd2.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_swimmer_m_pe_01wlwb9w.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tamer_m_pe_014esteg.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_teacher_f_pe_01d993ba.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_teammates_f_pe_01qh3f6f.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_teammates_pe_01t616ws.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tourist_f_pe_010yj58i.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tourist_f_pe_013oxkz5.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tourist_f_pe_01pxl2lh.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tourist_f_pe_01wf6qmi.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tourist_m_pe_01wg7yix.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_trialguide_m_pe_0146kjxi.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_triathlete_pe_013yfzfk.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_triathlete_pe_01411evq.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_triathlete_pe_01mwzfi4.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tuber_f_pe_011vymov.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tuber_f_pe_01p3djqs.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tuber_m_pe_017fofpe.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_tuber_m_pe_01yrzn55.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_twins_f_pe_01a2ggup.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_twins_f_pe_01mgb1yi.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_twins_f_pe_01s5n37h.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_twins_f_pe_01u3dkm2.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_veteran_f_pe_014yo345.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_veteran_f_pe_01s7435z.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_veteran_m_pe_015x4gr1.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_veteran_m_pe_01gtjdrx.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_veteran_m_pe_01lumxec.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_waiter_m_pe_01321fxx.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_waiter_m_pe_019z6dco.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_waiter_m_pe_01iztypf.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_waiter_m_pe_01siwk93.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_waitress_f_pe_01i8h1vn.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_waitress_f_pe_01kyokmm.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_waitress_f_pe_01l92tuu.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_waitress_f_pe_01s3dyrr.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_f_pe_01hg8hgd.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_011c4ykd.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_01fog18u.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_01kx0mih.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_01l37xg8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_01noux2n.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_01p7tkwu.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_01qpy251.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_01xbq214.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_worker_m_pe_01zthozb.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_yellgrunt_f_pe_0158tkkj.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_yellgrunt_m_pe_01cg8qrn.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngcouple_f_pe_01dhptt7.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngcouple_m_pe_0117rshy.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngcouple_m_pe_01jcao74.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngcouple_m_pe_01xs8jnn.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngcouple_pe_010x0m4w.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngcouple_pe_01hhlrwk.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_0115p2c4.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_012m44g8.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_0136l91t.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_013lkplw.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_01cffwed.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_01ih0r1l.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_01k86ru4.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_01l7tn5v.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_01qvg1yg.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_youngster_m_pe_01u2uyla.webp": {
+    "anchor": 0.65,
     "animationframes": 3,
+    "scale": 1.5,
     "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/tuber_f.png": {
