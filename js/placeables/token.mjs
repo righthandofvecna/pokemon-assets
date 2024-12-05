@@ -243,7 +243,6 @@ export function register() {
     #textureKey;
     #direction;
     #animationData;
-    #animationPromise;
     #priorAnimationData;
 
     constructor(document) {
@@ -282,7 +281,7 @@ export function register() {
     }
 
     get allAnimationsPromise() {
-      return this.#animationPromise;
+      return Promise.allSettled(this.animationContexts.values().map(c=>c.promise))
     }
 
     /** @override */
