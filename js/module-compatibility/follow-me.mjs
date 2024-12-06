@@ -1,4 +1,4 @@
-import { MODULENAME, isTheGM, isGMOnline, early_isGM } from "./utils.mjs";
+import { MODULENAME, isTheGM, isGMOnline, early_isGM } from "../utils.mjs";
 
 const FLAG_FOLLOWING = "following";
 
