@@ -1,4 +1,4 @@
-import { MODULENAME } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 
 const WALK_SPEED = 4;
@@ -13,168 +13,94 @@ const SLIDE_SPEED = WALK_SPEED;
  * @param {*} html 
  * @param {*} context 
  */
-function OnRenderTokenConfig(config, html, context) {
+async function OnRenderTokenConfig(config, html, context) {
   const form = $(html).find("form").get(0) ?? config.form;
+  const token = config.token;
 
-  let src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
-  let defaultSettings =  {
-    sheetstyle: "trainer",
-    animationframes: 4,
-    separateidle: false,
-    ...(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {}),
-  };
+  /**
+   * Recalculate all the computed fields, create them if they don't exist, and update them.
+   */
+  const refreshConfig = async function () {
+    const src = form.querySelector("[name='texture.src'] input[type='text']")?.value ?? form.querySelector("[name='texture.src'][type='text']")?.value;
+    const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
 
-  const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
-  const isSpritesheet = config.token.getFlag("pokemon-assets", "spritesheet") ?? isPredefined;
-  const sheetStyle = config.token.getFlag("pokemon-assets", "sheetstyle") ?? defaultSettings.sheetstyle;
-  const animationFrames = config.token.getFlag("pokemon-assets", "animationframes") ?? defaultSettings.animationframes;
-  const hasSeparateIdle = config.token.getFlag("pokemon-assets", "separateidle") ?? defaultSettings.separateidle;
-
-  $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${isSpritesheet ? "checked" : ""}>`);
-  // add control for what size
-  const sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
-    return allOptions + `<option value="${val}" ${sheetStyle === val ? "selected" : ""}>${label}</option>`;
-  }, "");
-  $(html).find("[name='texture.src']").closest(".form-group").after(`
-    <div class="spritesheet-config" ${!isPredefined && isSpritesheet ? '' : 'style="display: none"'}>
-      <div class="form-group sheet-style">
-        <label>Sheet Style</label>
-        <div class="form-fields">
-          <select name="flags.pokemon-assets.sheetstyle">${sheetSizeOptions}</select>
-        </div>
-        <p class="hint">What the sheet's layout style is.</p>
-      </div>
-      <div class="form-group sheet-frames" ${sheetStyle === "pmd" ? '' : 'style="display: none"'}>
-        <label>Sheet Frames</label>
-        <div class="form-fields">
-          <input type="number" name="flags.pokemon-assets.animationframes" value="${animationFrames}" ${sheetStyle === "pmd" ? '' : 'hidden readonly'}>
-        </div>
-        <p class="hint">How many frames per animation this spritesheet has.</p>
-      </div>
-      <div class="form-group sheet-idle">
-        <label for="flags.pokemon-assets.separateidle">Separate Idle Frame</label>
-        <div class="form-fields">
-          <input type="checkbox" name="flags.pokemon-assets.separateidle" ${hasSeparateIdle ? "checked" : ""}>
-        </div>
-        <p class="hint">Whether or not the first frame of each direction on the sheet should be included when playing the walking animation.</p>
-      </div>
-    </div>`);
-  
-  const updateDefaults = async function () {
-    src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
-    const predefined = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
-    defaultSettings = {
-      sheetstyle: "trainer",
-      animationframes: 4,
-      separateidle: false,
-      ...(predefined ?? {}),
+    const data = {
+      spritesheet: isPredefined || (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked ?? token.getFlag("pokemon-assets", "spritesheet")),
+      sheetstyle: form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer",
+      animationframes: (parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || token.getFlag("pokemon-assets", "animationframes")) ?? 4,
+      separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? token.getFlag("pokemon-assets", "separateidle") ?? false,
+      ...(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {}),
     };
 
-    if (predefined) {
-      $(html).find(".spritesheet-config").hide();
-      $(html).find(`[name="flags.pokemon-assets.spritesheet"]`).prop("checked", true);
-      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`).prop("hidden", true).prop("readonly", true).val(predefined.sheetstyle);
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(predefined.animationframes);
-      $(html).find(`[name="flags.pokemon-assets.separateidle"]`).prop("hidden", true).prop("readonly", true).prop("checked", predefined.separateidle ?? false);
+    // Populate the dropdown for the types of spritesheet layouts available
+    data.sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
+      return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${label}</option>`;
+    }, "");
 
-      const texture = await getTexture(form);
-      await updateAnchors(form, texture);
-    } else if (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) {
-      $(html).find(".spritesheet-config").show();
-      
-      $(html).find(".spritesheet-config .sheet-style").show();
-      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`)
-        .prop("hidden", false)
-        .prop("readonly", false)
-        .val(defaultSettings.sheetstyle);
-      
-      let hideAnimationFrames = defaultSettings.sheetstyle === "trainer" || defaultSettings.sheetstyle === "trainer3";
-      $(html).find(".spritesheet-config .sheet-frames").toggle(!hideAnimationFrames);
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
-        .prop("hidden", hideAnimationFrames)
-        .prop("readonly", hideAnimationFrames)
-        .val(defaultSettings.animationframes);
-      
-      $(html).find(".spritesheet-config .sheet-idle").show();
-      $(html).find(`[name="flags.pokemon-assets.separateidle"]`)
-        .prop("hidden", false)
-        .prop("readonly", false)
-        .prop("checked", defaultSettings.separateidle);
-    } else {
-      $(html).find(".spritesheet-config")
-        .hide();
-      
-      $(html).find(".spritesheet-config .sheet-style").show();
-      $(html).find(`[name="flags.pokemon-assets.sheetstyle"]`)
-        .prop("hidden", false)
-        .prop("readonly", false)
-        .val(defaultSettings.sheetstyle);
-      
-      let hideAnimationFrames = defaultSettings.sheetstyle === "trainer" || defaultSettings.sheetstyle === "trainer3";
-      $(html).find(".spritesheet-config .sheet-frames").toggle(!hideAnimationFrames);
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`)
-        .prop("hidden", hideAnimationFrames)
-        .prop("readonly", hideAnimationFrames)
-        .val(defaultSettings.animationframes);
-      
-      $(html).find(".spritesheet-config .sheet-idle").show();
-      $(html).find(`[name="flags.pokemon-assets.separateidle"]`)
-        .prop("hidden", false)
-        .prop("readonly", false)
-        .prop("checked", defaultSettings.separateidle);
+    // checkbox for whether or not this should be a spritesheet!
+    if (!form.querySelector("[name='flags.pokemon-assets.spritesheet']")) {
+      $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${data.spritesheet ? "checked" : ""}>`);
+    };
+    form.querySelector("[name='flags.pokemon-assets.spritesheet']").checked = data.spritesheet;
+    form.querySelector("[name='flags.pokemon-assets.spritesheet']").readonly = isPredefined;
+
+    // additional spritesheet-specific configurations
+    data.isPmd = data.sheetstyle == "pmd";
+    data.hide = !data.spritesheet || isPredefined;
+    const rendered = $(await renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
+    if (!form.querySelector(".spritesheet-config")) {
+      $(html).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
+    };
+    form.querySelector(".spritesheet-config").replaceWith(rendered);
+
+    // check that the anchoring fields exist
+    for (const tf of ["fit", "anchorX", "anchorY"]) {
+      if (!form.querySelector(`[name='texture.${tf}']`)) {
+        $(form).append(`<input name="texture.${tf}" value="${token?.texture?.[tf]}" hidden />`);
+      }
     }
-  }
 
-  const getTexture = async function (form) {
-    // get the texture so this can be calculated
-    const src = form.querySelector("[name='texture.src'] input[type='text']")?.value;
-    if (!src) return;
+    // update the anchors
+    if (!data.spritesheet) {
+      // reset the anchors if they exist
+      form.querySelector("[name='texture.fit']").value = "contain";
+      form.querySelector("[name='texture.anchorX']").value = 0.5;
+      form.querySelector("[name='texture.anchorY']").value = 0.5;
+      return;
+    };
 
-    return await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
-  }
-
-  const updateAnchors = async function (form, texture) {
-    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) return;
-
-    const { width, height } = texture;
+    const texture = await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
+    const { width, height } = texture ?? {};
     if (!width || !height) return;
-
-    const newSheetStyle = form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? sheetStyle;
     const directions = (()=>{
-      switch (newSheetStyle) {
+      switch (data.sheetstyle) {
         case "pmd": return 8;
         default: return 4;
       }
     })();
-    const newAnimationFrames = parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || 4;
 
-    const ratio = (height / width) * (newAnimationFrames / directions);
+    const ratio = (height / width) * (data.animationframes / directions);
     const scale = form.querySelector("input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
-      switch (newSheetStyle) {
+      switch (data.sheetstyle) {
         case "pmd": return 0.5;
         default: return 1.02 + (0.5 / (-ratio * scale));
       }
     })();
 
-    // set the fields
-    form.querySelector("select[name='texture.fit']").value = "width";
-    form.querySelector("input[name='texture.anchorX']").value = 0.5;
-    form.querySelector("input[name='texture.anchorY']").value = Math.ceil(100 * anchorY) / 100;
+    // set the anchoring fields
+    form.querySelector("[name='texture.fit']").value = "width";
+    form.querySelector("[name='texture.anchorX']").value = 0.5;
+    form.querySelector("[name='texture.anchorY']").value = Math.ceil(100 * anchorY) / 100;
   };
+
+  await refreshConfig();
 
   //
   // listeners
   //
 
-  const OnUpdateFilePicker = async function () {
-    if (await updateDefaults()) return;
-
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  };
-
-  $(html).find("[name='texture.src'] input[type='text']").on("change", OnUpdateFilePicker);
+  $(html).find("[name='texture.src'] input[type='text'], input[name='texture.src'][type='text']").on("change", refreshConfig);
   // dumb workaround to listen on the filepicker button too
   $(html).find("[name='texture.src'] button").on("click", function () {
     const filePicker = $(this).closest("file-picker")?.get(0)?.picker;
@@ -182,56 +108,20 @@ function OnRenderTokenConfig(config, html, context) {
     filePicker.callback = ((callback)=>{
       return function () {
         if (callback) callback(...arguments);
-        OnUpdateFilePicker();
+        refreshConfig();
       }
     })(filePicker.callback);
   })
 
   // listen for the "spritesheet" toggle
-  $(html).find("[name='flags.pokemon-assets.spritesheet']").on("change", async function () {
-    if (await updateDefaults()) return;
+  $(html).find("[name='flags.pokemon-assets.spritesheet']").on("change", refreshConfig);
 
-    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) {
-      $(html).find(".spritesheet-config").hide();
-    } else {
-      $(html).find(".spritesheet-config").show();
-    }
+  $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", refreshConfig);
 
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  });
-
-  $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", async function () {
-    const newSheetStyle = $(this).get(0).value ?? "trainer";
-    if (newSheetStyle === "trainer") {
-      $(html).find(`.spritesheet-config .sheet-frames`).hide();
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(4);
-    } else if (newSheetStyle === "trainer3") {
-      $(html).find(`.spritesheet-config .sheet-frames`).hide();
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(3);
-    } else if (newSheetStyle === "pkmn") {
-      $(html).find(`.spritesheet-config .sheet-frames`).hide();
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", true).prop("readonly", true).val(2);
-    } else if (newSheetStyle === "pmd") {
-      $(html).find(`.spritesheet-config .sheet-frames`).show();
-      $(html).find(`[name="flags.pokemon-assets.animationframes"]`).prop("hidden", false).prop("readonly", false).val(4);
-      // TODO: infer a sensible number for this?
-    }
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  });
-
-  $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", async function () {
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  });
+  $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", refreshConfig);
 
   // listen for the "scale" value
-  $(html).find("[name='scale']").on("change", async function () {
-    if (!form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked) return;
-    const texture = await getTexture(form);
-    await updateAnchors(form, texture);
-  });
+  $(html).find("[name='scale']").on("change", refreshConfig);
 }
 
 
@@ -325,6 +215,7 @@ function getDirectionFromAngle(angle) {
 
 
 function OnCreateCombatant(combatant) {
+  if (!isTheGM()) return;
   if (!combatant?.token?.getFlag("pokemon-assets", "spritesheet")) return;
   combatant.update({
     "img": combatant?.actor?.img ?? "icons/svg/mystery-man.svg",
@@ -339,6 +230,9 @@ function OnInitializeEdges() {
   for (const token of canvas.tokens.placeables) {
     token?.initializeEdges?.();
   }
+  for (const tile of canvas.tiles.placeables) {
+    tile?.initializeEdges?.();
+  }
 }
 
 export function register() {
@@ -349,7 +243,7 @@ export function register() {
     #textureKey;
     #direction;
     #animationData;
-    #animationPromise;
+    #priorAnimationData;
 
     constructor(document) {
       super(document);
@@ -358,6 +252,7 @@ export function register() {
 
     #initialize() {
       this.#animationData = this._getAnimationData();
+      this.#priorAnimationData = foundry.utils.deepClone(this.#animationData);
     }
 
     /** @override */
@@ -386,7 +281,7 @@ export function register() {
     }
 
     get allAnimationsPromise() {
-      return this.#animationPromise;
+      return Promise.allSettled(this.animationContexts.values().map(c=>c.promise))
     }
 
     /** @override */
@@ -479,7 +374,8 @@ export function register() {
 
     _canDrag() {
       const scene = this?.document?.parent;
-      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && this.inCombat)))
+      const hasCombat = !!game.combats.find(c=>c.active && c.scene.uuid === scene.uuid);
+      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && hasCombat)))
         return false;
       return super._canDrag();
     }
@@ -559,50 +455,112 @@ export function register() {
 
     /** @override */
     async animate(to, {duration, easing, movementSpeed, name, ontick, ...options}={}) {
-      // const super_animate = super.animate;
-      return this.#animationPromise = (async (p)=>{
-        await p;
-        if (this.isTileset) {
-          // check what properties are being animated
-          const updatedProperties = Object.keys(to);
-  
-          movementSpeed ??= (()=>{
-            if (this.document._sliding) return SLIDE_SPEED;
-            const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
-            const manhattan = (Math.abs((to.x ?? this.#animationData.x) - this.#animationData.x) / sizeX) + (Math.abs((to.y ?? this.#animationData.y) - this.#animationData.y) / sizeY);
-            if (manhattan < RUN_DISTANCE) {
-              return WALK_SPEED;
-            }
-            return RUN_SPEED;
-          })();
-  
-          if (updatedProperties.length == 1 && updatedProperties.includes("rotation")) {
-            // rotation should be instantaneous.
-            duration = 0;
-          }
+      // Get the name and the from and to animation data
+      if ( name === undefined ) name = this.animationName;
+      else name ||= Symbol(this.animationName);
+      const from = this.#animationData;
+      if (to.rotation != undefined) {
+        from.rotation = to.rotation ?? from.rotation;
+        delete to.rotation;
+      }
+      to = foundry.utils.filterObject(to, from);
+      let context = this.animationContexts.get(name);
+      if ( context ) to = foundry.utils.mergeObject(context.to, to, {inplace: false});
+
+      // Conclude the current animation
+      CanvasAnimation.terminateAnimation(name);
+      if ( context ) this.animationContexts.delete(name);
+
+      movementSpeed ??= (()=>{
+        if (this.document._sliding) return SLIDE_SPEED;
+        const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
+        const manhattan = (Math.abs((to.x ?? from.x) - from.x) / sizeX) + (Math.abs((to.y ?? from.y) - from.y) / sizeY);
+        if (manhattan < RUN_DISTANCE) {
+          return WALK_SPEED;
         }
-        return await super.animate(to, {duration, easing, movementSpeed, name, ontick, ...options}).then(()=>{
-          this.#initialize();
-        });
-      })(this.#animationPromise);
+        return RUN_SPEED;
+      })();
+      // Get the animation duration and create the animation context
+      duration ??= this._getAnimationDuration(from, to, {movementSpeed, ...options});
+      context = {name, to, duration, time: 0, preAnimate: [], postAnimate: [], onAnimate: []};
+
+      // Animate the first frame
+      this._animateFrame(context);
+
+      // If the duration of animation is not positive, we can immediately conclude the animation
+      if ( duration <= 0 ) return;
+
+      // Set the animation context
+      this.animationContexts.set(name, context);
+
+      // Prepare the animation data changes
+      const changes = foundry.utils.diffObject(from, to);
+      const attributes = this._prepareAnimation(from, changes, context, options);
+
+      // Dispatch the animation
+      context.promise = CanvasAnimation.animate(attributes, {
+        name,
+        context: this,
+        duration,
+        easing,
+        priority: PIXI.UPDATE_PRIORITY.OBJECTS + 1, // Before perception updates and Token render flags
+        wait: Promise.allSettled(context.preAnimate.map(fn => fn(context))),
+        ontick: (dt, anim) => {
+          context.time = anim.time;
+          if ( ontick ) ontick(dt, anim, this.#animationData);
+          this._animateFrame(context);
+        }
+      });
+      await context.promise.finally(() => {
+        if ( this.animationContexts.get(name) === context ) this.animationContexts.delete(name);
+        for ( const fn of context.postAnimate ) fn(context);
+      });
     }
 
-    /** @override */
-    _getAnimationDuration(from, to, options) {
-      if (!this.isTileset) return super._getAnimationDuration(from, to, options);
+    /**
+     * Prepare the animation data changes: performs special handling required for animating rotation (none).
+     * @param {TokenAnimationData} from                         The animation data to animate from
+     * @param {Partial<TokenAnimationData>} changes             The animation data changes
+     * @param {Omit<TokenAnimationContext, "promise">} context  The animation context
+     * @param {object} [options]                                The options that configure the animation behavior
+     * @param {string} [options.transition="fade"]              The desired texture transition type
+     * @returns {CanvasAnimationAttribute[]}                    The animation attributes
+     * @protected
+     */
+    _prepareAnimation(from, changes, context, options = {}) {
+      const attributes = [];
 
-      // exclude rotation from animation duration calculations
-      return super._getAnimationDuration({
-        ...from,
-        rotation: to.rotation,
-      }, {
-        ...to,
-      }, options);
+      // Token.#handleRotationChanges(from, changes);
+      // this.#handleTransitionChanges(changes, context, options, attributes);
+
+      // Create animation attributes from the changes
+      const recur = (changes, parent) => {
+        for ( const [attribute, to] of Object.entries(changes) ) {
+          const type = foundry.utils.getType(to);
+          if ( type === "Object" ) recur(to, parent[attribute]);
+          else if ( type === "number" || type === "Color" ) attributes.push({attribute, parent, to});
+        }
+      };
+      recur(changes, this.#animationData);
+      return attributes;
+    }
+
+    /**
+     * Handle a single frame of a token animation.
+     * @param {TokenAnimationContext} context    The animation context
+     */
+    _animateFrame(context) {
+      if ( context.time >= context.duration ) foundry.utils.mergeObject(this.#animationData, context.to);
+      const changes = foundry.utils.diffObject(this.#priorAnimationData, this.#animationData);
+      foundry.utils.mergeObject(this.#priorAnimationData, this.#animationData);
+      foundry.utils.mergeObject(this.document, this.#animationData, {insertKeys: false});
+      for ( const fn of context.onAnimate ) fn(context);
+      this._onAnimationUpdate(changes, context);
     }
 
     _onAnimationUpdate(changed, context) {
-      const isRelevant = new Set(Object.keys(changed)).intersection(new Set(["x", "y", "rotation"])).size != 0;
-      if (!isRelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
+      const irrelevant = !["x", "y", "rotation"].some(p=>foundry.utils.hasProperty(changed, p));
+      if (irrelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
 
       // get tile size
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
@@ -652,25 +610,21 @@ export function register() {
       return super._onAnimationUpdate(changed, context);
     }
 
-    initializeEdges({deleted=false}={}) {
-      if (!game.settings.get(MODULENAME, "tokenCollision")) return;
-
+    initializeEdges({ changes, deleted=false}={}) {
       // the token has been deleted
       if ( deleted ) {
-        canvas.edges.delete(`${this.id}_t`);
-        canvas.edges.delete(`${this.id}_b`);
-        canvas.edges.delete(`${this.id}_l`);
-        canvas.edges.delete(`${this.id}_r`);
-
-        canvas.edges.delete(`${this.id}_tl`);
-        canvas.edges.delete(`${this.id}_tr`);
-        canvas.edges.delete(`${this.id}_bl`);
-        canvas.edges.delete(`${this.id}_br`);
+        ["t","r","b","l","tl","tr","bl","br"].forEach(d=>canvas.edges.delete(`${this.id}_${d}`));
         return;
       }
 
+      if (!game.settings.get(MODULENAME, "tokenCollision")) return;
+
       // re-create the edges for the token
-      const { x: docX, y: docY, width, height } = this.document;
+      const docX = changes?.x ?? this.document.x;
+      const docY = changes?.y ?? this.document.y;
+      const width = changes?.width ?? this.document.width;
+      const height = changes?.height ?? this.document.height;
+
       const { sizeX: gridX, sizeY: gridY } = canvas.grid;
       const w = gridX * Math.max(width, 1);
       const h = gridY * Math.max(height, 1);
@@ -800,14 +754,13 @@ export function register() {
     _onUpdate(changed, options, userId) {
       super._onUpdate(changed, options, userId);
       if ("x" in changed || "y" in changed || "width" in changed || "height" in changed) {
-        this.initializeEdges();
+        this.initializeEdges({ changes: changed });
       }
     }
 
     /** @inheritDoc */
     _onDelete(options, userId) {
       super._onDelete(options, userId);
-      console.log("deleting", this.id);
       this.initializeEdges({deleted: true});
     }
 
@@ -824,6 +777,8 @@ export function register() {
   Hooks.on("renderTokenConfig", OnRenderTokenConfig);
   Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("preUpdateToken", OnPreUpdateToken);
-  Hooks.on("createCombatant", OnCreateCombatant);
   Hooks.on("initializeEdges", OnInitializeEdges);
+  if (early_isGM()) {
+    Hooks.on("createCombatant", OnCreateCombatant);
+  }
 }

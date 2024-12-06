@@ -1,4 +1,5 @@
 import { MODULENAME } from "../utils.mjs";
+import * as socket from "../socket.mjs";
 
 
 /**
@@ -62,12 +63,15 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
       const shifted = obj._getShiftedPosition(...offsets);
       if (obj.x == shifted.x && obj.y == shifted.y) {
         // bumped!
-        bumped ||= Math.round(obj.document.rotation / 45) == Math.round(angle / 45);
         if (obj.document.getFlag("pokemon-assets", "spritesheet")) {
           update.rotation = angle;
+          bumped ||= Math.round(obj.document.rotation / 45) == Math.round(angle / 45);
+        } else {
+          bumped = true;
         }
+        if ( bumped && obj.document._pushing ) obj._tryPush?.(...offsets);
       } else {
-        foundry.utils.mergeObject(update, shifted)
+        foundry.utils.mergeObject(update, shifted);
       }
     };
     return update;
@@ -78,11 +82,47 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/wall-bump.mp3`)
         .locally(true)
-        .volume(game.settings.get("core", "globalInterfaceVolume"))
         .async()
       .play();
   }
   return objects;
+}
+
+function Scene_updateEmbeddedDocuments(wrapped, embeddedName, updates=[], operation={}) {
+  if (embeddedName !== "Token" || !!operation?.follower_updates) return wrapped(embeddedName, updates, operation);
+
+  let follower_updates = []
+  for (const update of updates) {
+    const token = this.tokens.get(update._id);
+    if (!token) continue;
+    Hooks.call("pokemon-assets.manualMove", token, update, follower_updates);
+  };
+
+  // add all the "follower updates" that we have access to update
+  let updateData = [...updates, ...follower_updates.filter(t=>canvas.scene.tokens.get(t._id)?.isOwner)];
+  follower_updates = follower_updates.filter(t=>!canvas.scene.tokens.get(t._id)?.isOwner);
+  // remove multi-updates
+  // TODO: consolidate them instead?
+  updateData = updateData.filter((t, i)=>i === updateData.findLastIndex(t2=>t2._id == t._id));
+
+  return wrapped(embeddedName, updateData, {
+    ...(operation ?? {}),
+    follower_updates,
+  });
+}
+
+
+function TilesetToken_tryPush(dx, dy) {
+  const shifted = Tile.prototype._getShiftedPosition.bind(this)(dx, dy);
+  const collides = this.checkCollision(this.getCenterPoint(shifted), { mode: "closest" });
+  if (!collides) return;
+  const walls = collides.edges.filter(e=>e.object instanceof Wall);
+  // check if we collided with a tile that can be pushed
+  if (walls.size === 0) {
+    const pushables = collides.edges.filter(e=>e.object instanceof Tile && e.object?.document?.flags?.[MODULENAME]?.pushable).map(e=>e.object);
+    pushables.forEach(tile=>socket.current().executeAsGM("pushTile", tile?.document?.uuid, dx, dy))
+  }
+  // TODO: open unlocked doors??
 }
 
 
@@ -106,5 +146,7 @@ function TokenDocument_lockMovement() {
 export function register() {
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype.moveMany", PlaceablesLayer_moveMany, "OVERRIDE");
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
+  libWrapper.register("pokemon-assets", "Scene.prototype.updateEmbeddedDocuments", Scene_updateEmbeddedDocuments, "WRAPPER");
   CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
+  CONFIG.Token.objectClass.prototype._tryPush = TilesetToken_tryPush;
 }

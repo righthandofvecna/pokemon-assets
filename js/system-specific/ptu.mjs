@@ -320,6 +320,72 @@ await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonCenter(await from
 }
 
 
+/**
+ * Pokemon Computer config
+ * @param {*} regionConfig 
+ */
+async function PokemonComputer(regionConfig) {
+  // get the direction we need to look in order to trigger this
+  const directions = (await game.modules.get("pokemon-assets").api.scripts.UserChooseDirections({
+    prompt: "Which direction(s) should the token be facing in order to be able to activate the computer?",
+    directions: ["upleft", "up", "upright"],
+  })) ?? [];
+  if (directions.length === 0) return;
+
+  // create the document
+  const pokemonComputerData = {
+    type: "executeScript",
+    name: "Pokemon Computer",
+    flags: {
+      [MODULENAME]: {
+        "hasTokenInteract": true,
+      },
+    },
+    system: {
+      source: `const { token } = arguments[3]?.data;
+if (!token || !game.modules.get("pokemon-assets")?.api?.scripts?.TokenHasDirection(token, ${JSON.stringify(directions)})) return;
+await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...arguments);`,
+    }
+  };
+  await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [pokemonComputerData]);
+  return;
+}
+
+/**
+ * Gets all the party members of the given actor
+ * @param {PTUActor} actor 
+ */
+function GetParty(actor) {
+  const trainerFolder = actor.folder;
+  if (!trainerFolder) return [actor];
+  const party = trainerFolder.children.find(folder => folder.folder.name == "Party")?.folder ?? game.folders.find(folder => folder.name == "Party" && folder._source.folder == trainerFolder.id);
+
+  // If the trainer has a party folder, get the pokemon from the folder
+  if (party) {
+    return [actor, ...party.contents.filter(actor => actor.type == "pokemon")];
+  }
+
+  // Otherwise, get the pokemon from the flag
+  return [actor, ...game.actors.filter(actor =>
+      actor.type == "pokemon" &&
+      actor.flags?.ptu?.party?.trainer == this.trainer.id &&
+      !actor.flags?.ptu?.party?.boxed)];
+}
+
+/**
+ * Returns a function which takes in an actor and returns a boolean, true if the actor has the given move
+ * @param {string} name 
+ */
+function HasMoveFunction(slug) {
+  /**
+   * Returns whether or not the actor can use the move "slug"
+   * @param {PTR2eActor} actor
+   * @return true if the actor can use the given move
+   */
+  return function (actor) {
+    return actor.itemTypes.move.some(m=>m.slug === slug);
+  };
+}
 
 export function register() {
   if (early_isGM) {
@@ -340,6 +406,15 @@ export function register() {
       "label": "Pokemon Center",
       "callback": PokemonCenter,
     },
+    "pokemonComputer": {
+      "label": "Pokemon Computer",
+      "callback": PokemonComputer,
+    },
   }
 
+  module.api.logic ??= {};
+  module.api.logic.FieldMoveParty ??= (token)=>GetParty(token.actor);
+  module.api.logic.CanUseRockSmash ??= HasMoveFunction("rock-smash");
+  module.api.logic.CanUseCut ??= HasMoveFunction("cut");
+  module.api.logic.CanUseStrength ??= HasMoveFunction("strength");
 }

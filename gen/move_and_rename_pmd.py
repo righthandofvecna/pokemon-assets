@@ -144,6 +144,8 @@ def main():
         processVariant("Mega_X", "_MEGA_X")
         processVariant("Mega_Y", "_MEGA_Y")
 
+        processVariant("Gigantamax", "_Gigantamax")
+
         # type formes
         for t in ("Bug", "Dark", "Dragon", "Electric", "Fairy", "Fighting", "Fire", "Flying", "Ghost", "Grass", "Ground", "Ice", "Poison", "Psychic", "Rock", "Steel", "Water"):
             processVariant(t, f"_{t}")

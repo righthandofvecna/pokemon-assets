@@ -1,4 +1,4 @@
-import { MODULENAME } from "./utils.mjs";
+import { MODULENAME, early_isGM } from "./utils.mjs";
 
 
 /**
@@ -88,6 +88,103 @@ async function OnRenderRegionConfig(regionConfig, html) {
 
     await controls[option].callback(regionConfig);
   });
+}
+
+
+function OnGetSceneControlButtons(controls) {
+  const tiles = controls.find(c=>c.name === "tiles");
+
+  tiles.tools.push({
+    icon: "fa-solid fa-pickaxe",
+    name: "breakable-rock",
+    title: "Place Breakable Rock",
+    toolclip: {
+      heading: "Place Breakable Rock",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
+  tiles.tools.push({
+    icon: "fa-solid fa-tree-palm",
+    name: "cuttable-plant",
+    title: "Place Cuttable Plant",
+    toolclip: {
+      heading: "Place Cuttable Plant",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
+  tiles.tools.push({
+    icon: "fa-solid fa-curling-stone",
+    name: "movable-boulder",
+    title: "Place Movable Boulder",
+    toolclip: {
+      heading: "Place Movable Boulder",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
+}
+
+function TilesLayer_onClickLeft2(wrapper, event) {
+  wrapper(event);
+  const { x, y } = canvas.grid.getSnappedPoint({
+    x: canvas.mousePosition.x - canvas.grid.sizeX / 2,
+    y: canvas.mousePosition.y - canvas.grid.sizeY / 2
+  }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_CORNER });
+  switch (game.activeTool) {
+    case "breakable-rock":
+      canvas.scene.createEmbeddedDocuments("Tile", [{
+        "flags.pokemon-assets.solid": true,
+        "flags.pokemon-assets.smashable": true,
+        width: canvas.grid.sizeX,
+        height: canvas.grid.sizeY,
+        texture: {
+          src: "modules/pokemon-assets/img/items-overworld/breakable_rock_frlg.png",
+        },
+        x,
+        y,
+      }])
+      break;
+    case "cuttable-plant":
+      canvas.scene.createEmbeddedDocuments("Tile", [{
+        "flags.pokemon-assets.solid": true,
+        "flags.pokemon-assets.cuttable": true,
+        width: canvas.grid.sizeX,
+        height: canvas.grid.sizeY,
+        texture: {
+          src: "modules/pokemon-assets/img/items-overworld/cuttable_plant_frlg.png",
+        },
+        x,
+        y,
+      }])
+      break;
+    case "movable-boulder":
+      canvas.scene.createEmbeddedDocuments("Tile", [{
+        "flags.pokemon-assets.solid": true,
+        "flags.pokemon-assets.pushable": true,
+        width: canvas.grid.sizeX,
+        height: canvas.grid.sizeY,
+        texture: {
+          src: "modules/pokemon-assets/img/items-overworld/movable_boulder_frlg.png",
+        },
+        x,
+        y,
+      }])
+      break;
+  }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -309,6 +406,10 @@ export function register() {
   libWrapper.register(MODULENAME, "Scene.prototype.prepareBaseData", Scene_prepareBaseData, "WRAPPER");
   Hooks.on("renderSceneConfig", OnRenderSceneConfig);
   Hooks.on("renderRegionConfig", OnRenderRegionConfig);
+  if (early_isGM()) {
+    Hooks.on("getSceneControlButtons", OnGetSceneControlButtons);
+    libWrapper.register(MODULENAME, "TilesLayer.prototype._onClickLeft2", TilesLayer_onClickLeft2, "WRAPPER");
+  }
 
   const module = game.modules.get(MODULENAME);
   module.api ??= {};

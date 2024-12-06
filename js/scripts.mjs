@@ -1,5 +1,6 @@
 
 import { isTheGM, MODULENAME, sleep } from "./utils.mjs";
+import * as socket from "./socket.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
@@ -103,7 +104,10 @@ async function PokemonComputer(scene, regionDocument, regionBehavior, event) {
     .async()
   .play();
 
-  actor?.folder?.renderPartySheet?.();
+  switch (game.system.id) {
+    case "ptr2e": return actor?.folder?.renderPartySheet?.();
+    case "ptu": return new CONFIG.PTU.ui.party.sheetClass({ actor }).render(true)
+  }
 }
 
 
@@ -123,13 +127,10 @@ async function GrassShake(scene, regionDocument, regionBehavior, event) {
     const { x, y } =  event?.data?.destination ?? { x: 0, y: 0 };
     return canvas.grid.getSnappedPoint(
       { x: x + (sizeX / 2), y: y + (sizeY / 2), },
-      {
-        mode: CONST.GRID_SNAPPING_MODES.CENTER
-      }
+      { mode: CONST.GRID_SNAPPING_MODES.CENTER }
     );
   })();
 
-  console.log(arguments, destination);
   if (!destination) return;
 
   await new Sequence({ moduleName: "pokemon-assets", softFail: true })
@@ -502,10 +503,61 @@ async function Interact() {
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/a-button.mp3`)
         .locally(true)
-        .volume(game.settings.get("core", "globalInterfaceVolume"))
         .async()
       .play();
   }
+}
+
+/**
+ * Play the Rock Smash animation and destroy the tile.
+ * @param {TileDocument} tile the tile document to destroy using Rock Smash
+ */
+async function TriggerRockSmash(tile) {
+  if (!game.user.isGM) return;
+
+  await sleep(300);
+  await new Sequence()
+    .sound()
+      .file(`modules/pokemon-assets/audio/bgs/field-move-rock-smash.mp3`)
+    .animation()
+      .on(tile)
+      .delay(100)
+      .hide()
+    .effect()
+      .atLocation(tile)
+      .file("modules/pokemon-assets/img/animations/rock_smash_frlg.json")
+      .playbackRate(0.25)
+      .size(1, { gridUnits: true })
+      .belowTokens()
+      .async()
+    .play();
+  await tile.delete();
+}
+
+/**
+ * Play the Cut animation and destroy the tile.
+ * @param {TileDocument} tile the tile document to destroy using Cut
+ */
+async function TriggerCut(tile) {
+  if (!game.user.isGM) return;
+
+  await sleep(300);
+  await new Sequence()
+    .sound()
+      .file(`modules/pokemon-assets/audio/bgs/field-move-cut.mp3`)
+    .animation()
+      .on(tile)
+      .delay(100)
+      .hide()
+    .effect()
+      .atLocation(tile)
+      .file("modules/pokemon-assets/img/animations/cut_frlg.json")
+      .playbackRate(0.25)
+      .size(1, { gridUnits: true })
+      .belowTokens()
+      .async()
+    .play();
+  await tile.delete();
 }
 
 
@@ -684,7 +736,7 @@ async function UserChooseDirections({ prompt, directions } = { prompt: "Select a
 
 
 export function register() {
-  const module = game.modules.get("pokemon-assets");
+  const module = game.modules.get(MODULENAME);
   module.api ??= {};
   module.api.scripts = {
     PokemonCenter,
@@ -701,5 +753,9 @@ export function register() {
     TokenHasDirection,
     UserPaintArea,
     UserChooseDirections,
+    TriggerRockSmash,
   };
+
+  socket.registerSocket("triggerRockSmash", async (tileId)=>TriggerRockSmash(await fromUuid(tileId)));
+  socket.registerSocket("triggerCut", async (tileId)=>TriggerCut(await fromUuid(tileId)));
 }
