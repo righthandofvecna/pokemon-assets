@@ -175,7 +175,7 @@ function OnFollowKey() {
         });
         updatesById[follower] ??= {};
         updatesById[follower][`flags.${MODULENAME}.${FLAG_FOLLOWING}.who`] = null;
-        lineOrder.splice(lineOrder.findIndex(follower), 1);
+        lineOrder.splice(lineOrder.findIndex((_id)=>_id===follower), 1);
         continue;
       } else if (lineOrder.includes(follower)) {
         canvas.interface.createScrollingText(followerToken, `You can't follow ${leaderToken?.document?.name ?? "someone"}, they are following you!`, {
