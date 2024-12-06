@@ -112,7 +112,6 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
 
 
 function OnPreCreateToken(token, tokenData) {
-  console.log("OnPreCreateToken", arguments);
   let src = tokenData?.texture?.src ?? token?.texture?.src;
   if (!src || !(src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) return;
 

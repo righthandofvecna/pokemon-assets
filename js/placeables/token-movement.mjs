@@ -71,7 +71,7 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
         }
         if ( bumped && obj.document._pushing ) obj._tryPush?.(...offsets);
       } else {
-        foundry.utils.mergeObject(update, shifted)
+        foundry.utils.mergeObject(update, shifted);
       }
     };
     return update;
@@ -88,10 +88,33 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
   return objects;
 }
 
+function Scene_updateEmbeddedDocuments(wrapped, embeddedName, updates=[], operation={}) {
+  if (embeddedName !== "Token" || !!operation?.follower_updates) return wrapped(embeddedName, updates, operation);
+
+  let follower_updates = []
+  for (const update of updates) {
+    const token = this.tokens.get(update._id);
+    if (!token) continue;
+    Hooks.call("pokemon-assets.manualMove", token, update, follower_updates);
+  };
+
+  // add all the "follower updates" that we have access to update
+  let updateData = [...updates, ...follower_updates.filter(t=>canvas.scene.tokens.get(t._id)?.isOwner)];
+  follower_updates = follower_updates.filter(t=>!canvas.scene.tokens.get(t._id)?.isOwner);
+  // remove multi-updates
+  // TODO: consolidate them instead?
+  updateData = updateData.filter((t, i)=>i === updateData.findLastIndex(t2=>t2._id == t._id));
+
+  return wrapped(embeddedName, updateData, {
+    ...(operation ?? {}),
+    follower_updates,
+  });
+}
+
+
 function TilesetToken_tryPush(dx, dy) {
   const shifted = Tile.prototype._getShiftedPosition.bind(this)(dx, dy);
   const collides = this.checkCollision(this.getCenterPoint(shifted), { mode: "closest" });
-  console.log("collides", collides);
   if (!collides) return;
   const walls = collides.edges.filter(e=>e.object instanceof Wall);
   // check if we collided with a tile that can be pushed
@@ -123,6 +146,7 @@ function TokenDocument_lockMovement() {
 export function register() {
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype.moveMany", PlaceablesLayer_moveMany, "OVERRIDE");
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
+  libWrapper.register("pokemon-assets", "Scene.prototype.updateEmbeddedDocuments", Scene_updateEmbeddedDocuments, "WRAPPER");
   CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
   CONFIG.Token.objectClass.prototype._tryPush = TilesetToken_tryPush;
 }

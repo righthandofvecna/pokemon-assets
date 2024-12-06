@@ -11,6 +11,10 @@ export function isTheGM() {
 	return game.users.find(u=>u.active && u.isGM)?.id === game.user.id;
 }
 
+export function isGMOnline() {
+	return game.users.some(u=>u.active && u.isGM);
+}
+
 export async function sleep(ms) {
 	return new Promise((resolve)=>setTimeout(resolve, ms))
 }
