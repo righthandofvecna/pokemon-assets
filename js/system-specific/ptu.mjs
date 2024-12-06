@@ -366,10 +366,10 @@ function GetParty(actor) {
   }
 
   // Otherwise, get the pokemon from the flag
-  return [actor, ...game.actors.filter(actor =>
-      actor.type == "pokemon" &&
-      actor.flags?.ptu?.party?.trainer == this.trainer.id &&
-      !actor.flags?.ptu?.party?.boxed)];
+  return [actor, ...game.actors.filter(pkmn =>
+    pkmn.type == "pokemon" &&
+    pkmn.flags?.ptu?.party?.trainer == actor.id &&
+    !pkmn.flags?.ptu?.party?.boxed)];
 }
 
 /**
