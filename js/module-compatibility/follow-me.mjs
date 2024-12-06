@@ -209,6 +209,7 @@ function OnFollowKey() {
 }
 
 function OnManualMove(token, update, follower_updates) {
+  console.log("OnManualMove", foundry.utils.deepClone(arguments));
   if (game.combats.find(c=>c.active && c.scene.uuid === token?.scene?.uuid)) return;
   const followers = getAllFollowing(token);
 
