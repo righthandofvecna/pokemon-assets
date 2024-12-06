@@ -111,8 +111,9 @@ export class SpritesheetGenerator {
           if (direction === "down") {
             spritesheetSlicingInfo.animations.downleft.push(key);
             spritesheetSlicingInfo.animations.downright.push(key);
-          } else if (direction === "up") {
+          } else if (direction === "left") {
             spritesheetSlicingInfo.animations.upleft.push(key);
+          } else if (direction === "right") {
             spritesheetSlicingInfo.animations.upright.push(key);
           }
 
@@ -146,8 +147,9 @@ export class SpritesheetGenerator {
           if (direction === "down") {
             spritesheetSlicingInfo.animations.downleft.push(key);
             spritesheetSlicingInfo.animations.downright.push(key);
-          } else if (direction === "up") {
+          } else if (direction === "left") {
             spritesheetSlicingInfo.animations.upleft.push(key);
+          } else if (direction === "right") {
             spritesheetSlicingInfo.animations.upright.push(key);
           }
 

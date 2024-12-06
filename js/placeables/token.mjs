@@ -351,18 +351,38 @@ export function register() {
         this.#textureKey = genSpritesheetKey;
       }
       this.#updateDirection();
-      this.texture = this.#textures[this.#direction][this.#index];
+      this.texture = this.#textures[this.#facing][this.#index];
     }
 
+    get isometric() {
+      return game.modules.get("isometric-perspective")?.active && this.document.scene?.flags?.["isometric-perspective"]?.isometricEnabled;
+    }
 
     get direction() {
+      return this.#direction;
+    }
+
+    get #facing() {
+      if (this.isometric) {
+        const options = [
+          "down",
+          "downright", 
+          "right",
+          "upright",
+          "up",
+          "upleft",
+          "left",
+          "downleft",
+          "down"];
+        return options[options.indexOf(this.#direction)+1];
+      }
       return this.#direction;
     }
 
     set direction(value) {
       this.#direction = value;
       if (this.#textures != null) {
-        this.texture = this.#textures[this.#direction][this.#index];
+        this.texture = this.#textures[this.#facing][this.#index];
         if (this.mesh.texture != this.texture) {
           this.mesh.texture = this.texture;
           this.renderFlags.set({
@@ -443,7 +463,7 @@ export function register() {
       this.#updateDirection();
       this.#index = 0;
       if (this.#textures != null) {
-        this.texture = this.#textures[this.#direction][this.#index];
+        this.texture = this.#textures[this.#facing][this.#index];
         if (this.mesh.texture != this.texture) {
           this.mesh.texture = this.texture;
           this.renderFlags.set({
@@ -584,7 +604,7 @@ export function register() {
           const absDy = Math.abs(rdy / animStepY);
           const distDiagApprox = Math.max(absDx, absDy) + ( Math.min(absDx, absDy) / 2 ) + ( ox / animStepX) + ( oy / animStepY );
           const idxOffset = this.seperateIdle ? 1 : 0;
-          this.#index = idxOffset + ~~( distDiagApprox % (this.#textures[this.#direction].length - idxOffset));
+          this.#index = idxOffset + ~~( distDiagApprox % (this.#textures[this.#facing].length - idxOffset));
         }
 
         // don't animate rotation while moving
@@ -597,10 +617,10 @@ export function register() {
       }
 
       if (this.document._sliding) { // slide with one leg out
-        this.#index = Math.min(1, this.#textures[this.#direction].length);
+        this.#index = Math.min(1, this.#textures[this.#facing].length);
       }
 
-      const newTexture = this.#textures[this.#direction][this.#index];
+      const newTexture = this.#textures[this.#facing][this.#index];
       if (this.mesh.texture != newTexture) {
         this.mesh.texture = newTexture;
         this.renderFlags.set({
