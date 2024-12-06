@@ -1,4 +1,4 @@
-import { MODULENAME, isTheGM, isGMOnline } from "./utils.mjs";
+import { MODULENAME, isTheGM, isGMOnline, early_isGM } from "./utils.mjs";
 
 const FLAG_FOLLOWING = "following";
 
@@ -47,10 +47,8 @@ function getFollowerUpdates(tPos, followers) {
 
     let param = followPath.plen-desc.dist;
     let new_pos = followPath.parametricPosition(param);
-    // If snap, snap new_pos
-    if (true) {//(game.settings.get(MODULENAME, 'snap_to_grid')){
-      new_pos = canvas.grid.getSnappedPosition( new_pos.x, new_pos.y );
-    }
+    // Snap the new position to the grid
+    new_pos = canvas.grid.getSnappedPoint( new_pos, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX } );
     data.x = new_pos.x;
     data.y = new_pos.y;
 
@@ -177,6 +175,7 @@ function OnFollowKey() {
         });
         updatesById[follower] ??= {};
         updatesById[follower][`flags.${MODULENAME}.${FLAG_FOLLOWING}.who`] = null;
+        lineOrder.splice(lineOrder.findIndex(follower), 1);
         continue;
       } else if (lineOrder.includes(follower)) {
         canvas.interface.createScrollingText(followerToken, `You can't follow ${leaderToken?.document?.name ?? "someone"}, they are following you!`, {
@@ -210,7 +209,21 @@ function OnFollowKey() {
 }
 
 function OnManualMove(token, update, follower_updates) {
+  if (game.combats.find(c=>c.active && c.scene.uuid === token?.scene?.uuid)) return;
   const followers = getAllFollowing(token);
+
+  // check if the token is a follower that just moved
+  const newWho = foundry.utils.getProperty(update, `flags.${MODULENAME}.${FLAG_FOLLOWING}.who`);
+  const oldWho = foundry.utils.getProperty(token, `flags.${MODULENAME}.${FLAG_FOLLOWING}.who`);
+  if (["x", "y"].some(p=>foundry.utils.hasProperty(update, p)) && ( newWho || oldWho ) ) {
+    update[`flags.${MODULENAME}.${FLAG_FOLLOWING}.who`] = null;
+    canvas.interface.createScrollingText(token, `Follow broken!`, {
+      anchor: CONST.TEXT_ANCHOR_POINTS.TOP, 
+      fill:   "#FF0000", 
+      stroke: "#FF0000"
+    });
+  }
+
   follower_updates.push(...getFollowerUpdates({
     x: update.x ?? token.x,
     y: update.y ?? token.y
@@ -222,22 +235,28 @@ function OnUpdateToken(token, change, options, userId) {
   if (!isTheGM() && isGMOnline()) return;
   const scene = token.scene;
   if (!scene) return;
-  scene.updateEmbeddedDocuments("Token", options.follower_updates);
+  scene.updateEmbeddedDocuments("Token", options.follower_updates, { follower_updates: [] });
 }
 
 export function register() {
+  if (game.modules.get("FollowMe")?.active) {
+    if (early_isGM()) {
+      ui.notifications.warning(`"Pokemon Assets" provides a replacement for "Follow Me!", and may work better if that module is disabled.`);
+    }
+    return;
+  }
   Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("pokemon-assets.manualMove", OnManualMove);
 
   game.keybindings.register(MODULENAME, "follow", {
-    name: "FollowMe",
-    hint: "Follow!!!!",
+    name: "Follow Token",
+    hint: "The key to join or leave the chain of tokens being followed.",
     editable: [
       {
         key: "KeyF"
       }
     ],
-    onDown: () => { OnFollowKey(); },
+    onDown: OnFollowKey,
     restricted: false,
     precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
   });
