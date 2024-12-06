@@ -2,6 +2,16 @@ import { MODULENAME } from "./utils.mjs";
 
 export function register() {
 
+  game.settings.register(MODULENAME, "preloadAssets", {
+		name: "Preload Assets",
+		default: true,
+		type: Boolean,
+		scope: "client",
+		requiresReload: false,
+		config: true,
+		hint: "Preload assets such as sound effects. Disable this if you are on a metered connection to save bandwidth."
+	});
+
   game.settings.register(MODULENAME, "avoidBlur", {
 		name: "Avoid Blur",
 		default: true,

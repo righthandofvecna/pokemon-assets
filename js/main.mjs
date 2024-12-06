@@ -6,6 +6,7 @@ import * as placeables from "./placeables/index.mjs";
 import * as spritesheets from "./spritesheets.mjs";
 import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
+import * as preload from "./preload.mjs";
 import * as regionEvents from "./region-events.mjs";
 import * as moduleCompatibility from "./module-compatibility/index.mjs";
 import * as system from "./system-specific/index.mjs";
@@ -13,6 +14,7 @@ import * as socket from "./socket.mjs";
 
 Hooks.on("init", ()=>{
   settings.register();
+  preload.register();
   audio.register();
   controls.register();
   placeables.register();
