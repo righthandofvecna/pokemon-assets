@@ -205,7 +205,7 @@ function OnFollowKey() {
   const follower_updates = allUpdates.filter(u=>!allTokens.get(u._id)?.isOwner);
   const updates = allUpdates.filter(u=>follower_updates.findIndex(u2=>u2._id === u._id) === -1);
 
-  game.scenes.active.updateEmbeddedDocuments("Token", updates, { follower_updates });
+  canvas.scene.updateEmbeddedDocuments("Token", updates, { follower_updates });
 }
 
 function OnManualMove(token, update, follower_updates) {
