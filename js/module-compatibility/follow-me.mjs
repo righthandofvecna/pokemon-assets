@@ -52,14 +52,19 @@ function getFollowerUpdates(tPos, followers) {
     data.x = new_pos.x;
     data.y = new_pos.y;
 
+    // don't need to reorient, this module already does it
+
+    // check for collisions
+    if (follower.object.checkCollision(
+      vAdd(new_pos, { x: follower.bounds.width/2, y: follower.bounds.height/2} ),
+      {type: "move", mode: "any"})) {
+      // Do not apply this update or any further ones
+      break;
+    }
+
     p = { x: data.x, y: data.y }; // update for the next follower
     if (data.x == follower.x) delete data.x;
     if (data.y == follower.y) delete data.y;
-
-    // don't need to reorient, this module already does it
-
-    // TODO: collisions
-
 
     followPath.prune(param);
     desc.positions = followPath.p;
