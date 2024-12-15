@@ -29,19 +29,31 @@ async function OnCreateChatMessage(message) {
     if (!source || !target) return;
 
     await sleep(1500);
+
+    const ballImg = (()=>{
+      if (message.system.action?.img) return message.system.action.img;
+      // try to get items
+      for (const domain of message.system.result.domains) {
+        const did = domain.replace("-pokeball", "").replaceAll(/-./g, (x)=>x[1].toUpperCase());
+        const domainItem = message.system.origin?.items?.get?.(did);
+        if (!domainItem) continue;
+        return domainItem.img;
+      }
+      return "systems/ptr2e/img/item-icons/basic ball.webp";
+    })();
     
-    const crit = message.system.rolls.crit.total <= 0;
+    const crit = message.system.context.state.crit;
     const shakes = 3 - [
-      message.system.rolls.shake4,
-      message.system.rolls.shake3,
-      message.system.rolls.shake2,
-      message.system.rolls.shake1,
-    ].map(shake=>shake.total <= 0).lastIndexOf(false);
+      message.system.context.state.shake4,
+      message.system.context.state.shake3,
+      message.system.context.state.shake2,
+      message.system.context.state.shake1,
+    ].lastIndexOf(false);
     game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(
       source,
       target,
-      message.system.action.img,
-      message.system.rolls.accuracy.result <= 0,
+      ballImg,
+      message.system.context.state.accuracy,
       Math.min(shakes, crit ? 1 : 3),
       crit ? shakes >= 1 : shakes >= 4);
     return;

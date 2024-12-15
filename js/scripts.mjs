@@ -269,7 +269,7 @@ async function SwitchScenes(newScene, newAttributes, ...args) {
       .forUsers([user.id])
       .async()
     .play();
-  await game.socket.emit("pullToScene", newScene.id, user.id)
+  await game.socket.emit("pullToScene", newScene.id, user.id);
 }
 
 /**
