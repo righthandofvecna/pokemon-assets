@@ -269,7 +269,7 @@ async function SwitchScenes(newScene, newAttributes, ...args) {
       .forUsers([user.id])
       .async()
     .play();
-  await game.socket.emit("pullToScene", newScene.id, user.id)
+  await game.socket.emit("pullToScene", newScene.id, user.id);
 }
 
 /**
@@ -424,6 +424,13 @@ async function IndicateDamage(actor, token, lowHp) {
  * @param {*} caught whether or not to play the caught or escaped animation
  */
 async function ThrowPokeball(source, target, img, hit, shakes, caught) {
+  Sequencer.Preloader.preload([
+    "modules/pokemon-assets/audio/bgs/pokeball-drop.mp3",
+    "modules/pokemon-assets/audio/bgs/pokeball-shake.mp3",
+    "modules/pokemon-assets/audio/bgs/pokeball-caught.mp3",
+    "modules/pokemon-assets/audio/bgs/pokeball-escape.mp3",
+  ]);
+
   let sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
   sequence = sequence
     .sound()

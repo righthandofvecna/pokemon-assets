@@ -2,6 +2,16 @@ import { MODULENAME } from "./utils.mjs";
 
 export function register() {
 
+  game.settings.register(MODULENAME, "preloadAssets", {
+		name: "Preload Assets",
+		default: true,
+		type: Boolean,
+		scope: "client",
+		requiresReload: false,
+		config: true,
+		hint: "Preload assets such as sound effects. Disable this if you are on a metered connection to save bandwidth."
+	});
+
   game.settings.register(MODULENAME, "avoidBlur", {
 		name: "Avoid Blur",
 		default: true,
@@ -69,7 +79,17 @@ export function register() {
 		scope: "world",
 		requiresReload: true,
 		config: true,
-		hint: "Treat tokens as walls for the purpose of movement."
+		hint: "Treat hostile, neutral, and secret tokens as walls for the purpose of movement."
+	});
+
+	game.settings.register(MODULENAME, "tokenCollisionAllied", {
+		name: "Token Collisions (Allied)",
+		default: false,
+		type: Boolean,
+		scope: "world",
+		requiresReload: true,
+		config: false,
+		hint: "Treat allied tokens as walls for the purpose of movement."
 	});
 
   game.settings.register(MODULENAME, "playCollisionSound", {

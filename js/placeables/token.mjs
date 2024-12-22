@@ -638,6 +638,7 @@ export function register() {
       }
 
       if (!game.settings.get(MODULENAME, "tokenCollision")) return;
+      if (this.document.disposition == CONST.TOKEN_DISPOSITIONS.FRIENDLY && !game.settings.get(MODULENAME, "tokenCollisionAllied")) return;
 
       // re-create the edges for the token
       const docX = changes?.x ?? this.document.x;

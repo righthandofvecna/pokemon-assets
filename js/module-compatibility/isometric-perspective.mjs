@@ -4,7 +4,6 @@ import { MODULENAME } from "../utils.mjs";
 function OnPreCreateToken(token) {
   const scene = token?.scene;
   if (!scene?.flags?.["isometric-perspective"]?.isometricEnabled) return;
-  console.log("OnPreCreateToken", arguments);
   // in isometric-perspective, X is the vertical axis
   token.updateSource({
     [`flags.isometric-perspective.offsetX`]: scene.grid.size / 2
@@ -13,7 +12,6 @@ function OnPreCreateToken(token) {
 
 function OnPreCreateTile(tile, tileData) {
   const scene = tile?.parent;
-  console.log("OnPreCreateTile", arguments, scene);
   if (!scene?.flags?.["isometric-perspective"]?.isometricEnabled) return;
   if (!tileData?.flags?.[MODULENAME]) return;
 

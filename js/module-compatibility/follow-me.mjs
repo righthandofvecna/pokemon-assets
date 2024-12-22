@@ -52,14 +52,19 @@ function getFollowerUpdates(tPos, followers) {
     data.x = new_pos.x;
     data.y = new_pos.y;
 
+    // don't need to reorient, this module already does it
+
+    // check for collisions
+    if (follower.object.checkCollision(
+      vAdd(new_pos, { x: follower.bounds.width/2, y: follower.bounds.height/2} ),
+      {type: "move", mode: "any"})) {
+      // Do not apply this update or any further ones
+      break;
+    }
+
     p = { x: data.x, y: data.y }; // update for the next follower
     if (data.x == follower.x) delete data.x;
     if (data.y == follower.y) delete data.y;
-
-    // don't need to reorient, this module already does it
-
-    // TODO: collisions
-
 
     followPath.prune(param);
     desc.positions = followPath.p;
@@ -205,11 +210,10 @@ function OnFollowKey() {
   const follower_updates = allUpdates.filter(u=>!allTokens.get(u._id)?.isOwner);
   const updates = allUpdates.filter(u=>follower_updates.findIndex(u2=>u2._id === u._id) === -1);
 
-  game.scenes.active.updateEmbeddedDocuments("Token", updates, { follower_updates });
+  canvas.scene.updateEmbeddedDocuments("Token", updates, { follower_updates });
 }
 
 function OnManualMove(token, update, follower_updates) {
-  console.log("OnManualMove", foundry.utils.deepClone(arguments));
   if (game.combats.find(c=>c.active && c.scene.uuid === token?.scene?.uuid)) return;
   const followers = getAllFollowing(token);
 
@@ -242,7 +246,7 @@ function OnUpdateToken(token, change, options, userId) {
 export function register() {
   if (game.modules.get("FollowMe")?.active) {
     if (early_isGM()) {
-      ui.notifications.warning(`"Pokemon Assets" provides a replacement for "Follow Me!", and may work better if that module is disabled.`);
+      Hooks.on("ready", ()=>ui.notifications.warn(`"Pokemon Assets" provides a replacement for "Follow Me!", and may work better if that module is disabled.`));
     }
     return;
   }
