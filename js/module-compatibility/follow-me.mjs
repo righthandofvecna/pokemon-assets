@@ -246,7 +246,7 @@ function OnUpdateToken(token, change, options, userId) {
 export function register() {
   if (game.modules.get("FollowMe")?.active) {
     if (early_isGM()) {
-      ui.notifications.warning(`"Pokemon Assets" provides a replacement for "Follow Me!", and may work better if that module is disabled.`);
+      Hooks.on("ready", ()=>ui.notifications.warn(`"Pokemon Assets" provides a replacement for "Follow Me!", and may work better if that module is disabled.`));
     }
     return;
   }
