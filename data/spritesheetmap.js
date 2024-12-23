@@ -7327,6 +7327,10 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/07XX/072X/0724_hisuian.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/07XX/072X/0724s.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
