@@ -8,13 +8,6 @@ import * as socket from "./socket.mjs";
  * doHeal: a function to run to actually heal the pokemon
  */
 async function PokemonCenter(nurse, doHeal) {
-  const { x, y, width } = nurse;
-  const { sizeX } = nurse?.parent?.grid ?? { sizeX: 100 };
-  const textPosition = {
-    x: x + ((width ?? 1) * sizeX / 2),
-    y,
-  };
-
   const music = game.scenes.active?.playlistSound?.sound;
   let volume = music?.volume ?? 1;
 
