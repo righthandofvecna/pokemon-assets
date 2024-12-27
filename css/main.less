@@ -1,5 +1,26 @@
 
 
+
+@font-face {
+    font-family: 'Pokemon FRLG';
+    src: url("../fonts/pkmnfl.ttf") ;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'Pokemon DPPt';
+    src: url("../fonts/pkmndp.ttf") ;
+    font-weight: normal;
+}
+
+@font-face {
+    font-family: 'Pokemon DPPt';
+    src: url("../fonts/pkmndpb.ttf") ;
+    font-weight: bold;
+}
+
+
+
 .dialog .directional-chooser {
     // center horizontally
     width: max-content;
@@ -85,5 +106,34 @@
             background-position: center;
             color: transparent;
         }
+    }
+}
+
+.window-app.pokemon-dialog {
+    border-image-source: url("../img/ui/textbox_1.png");
+    border-width: 30px;
+    border-image-slice: 8 22 8 12;
+    border-image-width: 16px 44px 16px 24px;
+    border-image-repeat: stretch;
+    image-rendering: pixelated;
+    border-radius: 0;
+    padding: 12px 40px 12px 20px;
+
+    // Positioning
+    position: absolute;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 310px !important;
+    top: unset !important;
+    width: unset !important;
+
+    header {
+        display: none;
+    }
+
+    .window-content {
+        background: white;
+        font-family: "Pokemon FRLG";
+        font-size: xx-large;
     }
 }
