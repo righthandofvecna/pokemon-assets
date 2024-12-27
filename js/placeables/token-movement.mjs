@@ -167,7 +167,7 @@ async function Ruler_animateSegment(wrapped, token, segment, destination, update
 
 
 function TilesetToken_tryPush(dx, dy) {
-  const shifted = Tile.prototype._getShiftedPosition.bind(this)(dx, dy);
+  const shifted = PlaceableObject.prototype._getShiftedPosition.bind(this)(dx, dy);
   const collides = this.checkCollision(this.getCenterPoint(shifted), { mode: "closest" });
   if (!collides) return;
   const walls = collides.edges.filter(e=>e.object instanceof Wall);
@@ -176,7 +176,6 @@ function TilesetToken_tryPush(dx, dy) {
     const pushables = collides.edges.filter(e=>e.object instanceof Tile && e.object?.document?.flags?.[MODULENAME]?.pushable).map(e=>e.object);
     pushables.forEach(tile=>socket.current().executeAsGM("pushTile", tile?.document?.uuid, dx, dy))
   }
-  // TODO: open unlocked doors??
 }
 
 

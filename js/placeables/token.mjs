@@ -630,6 +630,22 @@ export function register() {
       return super._onAnimationUpdate(changed, context);
     }
 
+    /**
+     * Move the token immediately to the destination if it is teleported.
+     * @param {Partial<TokenAnimationData>} to    The animation data to animate to
+     */
+    _handleTeleportAnimation(to) {
+      const changes = {};
+      if ( "x" in to ) this.#animationData.x = changes.x = to.x;
+      if ( "y" in to ) this.#animationData.y = changes.y = to.y;
+      if ( "elevation" in to ) this.#animationData.elevation = changes.elevation = to.elevation;
+      if ( !foundry.utils.isEmpty(changes) ) {
+        const context = {name: Symbol(this.animationName), to: changes, duration: 0, time: 0,
+          preAnimate: [], postAnimate: [], onAnimate: []};
+        this._onAnimationUpdate(changes, context);
+      }
+    }
+
     initializeEdges({ changes, deleted=false}={}) {
       // the token has been deleted
       if ( deleted ) {
@@ -773,6 +789,10 @@ export function register() {
 
     /** @inheritDoc */
     _onUpdate(changed, options, userId) {
+      if (options.teleport === true) {
+        const to = foundry.utils.filterObject(this._getAnimationData(), changed);
+        this._handleTeleportAnimation(to);
+      }
       super._onUpdate(changed, options, userId);
       if ("x" in changed || "y" in changed || "width" in changed || "height" in changed) {
         this.initializeEdges({ changes: changed });

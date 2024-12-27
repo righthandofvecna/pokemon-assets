@@ -1,3 +1,18 @@
+@font-face {
+  font-family: 'Pokemon FRLG';
+  src: url("../fonts/pkmnfl.ttf");
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'Pokemon DPPt';
+  src: url("../fonts/pkmndp.ttf");
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'Pokemon DPPt';
+  src: url("../fonts/pkmndpb.ttf");
+  font-weight: bold;
+}
 .dialog .directional-chooser {
   width: max-content;
   margin-left: auto;
@@ -72,4 +87,64 @@
   background-repeat: no-repeat;
   background-position: center;
   color: transparent;
+}
+.window-app.pokemon-dialog {
+  border-image-source: url("../img/ui/textbox_1.png");
+  border-width: 30px;
+  border-image-slice: 8 22 8 12;
+  border-image-width: 32px 88px 32px 48px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+  border-radius: 0;
+  padding: 30px 86px 30px 46px;
+  min-height: 200px;
+  position: absolute;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 310px !important;
+  top: unset !important;
+  width: unset !important;
+}
+.window-app.pokemon-dialog header {
+  display: none;
+}
+.window-app.pokemon-dialog .window-content {
+  background: white;
+  font-family: "Pokemon DPPt";
+  font-size: xx-large;
+  text-shadow: 2px 2px darkgray;
+  color: black;
+}
+.window-app.pokemon-dialog .window-content p {
+  margin: 0;
+}
+.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  bottom: 12px;
+  width: 64px;
+  flex-direction: column;
+  justify-content: end;
+}
+.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button {
+  color: white;
+  text-shadow: 2px -2px black;
+  flex: 0;
+  border: unset;
+}
+.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button:hover {
+  box-shadow: none;
+}
+.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button:focus {
+  box-shadow: none;
+}
+.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button i {
+  transform: rotate(90deg) scaleX(2);
+}
+.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button i::before {
+  content: "▶";
+  font-family: "Pokemon DPPt";
+  font-weight: normal;
+  font-size: xx-large;
 }

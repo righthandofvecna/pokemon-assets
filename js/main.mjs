@@ -3,6 +3,7 @@ import * as settings from "./settings.mjs";
 import * as preload from "./preload.mjs";
 import * as audio from "./audio.mjs";
 import * as controls from "./controls.mjs";
+import * as dialog from "./dialog.mjs";
 import * as placeables from "./placeables/index.mjs";
 import * as spritesheets from "./spritesheets.mjs";
 import * as scripts from "./scripts.mjs";
@@ -17,6 +18,7 @@ Hooks.on("init", ()=>{
     preload,
     audio,
     controls,
+    dialog,
     placeables,
     spritesheets,
     scripts,
