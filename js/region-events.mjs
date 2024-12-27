@@ -220,6 +220,27 @@ async function OnInteract() {
       });
     }
   }
+  
+  // check if we're facing a wall/door
+  const shifted = game.canvas.grid.getShiftedPoint({ x: tx, y: ty }, token.rotation + 90);
+  const collides = token.object.checkCollision(shifted, { mode: "closest" });
+  if (!collides) return;
+  const walls = collides.edges.filter(e=>e.object instanceof Wall);
+  // open unlocked doors
+  if (walls.size > 0) {
+    for (const wall of walls.map(e=>e.object.document)) {
+      if (wall.door === CONST.WALL_DOOR_TYPES.NONE) continue;
+      if (wall.door === CONST.WALL_DOOR_TYPES.SECRET && wall.ds === CONST.WALL_DOOR_STATES.LOCKED) continue;
+
+      // check what state the door is in
+      if (wall.ds === CONST.WALL_DOOR_STATES.LOCKED) {
+        wall.object._playDoorSound("test");
+        continue;
+      }
+
+      wall.update({ds: wall.ds === CONST.WALL_DOOR_STATES.CLOSED ? CONST.WALL_DOOR_STATES.OPEN : CONST.WALL_DOOR_STATES.CLOSED}, { sound: true });
+    }
+  }
 }
 
 
