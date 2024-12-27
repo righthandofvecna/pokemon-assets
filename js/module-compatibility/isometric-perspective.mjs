@@ -27,7 +27,13 @@ function OnPreCreateTile(tile, tileData) {
     [`flags.isometric-perspective.offsetX`]: scene.grid.size / 2,
     [`flags.isometric-perspective.scale`]: 0.88,
   });
-  
+}
+
+function UndoIsometricAnchor(token) {
+  // set anchor
+  if (game.modules.get("isometric-perspective")?.active && !token.object.isometric) {
+    token.object.mesh.anchor.set(token.texture.anchorX, token.texture.anchorY);
+  }
 }
 
 export function register() {
@@ -35,5 +41,12 @@ export function register() {
 
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateTile", OnPreCreateTile);
+
+  Hooks.on("ready", ()=>{
+    // make sure these get added after isometric-perspective finishes its initialization
+    Hooks.on("createToken", UndoIsometricAnchor);
+    Hooks.on("updateToken", UndoIsometricAnchor);
+    Hooks.on("refreshToken", (token)=>UndoIsometricAnchor(token.document));
+  });
 }
 
