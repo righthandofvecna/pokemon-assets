@@ -19,19 +19,25 @@ async function PokemonCenter(nurse, doHeal) {
   let volume = music?.volume ?? 1;
 
   const talk = async function(text, ms=1500) {
-    game.canvas.interface.createScrollingText(textPosition, text);
-    await Promise.all([Interact(), sleep(ms)]);
+    await Dialog.prompt({
+      content: `<p>${text}</p>`,
+      options: {
+        pokemon: true,
+      },
+    });
   }
   await talk("Hello, and welcome to the Pokémon Center.").then(()=>{
     return talk("We restore your tired Pokémon to full health.")
   })
 
-  talk("Would you like to rest your Pokémon?");
   if (await new Promise((resolve)=>Dialog.confirm({
     title: "Pokemon Center Nurse",
     content: "Would you like to rest your Pokémon?",
     yes: ()=>resolve(false),
     no: ()=>resolve(true),
+    options: {
+      pokemon: true,
+    },
   }))) {
     await talk("We hope to see you again!");
     return;

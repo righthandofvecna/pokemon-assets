@@ -162,10 +162,17 @@ async function OnInteract() {
           content: "This rock appears to be breakable. Would you like to use Rock Smash?",
           yes: ()=>resolve(true),
           no: ()=>resolve(false),
+          options: {
+            pokemon: true,
+          },
         }))) {
-          console.log(`${hasFieldMoveRockSmash.name} used Rock Smash!`);
+          await Dialog.prompt({
+            content: `<p>${hasFieldMoveRockSmash.name} used Rock Smash!</p>`,
+            options: {
+              pokemon: true,
+            },
+          });
           // TODO: show the message
-          // TODO: play the smashing animation
           // set a volatile local variable that this token is currently using Rock Smash
           token._smashing = true;
           await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
@@ -175,6 +182,9 @@ async function OnInteract() {
       Dialog.prompt({
         title: "Rock Smash",
         content: "This rock appears to be breakable.",
+        options: {
+          pokemon: true,
+        },
       });
     }
 
@@ -185,10 +195,16 @@ async function OnInteract() {
           content: "This tree looks like it can be cut down. Would you like to use Cut?",
           yes: ()=>resolve(true),
           no: ()=>resolve(false),
+          options: {
+            pokemon: true,
+          },
         }))) {
-          console.log(`${hasFieldMoveCut.name} used Cut!`);
-          // TODO: show the message
-          // TODO: play the cutting animation
+          await Dialog.prompt({
+            content: `<p>${hasFieldMoveRockSmash.name} used Cut!</p>`,
+            options: {
+              pokemon: true,
+            },
+          });
           // set a volatile local variable that this token is currently using Cut
           token._cutting = true;
           await soc.executeAsGM("triggerCut", rs.document.uuid);
@@ -198,6 +214,9 @@ async function OnInteract() {
       Dialog.prompt({
         title: "Cut",
         content: "This tree looks like it can be cut down.",
+        options: {
+          pokemon: true,
+        },
       });
     }
 
@@ -207,9 +226,16 @@ async function OnInteract() {
         content: "It's a big boulder, but a Pokémon may be able to push it aside. Would you like to use Strength?",
         yes: ()=>resolve(true),
         no: ()=>resolve(false),
+        options: {
+          pokemon: true,
+        },
       }))) {
-        console.log(`${hasFieldMoveCut.name} used Strength! ${hasFieldMoveCut.name}'s Strength made it possible to move boulders around!`);
-        // TODO: show the message
+        await Dialog.prompt({
+          content: `<p>${hasFieldMoveCut.name} used Strength! ${hasFieldMoveCut.name}'s Strength made it possible to move boulders around!</p>`,
+          options: {
+            pokemon: true,
+          },
+        });
         // set a volatile local variable that this token is currently using Strength
         token._pushing = true;
       };
@@ -217,6 +243,9 @@ async function OnInteract() {
       Dialog.prompt({
         title: "Strength",
         content: "It's a big boulder, but a Pokémon may be able to push it aside.",
+        options: {
+          pokemon: true,
+        },
       });
     }
   }

@@ -2,6 +2,17 @@ import { MODULENAME } from "./utils.mjs";
 
 
 class PokemonDialog extends Dialog {
+  constructor (data, options) {
+    super(data, options);
+    console.log(this);
+    // check the options to see if there's only one
+    if (Object.keys(data.buttons).length <= 1) {
+      this.options.classes.push("dialog-prompt");
+    } else {
+      this.options.classes.push("dialog-choices");
+    }
+  }
+
   /* -------------------------------------------- */
 
   /**
