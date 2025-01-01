@@ -1353,6 +1353,10 @@ export default
     "animationframes": 7,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/01XX/012X/0128_paldean_aqua.png": {
+    "animationframes": 7,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/01XX/012X/0128s.png": {
     "animationframes": 7,
     "sheetstyle": "pmd"
@@ -6465,11 +6469,19 @@ export default
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
+  "modules/pokemon-assets/img/pmd-overworld/06XX/064X/0646_Black.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
   "modules/pokemon-assets/img/pmd-overworld/06XX/064X/0646_White.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/06XX/064X/0646s.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
+  "modules/pokemon-assets/img/pmd-overworld/06XX/064X/0646s_Black.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
@@ -7010,6 +7022,10 @@ export default
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/06XX/068X/0689s.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
+  "modules/pokemon-assets/img/pmd-overworld/06XX/069X/0690.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
   },
@@ -9048,6 +9064,10 @@ export default
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/09XX/090X/0907.png": {
+    "animationframes": 4,
+    "sheetstyle": "pmd"
+  },
+  "modules/pokemon-assets/img/pmd-overworld/09XX/090X/0908.png": {
     "animationframes": 4,
     "sheetstyle": "pmd"
   },

@@ -139,6 +139,9 @@ def main():
         processVariant("Hisui", "_hisuian")
         processVariant("Paldea", "_paldean")
 
+        # special regional variants
+        processVariant("Paldea_Aqua", "_paldean_aqua")
+
         # megas
         processVariant("Mega", "_MEGA")
         processVariant("Mega_X", "_MEGA_X")
@@ -199,7 +202,7 @@ def main():
             processVariant(s, f"_{s}")
 
         # color formes
-        for t in ("Blue", "Red", "White", "Yellow", "Orange", "Green", "Indigo", "Violet", "Purple", "Brass" ):
+        for t in ("Blue", "Red", "White", "Yellow", "Orange", "Green", "Indigo", "Violet", "Purple", "Brass", "Black" ):
             processVariant(t, f"_{t}")
         
         # spiky pichu
