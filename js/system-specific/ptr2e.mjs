@@ -33,12 +33,9 @@ async function OnCreateChatMessage(message) {
     const ballImg = (()=>{
       if (message.system.action?.img) return message.system.action.img;
       // try to get items
-      for (const domain of message.system.result.domains) {
-        const did = domain.replace("-pokeball", "").replaceAll(/-./g, (x)=>x[1].toUpperCase());
-        const domainItem = message.system.origin?.items?.get?.(did);
-        if (!domainItem) continue;
-        return domainItem.img;
-      }
+      const ballSlug = message.system.slug.substr(0, message.system.slug.length - 4);
+      const domainItem = message.system.origin?.items?.filter?.((i)=>i.system.slug === ballSlug);
+      if (!!domainItem && domainItem.length > 0) return domainItem[0].img;
       return "systems/ptr2e/img/item-icons/basic ball.webp";
     })();
     
