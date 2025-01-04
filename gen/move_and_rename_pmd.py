@@ -51,6 +51,7 @@ toSkip = set((
     "0050", # skip diglett, manually intervened
     "0051", # skip dugtrio, manually intervened
     "0705", # skip sliggoo, manually intervened
+    "0960", # skip wiglett, manually intervened
 ))
 
 def main():
