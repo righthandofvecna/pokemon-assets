@@ -167,7 +167,7 @@ async function OnInteract() {
           },
         }))) {
           await Dialog.prompt({
-            content: `<p>${hasFieldMoveRockSmash.name} used Rock Smash!</p>`,
+            content: `<p>${hasFieldMoveRockSmash?.name} used Rock Smash!</p>`,
             options: {
               pokemon: true,
             },
@@ -200,7 +200,7 @@ async function OnInteract() {
           },
         }))) {
           await Dialog.prompt({
-            content: `<p>${hasFieldMoveRockSmash.name} used Cut!</p>`,
+            content: `<p>${hasFieldMoveCut?.name} used Cut!</p>`,
             options: {
               pokemon: true,
             },
@@ -231,7 +231,7 @@ async function OnInteract() {
         },
       }))) {
         await Dialog.prompt({
-          content: `<p>${hasFieldMoveCut.name} used Strength! ${hasFieldMoveCut.name}'s Strength made it possible to move boulders around!</p>`,
+          content: `<p>${hasFieldMoveStrength?.name} used Strength! ${hasFieldMoveStrength?.name}'s Strength made it possible to move boulders around!</p>`,
           options: {
             pokemon: true,
           },
