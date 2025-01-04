@@ -26,7 +26,7 @@ async function OnCreateChatMessage(message) {
     if (!source || !target) return;
 
     // get the ball image
-    const item = await fromUuid(context.origin?.uuid);
+    const item = await fromUuid(message?.flags?.ptu?.origin?.uuid);
     const ballImage = item?.img ?? "systems/ptu/images/item_icons/basic ball.webp";
 
     // get the roll and the dc
@@ -387,6 +387,21 @@ function HasMoveFunction(slug) {
   };
 }
 
+
+
+function fixLockAndKey() {
+  if (!game.modules.get("LocknKey")?.active) return;
+  Hooks.on("ready", ()=> {
+    Hooks.on("renderItemSheet", (item, html, context)=>{
+      // move the button into the nav
+      $(html).find(`a[data-tab="LocknKey"]`).detach().appendTo($(html).find(`nav.tabs[data-group="primary"]`));
+
+      $(html).find(`.tab.LocknKey`).css("flex-direction", "column");
+    });
+  });
+}
+
+
 export function register() {
   if (early_isGM) {
     Hooks.on("createChatMessage", OnCreateChatMessage);
@@ -417,4 +432,10 @@ export function register() {
   module.api.logic.CanUseRockSmash ??= HasMoveFunction("rock-smash");
   module.api.logic.CanUseCut ??= HasMoveFunction("cut");
   module.api.logic.CanUseStrength ??= HasMoveFunction("strength");
+
+  try {
+    fixLockAndKey();
+  } catch (e) {
+    console.error(`ptu.fixLockAndKey:`, e);
+  }
 }

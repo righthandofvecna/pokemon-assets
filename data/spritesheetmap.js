@@ -9324,12 +9324,14 @@ export default
     "sheetstyle": "pmd"
   },
   "modules/pokemon-assets/img/pmd-overworld/09XX/096X/0960.png": {
-    "animationframes": 3,
-    "sheetstyle": "pmd"
+    "animationframes": 4,
+    "sheetstyle": "pmd",
+    "separateidle": true
   },
   "modules/pokemon-assets/img/pmd-overworld/09XX/096X/0960s.png": {
     "animationframes": 3,
-    "sheetstyle": "pmd"
+    "sheetstyle": "pmd",
+    "separateidle": true
   },
   "modules/pokemon-assets/img/pmd-overworld/09XX/096X/0963.png": {
     "animationframes": 9,
