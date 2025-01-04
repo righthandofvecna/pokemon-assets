@@ -26,7 +26,7 @@ async function OnCreateChatMessage(message) {
     if (!source || !target) return;
 
     // get the ball image
-    const item = await fromUuid(context.origin?.uuid);
+    const item = await fromUuid(message?.flags?.ptu?.origin?.uuid);
     const ballImage = item?.img ?? "systems/ptu/images/item_icons/basic ball.webp";
 
     // get the roll and the dc
