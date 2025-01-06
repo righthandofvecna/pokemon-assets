@@ -55,8 +55,11 @@ function getFollowerUpdates(tPos, followers) {
     // don't need to reorient, this module already does it
 
     // check for collisions
-    if (follower.object.checkCollision(
-      vAdd(new_pos, { x: follower.bounds.width/2, y: follower.bounds.height/2} ),
+    const grid = follower.scene?.grid;
+    const width = (follower.width ?? 1) * (grid?.sizeX ?? grid?.size ?? 100);
+    const height = (follower.height ?? 1) * (grid?.sizeY ?? grid?.size ?? 100);
+    if (!follower.object || follower.object.checkCollision(
+      vAdd(new_pos, { x: width / 2, y: height / 2 } ),
       {type: "move", mode: "any"})) {
       // Do not apply this update or any further ones
       break;
