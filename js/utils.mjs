@@ -18,3 +18,33 @@ export function isGMOnline() {
 export async function sleep(ms) {
 	return new Promise((resolve)=>setTimeout(resolve, ms))
 }
+
+export function snapToGrid({ x, y }, grid) {
+	return {
+		x: Math.floor(x / grid.sizeX) * grid.sizeX,
+		y: Math.floor(y / grid.sizeY) * grid.sizeY,
+	}
+}
+
+function _norm_angle(a) {
+  return a < 0 ? a + 360 : (a >= 360 ? a - 360 : a);
+}
+
+/**
+ * 
+ * @param {object} a the thing that has the rotation
+ * @param {number} a.x
+ * @param {number} a.y
+ * @param {number} a.w
+ * @param {number} a.h
+ * @param {number} a.r
+ * @param {object} b the thing we want to check for adjacency
+ * @param {number} b.x
+ * @param {number} b.y
+ * @param {number} b.w
+ * @param {number} b.h
+ */
+export function isFacing(a, b) {
+	const direction = (Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI) - 90;
+  return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(a.r + 22.5) / 8);
+}

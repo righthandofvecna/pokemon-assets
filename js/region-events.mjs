@@ -1,5 +1,5 @@
 
-import { MODULENAME, sleep } from "./utils.mjs";
+import { MODULENAME, sleep, isFacing } from "./utils.mjs";
 import * as socket from "./socket.mjs";
 
 
@@ -46,11 +46,6 @@ async function RegionBehavior_handleRegionEvent(wrapped, event) {
   await system._handleRegionEvent(event);
 }
 
-
-function _norm_angle(a) {
-  return a < 0 ? a + 360 : (a >= 360 ? a - 360 : a);
-}
-
 /**
  * 
  * @param {object} a the thing that has the rotation
@@ -72,8 +67,7 @@ function _is_adjacent(a, b, requireFacing=true) {
   }
   if (!requireFacing) return true;
   // check facing
-  const direction = (Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI) - 90;
-  return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(a.r + 22.5) / 8);
+  return isFacing(a, b);
 }
 
 /**
@@ -172,7 +166,6 @@ async function OnInteract() {
               pokemon: true,
             },
           });
-          // TODO: show the message
           // set a volatile local variable that this token is currently using Rock Smash
           token._smashing = true;
           await soc.executeAsGM("triggerRockSmash", rs.document.uuid);

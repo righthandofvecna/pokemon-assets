@@ -142,4 +142,24 @@ export function register() {
 		hint: "Whether or not a character that knows Strength can use it as a field move to push movable boulders."
 	});
 
+  game.settings.register(MODULENAME, "canUseRockClimb", {
+		name: "Field Move: Can Use Rock Climb",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Whether or not a character that knows Rock Climb can use it as a field move to climb rocky walls."
+	});
+
+  game.settings.register(MODULENAME, "canUseWaterfall", {
+		name: "Field Move: Can Use Waterfall",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Whether or not a character that knows Waterfall can use it as a field move to climb waterfalls."
+	});
+
 };

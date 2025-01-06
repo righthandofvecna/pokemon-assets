@@ -1,4 +1,5 @@
-import { MODULENAME, early_isGM } from "./utils.mjs";
+import { MODULENAME, early_isGM, sleep, snapToGrid } from "./utils.mjs";
+import { UserPaintArea } from "./scripts.mjs";
 
 
 /**
@@ -93,6 +94,7 @@ async function OnRenderRegionConfig(regionConfig, html) {
 
 function OnGetSceneControlButtons(controls) {
   const tiles = controls.find(c=>c.name === "tiles");
+  const regions = controls.find(c=>c.name === "regions");
 
   tiles.tools.push({
     icon: "fa-solid fa-pickaxe",
@@ -136,14 +138,25 @@ function OnGetSceneControlButtons(controls) {
       ],
     },
   });
+  regions.tools.push({
+    icon: "fa-solid fa-hill-rockslide",
+    name: "rocky-wall",
+    title: "Place Climbable Rocks",
+    toolclip: {
+      heading: "Place Climbable Rocks",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
 }
 
 function TilesLayer_onClickLeft2(wrapper, event) {
   wrapper(event);
-  const { x, y } = canvas.grid.getSnappedPoint({
-    x: canvas.mousePosition.x - canvas.grid.sizeX / 2,
-    y: canvas.mousePosition.y - canvas.grid.sizeY / 2
-  }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_CORNER });
+  const { x, y } = snapToGrid(canvas.mousePosition, canvas.grid)
   switch (game.activeTool) {
     case "breakable-rock":
       canvas.scene.createEmbeddedDocuments("Tile", [{
@@ -185,6 +198,69 @@ function TilesLayer_onClickLeft2(wrapper, event) {
       }])
       break;
   }
+}
+
+function RegionLayer_onClickLeft2(wrapper, event) {
+  wrapper(event);
+  switch (game.activeTool) {
+    case "rocky-wall":
+      console.log("add climbable rock");
+      _addClimbable("rocky-wall");
+      break;
+  }
+}
+
+async function _addClimbable(via) {
+  const src = snapToGrid(canvas.mousePosition, canvas.grid);
+  await sleep(50);
+  const dest = await UserPaintArea();
+  console.log("points", src, dest);
+  if (src.x == dest.x && src.y == dest.y) return;
+
+  const color = Color.fromHSV([Math.random(), 0.8, 0.8]).css;
+  // create the source and destination regions
+  canvas.scene.createEmbeddedDocuments("Region", [
+    {
+      name: `${via} - Bottom`,
+      color,
+      locked: true,
+      shapes: [{
+        type: "rectangle",
+        height: canvas.grid.sizeY,
+        width: canvas.grid.sizeX,
+        x: src.x,
+        y: src.y
+      }],
+      behaviors: [{
+        type: "executeScript",
+        flags: { "pokemon-assets": { hasTokenInteract: true } },
+        name: "Climb Script",
+        system: {
+          source: `game.modules.get("${MODULENAME}")?.api?.scripts?.TriggerClimb?.("${via}", { x: ${dest.x}, y: ${dest.y} }, ...arguments);`
+        },
+      }]
+    },
+    {
+      name: `${via} - Top`,
+      color,
+      locked: true,
+      shapes: [{
+        type: "rectangle",
+        height: canvas.grid.sizeY,
+        width: canvas.grid.sizeX,
+        x: dest.x,
+        y: dest.y
+      }],
+      behaviors: [{
+        type: "executeScript",
+        flags: { "pokemon-assets": { hasTokenInteract: true } },
+        name: "Climb Script",
+        system: {
+          source: `game.modules.get("${MODULENAME}")?.api?.scripts?.TriggerClimb?.("${via}", { x: ${src.x}, y: ${src.y} }, ...arguments);`
+        },
+      }]
+    }
+  ]);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -409,6 +485,7 @@ export function register() {
   if (early_isGM()) {
     Hooks.on("getSceneControlButtons", OnGetSceneControlButtons);
     libWrapper.register(MODULENAME, "TilesLayer.prototype._onClickLeft2", TilesLayer_onClickLeft2, "WRAPPER");
+    libWrapper.register(MODULENAME, "RegionLayer.prototype._onClickLeft2", RegionLayer_onClickLeft2, "WRAPPER");
   }
 
   const module = game.modules.get(MODULENAME);
