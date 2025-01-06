@@ -85,6 +85,7 @@ async function OnInteract() {
 
   // send interact event
   selected.forEach(token=>{
+    if (!token.movable) return;
     token.regions.forEach(region=>{
       // if has tokenInteract
       if (region.behaviors.some(b=>b.getFlag(MODULENAME, "hasTokenInteract"))) {
@@ -97,6 +98,7 @@ async function OnInteract() {
   if (selected.length !== 1) return;
 
   const token = selected[0];
+  if (!token.movable) return;
   const tObj = token.object;
   const { x: tx, y: ty } = canvas.grid.getCenterPoint(tObj.center);
   const { sizeX, sizeY } = canvas.grid;

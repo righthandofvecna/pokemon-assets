@@ -4,7 +4,7 @@ import * as socket from "./socket.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
- * nurse: an x, y position to place the text
+ * nurse: the nurse token
  * doHeal: a function to run to actually heal the pokemon
  */
 async function PokemonCenter(nurse, doHeal) {
