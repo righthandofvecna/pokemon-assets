@@ -152,6 +152,20 @@ function OnGetSceneControlButtons(controls) {
       ],
     },
   });
+  regions.tools.push({
+    icon: "fa-solid fa-water-arrow-up",
+    name: "waterfall",
+    title: "Place Waterfall",
+    toolclip: {
+      heading: "Place Waterfall",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
 }
 
 function TilesLayer_onClickLeft2(wrapper, event) {
@@ -204,8 +218,10 @@ function RegionLayer_onClickLeft2(wrapper, event) {
   wrapper(event);
   switch (game.activeTool) {
     case "rocky-wall":
-      console.log("add climbable rock");
       _addClimbable("rocky-wall");
+      break;
+    case "waterfall":
+      _addClimbable("waterfall");
       break;
   }
 }
