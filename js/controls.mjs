@@ -229,8 +229,9 @@ function RegionLayer_onClickLeft2(wrapper, event) {
 async function _addClimbable(via) {
   const src = snapToGrid(canvas.mousePosition, canvas.grid);
   await sleep(50);
-  const dest = await UserPaintArea();
-  console.log("points", src, dest);
+  const dest = await UserPaintArea().catch(()=>{
+    return src; // cancelled
+  });
   if (src.x == dest.x && src.y == dest.y) return;
 
   const color = Color.fromHSV([Math.random(), 0.8, 0.8]).css;
