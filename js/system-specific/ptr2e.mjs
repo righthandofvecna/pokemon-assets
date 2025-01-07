@@ -307,4 +307,10 @@ export function register() {
   module.api.logic.CanUseRockSmash ??= HasMoveFunction("rock-smash");
   module.api.logic.CanUseCut ??= HasMoveFunction("cut");
   module.api.logic.CanUseStrength ??= HasMoveFunction("strength");
+  module.api.logic.CanUseRockClimb ??= HasMoveFunction("rock-climb");
+  module.api.logic.CanUseWaterfall ??= HasMoveFunction("waterfall");
+  module.api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
+
+  module.api.scripts ??= {};
+  module.api.scripts.HasMoveFunction ??= (actor, slug)=>HasMoveFunction(slug)(actor);;
 }

@@ -1,5 +1,5 @@
 
-import { MODULENAME, sleep } from "./utils.mjs";
+import { MODULENAME, sleep, isFacing } from "./utils.mjs";
 import * as socket from "./socket.mjs";
 
 
@@ -46,11 +46,6 @@ async function RegionBehavior_handleRegionEvent(wrapped, event) {
   await system._handleRegionEvent(event);
 }
 
-
-function _norm_angle(a) {
-  return a < 0 ? a + 360 : (a >= 360 ? a - 360 : a);
-}
-
 /**
  * 
  * @param {object} a the thing that has the rotation
@@ -72,8 +67,7 @@ function _is_adjacent(a, b, requireFacing=true) {
   }
   if (!requireFacing) return true;
   // check facing
-  const direction = (Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI) - 90;
-  return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(a.r + 22.5) / 8);
+  return isFacing(a, b);
 }
 
 /**
@@ -91,6 +85,7 @@ async function OnInteract() {
 
   // send interact event
   selected.forEach(token=>{
+    if (!token.movable) return;
     token.regions.forEach(region=>{
       // if has tokenInteract
       if (region.behaviors.some(b=>b.getFlag(MODULENAME, "hasTokenInteract"))) {
@@ -103,6 +98,7 @@ async function OnInteract() {
   if (selected.length !== 1) return;
 
   const token = selected[0];
+  if (!token.movable) return;
   const tObj = token.object;
   const { x: tx, y: ty } = canvas.grid.getCenterPoint(tObj.center);
   const { sizeX, sizeY } = canvas.grid;
@@ -129,7 +125,10 @@ async function OnInteract() {
   // check if we are facing/adjacent to an tile (either with Rock Smash or Cut or Strength)
   const facingTiles = game.canvas.tiles.placeables.filter(tile=>{
     const tileAssetsFlags = tile?.document?.flags?.[MODULENAME];
-    if (!tileAssetsFlags?.smashable && !tileAssetsFlags?.cuttable && !tileAssetsFlags?.pushable) return false;
+    if (!tileAssetsFlags?.smashable &&
+        !tileAssetsFlags?.cuttable &&
+        !tileAssetsFlags?.whirlpool &&
+        !tileAssetsFlags?.pushable) return false;
     const { x: ox, y: oy } = canvas.grid.getCenterPoint(tile.center);
     return _is_adjacent(
       tokenBounds,
@@ -145,6 +144,7 @@ async function OnInteract() {
 
     const smashable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.smashable);
     const cuttable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.cuttable);
+    const whirlpool = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.whirlpool);
     const pushable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.pushable);
 
     const soc = socket.current();
@@ -153,6 +153,7 @@ async function OnInteract() {
 
     const hasFieldMoveRockSmash = fieldMoveParty.find(logic.CanUseRockSmash);
     const hasFieldMoveCut = fieldMoveParty.find(logic.CanUseCut);
+    const hasFieldMoveWhirlpool = fieldMoveParty.find(logic.CanUseWhirlpool);
     const hasFieldMoveStrength = fieldMoveParty.find(logic.CanUseStrength);
 
     if (!!hasFieldMoveRockSmash && game.settings.get(MODULENAME, "canUseRockSmash")) {
@@ -172,7 +173,6 @@ async function OnInteract() {
               pokemon: true,
             },
           });
-          // TODO: show the message
           // set a volatile local variable that this token is currently using Rock Smash
           token._smashing = true;
           await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
@@ -214,6 +214,38 @@ async function OnInteract() {
       Dialog.prompt({
         title: "Cut",
         content: "This tree looks like it can be cut down.",
+        options: {
+          pokemon: true,
+        },
+      });
+    }
+
+    if (!!hasFieldMoveWhirlpool && game.settings.get(MODULENAME, "canUseWhirlpool")) {
+      whirlpool.forEach(async (rs)=>{
+        if (token._whirlpool || await new Promise((resolve)=>Dialog.confirm({
+          title: "Whirlpool",
+          content: "It's a huge swirl of water. Would you like to use Whirlpool?",
+          yes: ()=>resolve(true),
+          no: ()=>resolve(false),
+          options: {
+            pokemon: true,
+          },
+        }))) {
+          await Dialog.prompt({
+            content: `<p>${hasFieldMoveWhirlpool?.name} used Whirlpool!</p>`,
+            options: {
+              pokemon: true,
+            },
+          });
+          // set a volatile local variable that this token is currently using whirlpool
+          token._whirlpool = true;
+          await soc.executeAsGM("triggerWhirlpool", rs.document.uuid);
+        };
+      });
+    } else if (whirlpool.length > 0) {
+      Dialog.prompt({
+        title: "Whirlpool",
+        content: "It's a huge swirl of water.",
         options: {
           pokemon: true,
         },

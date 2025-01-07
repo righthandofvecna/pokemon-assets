@@ -12,7 +12,7 @@ async function OnRenderTileConfig(sheet, html, context) {
 
   $(form.querySelector(`.sheet-tabs`)).append(`<a class="item" data-tab="puzzle"><i class="fa-solid fa-puzzle-piece"></i> Puzzle</a>`);
 
-  const { solid, cuttable, smashable, pushable } = tile?.flags?.[MODULENAME] ?? {};
+  const { solid, cuttable, smashable, whirlpool, pushable } = tile?.flags?.[MODULENAME] ?? {};
 
   const tabs = form.getElementsByClassName("tab");
   $(tabs[tabs.length-1]).after(`<div class="tab" data-tab="puzzle">
@@ -33,6 +33,12 @@ async function OnRenderTileConfig(sheet, html, context) {
       <label>Destroyed by "Cut"</label>
       <div class="form-fields">
         <input type="checkbox" name="flags.${MODULENAME}.cuttable" ${cuttable ? "checked" : ""}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Destroyed by "Whirlpool"</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.${MODULENAME}.whirlpool" ${whirlpool ? "checked" : ""}>
       </div>
     </div>
     <div class="form-group">

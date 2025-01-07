@@ -9,4 +9,10 @@ export function register() {
   module.api.logic.CanUseRockSmash ??= (actor)=>true;
   module.api.logic.CanUseCut ??= (actor)=>true;
   module.api.logic.CanUseStrength ??= (actor)=>true;
+  module.api.logic.CanUseRockClimb ??= (actor)=>true;
+  module.api.logic.CanUseWaterfall ??= (actor)=>true;
+  module.api.logic.CanUseWhirlpool ??= (actor)=>true;
+
+  module.api.scripts ??= {};
+  module.api.scripts.HasMoveFunction ??= (actor, slug)=>true;
 }

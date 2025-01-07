@@ -21,7 +21,14 @@ async function OnRenderTokenConfig(config, html, context) {
    * Recalculate all the computed fields, create them if they don't exist, and update them.
    */
   const refreshConfig = async function () {
-    const src = form.querySelector("[name='texture.src'] input[type='text']")?.value ?? form.querySelector("[name='texture.src'][type='text']")?.value;
+    const rawSrc = form.querySelector("[name='texture.src'] input[type='text']")?.value ?? form.querySelector("[name='texture.src'][type='text']")?.value;
+    const src = (()=>{
+      if (rawSrc.startsWith("modules/pokemon-assets/img")) return rawSrc;
+      if (rawSrc.includes("modules/pokemon-assets/img")) {
+        return rawSrc.substring(rawSrc.indexOf("modules/pokemon-assets/img"));
+      }
+      return rawSrc;
+    })();
     const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
 
     const data = {

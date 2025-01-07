@@ -32,7 +32,7 @@ function OnPreCreateTile(tile, tileData) {
 function UndoIsometricAnchor(token) {
   // set anchor
   if (game.modules.get("isometric-perspective")?.active && !token.object.isometric) {
-    token.object.mesh.anchor.set(token.texture.anchorX, token.texture.anchorY);
+    token.object.mesh?.anchor.set(token.texture.anchorX, token.texture.anchorY);
   }
 }
 

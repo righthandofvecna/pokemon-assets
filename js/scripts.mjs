@@ -1,10 +1,10 @@
 
-import { isTheGM, MODULENAME, sleep } from "./utils.mjs";
+import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing } from "./utils.mjs";
 import * as socket from "./socket.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
- * nurse: an x, y position to place the text
+ * nurse: the nurse token
  * doHeal: a function to run to actually heal the pokemon
  */
 async function PokemonCenter(nurse, doHeal) {
@@ -566,6 +566,126 @@ async function TriggerCut(tile) {
   await tile.delete();
 }
 
+/**
+ * Play the Whirlpool animation and destroy the tile.
+ * @param {TileDocument} tile the tile document to destroy using Whirlpool
+ */
+async function TriggerWhirlpool(tile) {
+  if (!game.user.isGM) return;
+
+  await sleep(300);
+  await new Sequence()
+    .animation()
+      .on(tile)
+      .duration(1000)
+      .fadeOut(1000)
+      .opacity(1)
+      .async()
+    .play();
+  await tile.delete();
+}
+
+/**
+ * Play a climbing animation, either rock climb or waterfall
+ * @param climbType either "rocky-wall" or "waterfall"
+ * @param to the destination to move the token to
+ * @param args 
+ */
+async function TriggerClimb(climbType, to, ...args) {
+  const [scene, regionDocument, regionBehavior, { data: { token }, user }] = args;
+  if (!token) return;
+  if (user.id !== game.user.id) return; // run only as the triggering user
+
+  // require the token to be facing towards "to"
+  if (!(
+      (to.x > token.x && TokenHasDirection(token, ["upright","right","downright"])) ||
+      (to.x < token.x && TokenHasDirection(token, ["upleft","left","downleft"])) ||
+      (to.y < token.y && TokenHasDirection(token, ["upleft","up","upright"])) ||
+      (to.y > token.y && TokenHasDirection(token, ["downleft","down","downright"]))
+    )) {
+    return;
+  }
+
+  // check if we can do this
+  const logic = game.modules.get(MODULENAME).api.logic;
+  const fieldMoveParty = logic.FieldMoveParty(token);
+
+  switch (climbType) {
+    case "rocky-wall":
+      const hasFieldMoveRockClimb = fieldMoveParty.find(logic.CanUseRockClimb);
+      if (!!hasFieldMoveRockClimb && game.settings.get(MODULENAME, "canUseRockClimb")) {
+        if (token._climbing || await new Promise((resolve)=>Dialog.confirm({
+          title: "Rock Climb",
+          content: "The wall is very rocky... Would you like to use Rock Climb?",
+          yes: ()=>resolve(true),
+          no: ()=>resolve(false),
+          options: {
+            pokemon: true,
+          },
+        }))) {
+          await Dialog.prompt({
+            content: `<p>${hasFieldMoveRockClimb?.name} used Rock Climb!</p>`,
+            options: {
+              pokemon: true,
+            },
+          });
+          // set a volatile local variable that this token is currently using Rock Climb
+          token._climbing = true;
+        } else {
+          return;
+        }
+      } else {
+        Dialog.prompt({
+          title: "Rock Climb",
+          content: "The wall is very rocky...",
+          options: {
+            pokemon: true,
+          },
+        });
+        return;
+      }
+      break;
+    case "waterfall":
+      const hasFieldMoveWaterfall = fieldMoveParty.find(logic.CanUseWaterfall);
+      if (!!hasFieldMoveWaterfall && game.settings.get(MODULENAME, "canUseWaterfall")) {
+        if (token._waterfall || await new Promise((resolve)=>Dialog.confirm({
+          title: "Waterfall",
+          content: "It's a large waterfall. Would you like to use Rock Climb?",
+          yes: ()=>resolve(true),
+          no: ()=>resolve(false),
+          options: {
+            pokemon: true,
+          },
+        }))) {
+          await Dialog.prompt({
+            content: `<p>${hasFieldMoveWaterfall?.name} used Waterfall!</p>`,
+            options: {
+              pokemon: true,
+            },
+          });
+          // set a volatile local variable that this token is currently using Waterfall
+          token._waterfall = true;
+        } else {
+          return;
+        }
+      } else {
+        Dialog.prompt({
+          title: "Waterfall",
+          content: "It's a large waterfall.",
+          options: {
+            pokemon: true,
+          },
+        });
+        return;
+      }
+      break;
+    default: return;
+  }
+
+  // TODO
+  await token.update(to);
+}
+
 
 /**
  * Check if the token is facing one of the given directions
@@ -600,6 +720,56 @@ class PainterTemplate extends MeasuredTemplate {
     // Activate interactivity
     return this.activatePreviewListeners(initialLayer);
   }
+
+  /** @override */
+  async _draw(options) {
+
+    // Load Fill Texture
+    if ( this.document.texture ) {
+      this.texture = await loadTexture(this.document.texture, {fallback: "icons/svg/hazard.svg"});
+    } else {
+      this.texture = null;
+    }
+
+    // Template Shape
+    this.template = this.addChild(new PIXI.Graphics());
+
+    // Enable highlighting for this template
+    canvas.interface.grid.addHighlightLayer(this.highlightId);
+  }
+
+  /**
+   * Refresh the displayed state of the MeasuredTemplate.
+   * This refresh occurs when the user interaction state changes.
+   * @protected
+   */
+  _refreshState() {
+
+    // Template Visibility
+    const wasVisible = this.visible;
+    this.visible = this.isVisible && !this.hasPreview;
+    if ( this.visible !== wasVisible ) MouseInteractionManager.emulateMoveEvent();
+
+    // Sort on top of others on hover
+    this.zIndex = this.hover ? 1 : 0;
+
+    // Control Icon Visibility
+    const isHidden = this.document.hidden;
+
+    // Alpha transparency
+    const alpha = isHidden ? 0.5 : 1;
+    this.template.alpha = alpha;
+    const highlightLayer = canvas.interface.grid.getHighlightLayer(this.highlightId);
+    highlightLayer.visible = this.visible;
+    // FIXME the elevation is not considered in sort order of the highlight layers
+    highlightLayer.zIndex = this.document.sort;
+    highlightLayer.alpha = alpha;
+    this.alpha = this._getTargetAlpha();
+  }
+
+  _refreshRulerText() { }
+
+  _refreshElevation() { }
 
   /* -------------------------------------------- */
 
@@ -653,8 +823,7 @@ class PainterTemplate extends MeasuredTemplate {
     const now = Date.now(); // Apply a 20ms throttle
     if ( now - this.#moveTime <= 20 ) return;
     const center = event.data.getLocalPosition(this.layer);
-    const interval = canvas.grid.type === CONST.GRID_TYPES.GRIDLESS ? 0 : 1;
-    const snapped = canvas.grid.getSnappedPosition(center.x, center.y, interval);
+    const snapped = snapToGrid(center, canvas.grid);
     this.document.updateSource({x: snapped.x, y: snapped.y});
     this.refresh();
     this.#moveTime = now;
@@ -668,8 +837,7 @@ class PainterTemplate extends MeasuredTemplate {
    */
   async _onConfirmPlacement(event) {
     await this._finishPlacement(event);
-    const interval = canvas.grid.type === CONST.GRID_TYPES.GRIDLESS ? 0 : 2;
-    const destination = canvas.grid.getSnappedPosition(this.document.x, this.document.y, interval);
+    const destination = snapToGrid(this.document, canvas.grid);
     this.document.updateSource(destination);
     this.#events.resolve(this.document.toObject());
   }
@@ -689,7 +857,7 @@ class PainterTemplate extends MeasuredTemplate {
 /**
  * @returns {Promise}  A promise that resolves with the final location selected.
  */
-async function UserPaintArea() {
+export async function UserPaintArea() {
   const cls = CONFIG.MeasuredTemplate.documentClass;
   const template = new cls({
     t: "rect",
@@ -760,8 +928,12 @@ export function register() {
     UserPaintArea,
     UserChooseDirections,
     TriggerRockSmash,
+    TriggerCut,
+    TriggerClimb,
+    TriggerWhirlpool,
   };
 
   socket.registerSocket("triggerRockSmash", async (tileId)=>TriggerRockSmash(await fromUuid(tileId)));
   socket.registerSocket("triggerCut", async (tileId)=>TriggerCut(await fromUuid(tileId)));
+  socket.registerSocket("triggerWhirlpool", async (tileId)=>TriggerWhirlpool(await fromUuid(tileId)));
 }
