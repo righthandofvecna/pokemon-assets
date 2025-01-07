@@ -125,7 +125,10 @@ async function OnInteract() {
   // check if we are facing/adjacent to an tile (either with Rock Smash or Cut or Strength)
   const facingTiles = game.canvas.tiles.placeables.filter(tile=>{
     const tileAssetsFlags = tile?.document?.flags?.[MODULENAME];
-    if (!tileAssetsFlags?.smashable && !tileAssetsFlags?.cuttable && !tileAssetsFlags?.pushable) return false;
+    if (!tileAssetsFlags?.smashable &&
+        !tileAssetsFlags?.cuttable &&
+        !tileAssetsFlags?.whirlpool &&
+        !tileAssetsFlags?.pushable) return false;
     const { x: ox, y: oy } = canvas.grid.getCenterPoint(tile.center);
     return _is_adjacent(
       tokenBounds,
@@ -141,6 +144,7 @@ async function OnInteract() {
 
     const smashable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.smashable);
     const cuttable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.cuttable);
+    const whirlpool = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.whirlpool);
     const pushable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.pushable);
 
     const soc = socket.current();
@@ -149,6 +153,7 @@ async function OnInteract() {
 
     const hasFieldMoveRockSmash = fieldMoveParty.find(logic.CanUseRockSmash);
     const hasFieldMoveCut = fieldMoveParty.find(logic.CanUseCut);
+    const hasFieldMoveWhirlpool = fieldMoveParty.find(logic.CanUseWhirlpool);
     const hasFieldMoveStrength = fieldMoveParty.find(logic.CanUseStrength);
 
     if (!!hasFieldMoveRockSmash && game.settings.get(MODULENAME, "canUseRockSmash")) {
@@ -209,6 +214,38 @@ async function OnInteract() {
       Dialog.prompt({
         title: "Cut",
         content: "This tree looks like it can be cut down.",
+        options: {
+          pokemon: true,
+        },
+      });
+    }
+
+    if (!!hasFieldMoveWhirlpool && game.settings.get(MODULENAME, "canUseWhirlpool")) {
+      whirlpool.forEach(async (rs)=>{
+        if (token._whirlpool || await new Promise((resolve)=>Dialog.confirm({
+          title: "Whirlpool",
+          content: "It's a huge swirl of water. Would you like to use Whirlpool?",
+          yes: ()=>resolve(true),
+          no: ()=>resolve(false),
+          options: {
+            pokemon: true,
+          },
+        }))) {
+          await Dialog.prompt({
+            content: `<p>${hasFieldMoveWhirlpool?.name} used Whirlpool!</p>`,
+            options: {
+              pokemon: true,
+            },
+          });
+          // set a volatile local variable that this token is currently using whirlpool
+          token._whirlpool = true;
+          await soc.executeAsGM("triggerWhirlpool", rs.document.uuid);
+        };
+      });
+    } else if (whirlpool.length > 0) {
+      Dialog.prompt({
+        title: "Whirlpool",
+        content: "It's a huge swirl of water.",
         options: {
           pokemon: true,
         },

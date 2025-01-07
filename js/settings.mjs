@@ -132,6 +132,16 @@ export function register() {
 		hint: "Whether or not a character that knows Cut can use it as a field move to destroy destructible plants."
 	});
 
+  game.settings.register(MODULENAME, "canUseWhirlpool", {
+		name: "Field Move: Can Use Whirlpool",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Whether or not a character that knows Whirlpool can use it as a field move to destroy whirlpools."
+	});
+
   game.settings.register(MODULENAME, "canUseStrength", {
 		name: "Field Move: Can Use Strength",
 		default: true,

@@ -138,6 +138,20 @@ function OnGetSceneControlButtons(controls) {
       ],
     },
   });
+  tiles.tools.push({
+    icon: "fa-solid fa-tornado",
+    name: "whirlpool",
+    title: "Place Whirlpool",
+    toolclip: {
+      heading: "Place Whirlpool",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
   regions.tools.push({
     icon: "fa-solid fa-hill-rockslide",
     name: "rocky-wall",
@@ -206,6 +220,19 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         height: canvas.grid.sizeY,
         texture: {
           src: "modules/pokemon-assets/img/items-overworld/movable_boulder_frlg.png",
+        },
+        x,
+        y,
+      }])
+      break;
+    case "whirlpool":
+      canvas.scene.createEmbeddedDocuments("Tile", [{
+        "flags.pokemon-assets.solid": true,
+        "flags.pokemon-assets.whirlpool": true,
+        width: canvas.grid.sizeX,
+        height: canvas.grid.sizeY,
+        texture: {
+          src: "modules/pokemon-assets/img/animations/whirlpool_gsc.webm",
         },
         x,
         y,

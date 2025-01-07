@@ -567,6 +567,25 @@ async function TriggerCut(tile) {
 }
 
 /**
+ * Play the Whirlpool animation and destroy the tile.
+ * @param {TileDocument} tile the tile document to destroy using Whirlpool
+ */
+async function TriggerWhirlpool(tile) {
+  if (!game.user.isGM) return;
+
+  await sleep(300);
+  await new Sequence()
+    .animation()
+      .on(tile)
+      .duration(1000)
+      .fadeOut(1000)
+      .opacity(1)
+      .async()
+    .play();
+  await tile.delete();
+}
+
+/**
  * Play a climbing animation, either rock climb or waterfall
  * @param climbType either "rocky-wall" or "waterfall"
  * @param to the destination to move the token to
@@ -904,8 +923,10 @@ export function register() {
     TriggerRockSmash,
     TriggerCut,
     TriggerClimb,
+    TriggerWhirlpool,
   };
 
   socket.registerSocket("triggerRockSmash", async (tileId)=>TriggerRockSmash(await fromUuid(tileId)));
   socket.registerSocket("triggerCut", async (tileId)=>TriggerCut(await fromUuid(tileId)));
+  socket.registerSocket("triggerWhirlpool", async (tileId)=>TriggerWhirlpool(await fromUuid(tileId)));
 }

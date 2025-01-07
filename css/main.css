@@ -88,6 +88,17 @@
   background-position: center;
   color: transparent;
 }
+#controls .control-tool[data-tool="whirlpool"] {
+  background-color: #6860f8;
+}
+#controls .control-tool[data-tool="whirlpool"] i {
+  background-image: url("../img/items-overworld/whirlpool_gsc.png");
+  background-size: contain;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
+}
 .window-app.pokemon-dialog {
   border-image-source: url("../img/ui/textbox_1.png");
   border-width: 30px;
