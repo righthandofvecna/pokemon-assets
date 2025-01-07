@@ -140,6 +140,7 @@
 }
 .window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button {
   color: white;
+  background: none;
   text-shadow: 2px -2px black;
   flex: 0;
   border: unset;
@@ -149,6 +150,7 @@
 }
 .window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button:focus {
   box-shadow: none;
+  animation: bounce 1s ease infinite;
 }
 .window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button i {
   transform: rotate(90deg) scaleX(2);
@@ -158,4 +160,15 @@
   font-family: "Pokemon DPPt";
   font-weight: normal;
   font-size: xx-large;
+}
+@keyframes bounce {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }

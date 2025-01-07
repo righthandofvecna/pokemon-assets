@@ -167,6 +167,7 @@
 
         button {
             color: white;
+            background: none;
             text-shadow: 2px -2px black;
             flex: 0;
             border: unset;
@@ -175,7 +176,7 @@
             }
             &:focus {
                 box-shadow: none;
-                // TODO bounce
+                animation: bounce 1s ease infinite;
             }
             i {
                 transform: rotate(90deg) scaleX(2);
@@ -188,4 +189,10 @@
             }
         }
     }
+}
+
+@keyframes bounce {
+    0% {transform: translateY(0px);}
+    50% {transform: translateY(-10px);}
+    100% {transform: translateY(0px);}
 }
