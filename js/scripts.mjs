@@ -597,15 +597,14 @@ async function TriggerClimb(climbType, to, ...args) {
   if (user.id !== game.user.id) return; // run only as the triggering user
 
   // require the token to be facing towards "to"
-  // TODO: there's probably a better way of doing this.
-  if (!isFacing({
-    x: token.x,
-    y: token.y,
-    r: token.rotation,
-  }, {
-    x: to.x,
-    y: to.y,
-  })) return;
+  if (!(
+      (to.x > token.x && TokenHasDirection(token, ["upright","right","downright"])) ||
+      (to.x < token.x && TokenHasDirection(token, ["upleft","left","downleft"])) ||
+      (to.y < token.y && TokenHasDirection(token, ["upleft","up","upright"])) ||
+      (to.y > token.y && TokenHasDirection(token, ["downleft","down","downright"]))
+    )) {
+    return;
+  }
 
   // check if we can do this
   const logic = game.modules.get(MODULENAME).api.logic;
@@ -614,23 +613,27 @@ async function TriggerClimb(climbType, to, ...args) {
   switch (climbType) {
     case "rocky-wall":
       const hasFieldMoveRockClimb = fieldMoveParty.find(logic.CanUseRockClimb);
-      if (!!hasFieldMoveRockClimb && game.settings.get(MODULENAME, "canUseRockClimb") && (token._climbing || await new Promise((resolve)=>Dialog.confirm({
-        title: "Rock Climb",
-        content: "The wall is very rocky... Would you like to use Rock Climb?",
-        yes: ()=>resolve(true),
-        no: ()=>resolve(false),
-        options: {
-          pokemon: true,
-        },
-      })))) {
-        await Dialog.prompt({
-          content: `<p>${hasFieldMoveRockClimb?.name} used Rock Climb!</p>`,
+      if (!!hasFieldMoveRockClimb && game.settings.get(MODULENAME, "canUseRockClimb")) {
+        if (token._climbing || await new Promise((resolve)=>Dialog.confirm({
+          title: "Rock Climb",
+          content: "The wall is very rocky... Would you like to use Rock Climb?",
+          yes: ()=>resolve(true),
+          no: ()=>resolve(false),
           options: {
             pokemon: true,
           },
-        });
-        // set a volatile local variable that this token is currently using Rock Climb
-        token._climbing = true;
+        }))) {
+          await Dialog.prompt({
+            content: `<p>${hasFieldMoveRockClimb?.name} used Rock Climb!</p>`,
+            options: {
+              pokemon: true,
+            },
+          });
+          // set a volatile local variable that this token is currently using Rock Climb
+          token._climbing = true;
+        } else {
+          return;
+        }
       } else {
         Dialog.prompt({
           title: "Rock Climb",
@@ -644,23 +647,27 @@ async function TriggerClimb(climbType, to, ...args) {
       break;
     case "waterfall":
       const hasFieldMoveWaterfall = fieldMoveParty.find(logic.CanUseWaterfall);
-      if (!!hasFieldMoveWaterfall && game.settings.get(MODULENAME, "canUseWaterfall") && (token._waterfall || await new Promise((resolve)=>Dialog.confirm({
-        title: "Waterfall",
-        content: "It's a large waterfall. Would you like to use Rock Climb?",
-        yes: ()=>resolve(true),
-        no: ()=>resolve(false),
-        options: {
-          pokemon: true,
-        },
-      })))) {
-        await Dialog.prompt({
-          content: `<p>${hasFieldMoveWaterfall?.name} used Waterfall!</p>`,
+      if (!!hasFieldMoveWaterfall && game.settings.get(MODULENAME, "canUseWaterfall")) {
+        if (token._waterfall || await new Promise((resolve)=>Dialog.confirm({
+          title: "Waterfall",
+          content: "It's a large waterfall. Would you like to use Rock Climb?",
+          yes: ()=>resolve(true),
+          no: ()=>resolve(false),
           options: {
             pokemon: true,
           },
-        });
-        // set a volatile local variable that this token is currently using Waterfall
-        token._waterfall = true;
+        }))) {
+          await Dialog.prompt({
+            content: `<p>${hasFieldMoveWaterfall?.name} used Waterfall!</p>`,
+            options: {
+              pokemon: true,
+            },
+          });
+          // set a volatile local variable that this token is currently using Waterfall
+          token._waterfall = true;
+        } else {
+          return;
+        }
       } else {
         Dialog.prompt({
           title: "Waterfall",
