@@ -650,7 +650,7 @@ async function TriggerClimb(climbType, to, ...args) {
       if (!!hasFieldMoveWaterfall && game.settings.get(MODULENAME, "canUseWaterfall")) {
         if (token._waterfall || await new Promise((resolve)=>Dialog.confirm({
           title: "Waterfall",
-          content: "It's a large waterfall. Would you like to use Rock Climb?",
+          content: "It's a large waterfall. Would you like to use Waterfall?",
           yes: ()=>resolve(true),
           no: ()=>resolve(false),
           options: {
