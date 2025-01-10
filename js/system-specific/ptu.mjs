@@ -32,7 +32,7 @@ async function OnCreateChatMessage(message) {
     // get the roll and the dc
     const captureDC = contextTarget.dc?.value ?? 50;
     const roll = message.rolls[0]?.total ?? captureDC;
-    const caught = contextTarget.outcome === "hit";
+    const caught = contextTarget.outcome === "hit" || contextTarget.outcome === "crit-hit";
     const shakes = caught ? 3 : Math.max(0, Math.min(Math.round(3 * captureDC / roll), 3));
     
     game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(

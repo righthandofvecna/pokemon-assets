@@ -89,10 +89,10 @@
   color: transparent;
 }
 #controls .control-tool[data-tool="whirlpool"] {
-  background-color: #6860f8;
+  background-color: #4878d8;
 }
 #controls .control-tool[data-tool="whirlpool"] i {
-  background-image: url("../img/items-overworld/whirlpool_gsc.png");
+  background-image: url("../img/items-overworld/whirlpool_frlg.png");
   background-size: contain;
   image-rendering: pixelated;
   background-repeat: no-repeat;

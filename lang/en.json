@@ -1,0 +1,99 @@
+{
+    "POKEMON-ASSETS": {
+        "Settings": {
+            "Volume": {
+                "interact": {
+                    "label": "Interact",
+                    "hint": "The sound made when you interact with an object or dialog."
+                },
+                "collide": {
+                    "label": "Collide",
+                    "hint": "The sound made when a token collides with a wall or other token."
+                },
+                "catch": {
+                    "label": "Catch",
+                    "hint": "The sound made by Pokéballs when thrown, opened, or used to try catching a Pokémon."
+                },
+                "heal": {
+                    "label": "Heal",
+                    "hint": "The healing sound made in a Pokémon Center."
+                },
+                "pc": {
+                    "label": "PC",
+                    "hint": "The sounds made by a PC."
+                },
+                "exit": {
+                    "label": "Exit",
+                    "hint": "The sounds made when switching scenes via a door."
+                },
+                "reaction-surprise": {
+                    "label": "Reaction: Surprise",
+                    "hint": "The sounds made by a token when it is reacting in surprise."
+                },
+                "damage": {
+                    "label": "Damage",
+                    "hint": "The sounds made an actor takes damage."
+                },
+                "low-hp": {
+                    "label": "Low HP Alarm",
+                    "hint": "The sounds made when an actor takes damage while below 20% HP."
+                },
+                "rock-smash": {
+                    "label": "Field Move: Rock Smash",
+                    "hint": "The sounds made a token uses Rock Smash to destroy a breakable rock."
+                },
+                "cut": {
+                    "label": "Field Move: Cut",
+                    "hint": "The sounds made a token uses Cut to destroy a breakable plant."
+                }
+            }
+        },
+        "FieldMoves": {
+            "RockSmash": {
+                "Title": "Rock Smash",
+                "CannotUse": "This rock appears to be breakable.",
+                "CanUse": "This rock appears to be breakable. Would you like to use Rock Smash?",
+                "Used": "{name} used Rock Smash!"
+            },
+            "Cut": {
+                "Title": "Cut",
+                "CannotUse": "This tree looks like it can be cut down.",
+                "CanUse": "This tree looks like it can be cut down. Would you like to use Cut?",
+                "Used": "{name} used Cut!"
+            },
+            "Whirlpool": {
+                "Title": "Whirlpool",
+                "CannotUse": "It's a huge swirl of water.",
+                "CanUse": "It's a huge swirl of water. Would you like to use Whirlpool?",
+                "Used": "{name} used Whirlpool!"
+            },
+            "Strength": {
+                "Title": "Strength",
+                "CannotUse": "It's a big boulder, but a Pokémon may be able to push it aside.",
+                "CanUse": "It's a big boulder, but a Pokémon may be able to push it aside. Would you like to use Strength?",
+                "Used": "{name} used Strength! {name}'s Strength made it possible to move boulders around!"
+            },
+            "RockClimb": {
+                "Title": "Rock Climb",
+                "CannotUse": "The wall is very rocky...",
+                "CanUse": "The wall is very rocky... Would you like to use Rock Climb?",
+                "Used": "{name} used Rock Climb!"
+            },
+            "Waterfall": {
+                "Title": "Waterfall",
+                "CannotUse": "It's a large waterfall.",
+                "CanUse": "It's a large waterfall. Would you like to use Waterfall?",
+                "Used": "{name} used Waterfall!"
+            }
+        },
+        "PokemonCenter": {
+            "Welcome1": "Hello, and welcome to the Pokémon Center.",
+            "Welcome2": "We restore your tired Pokémon to full health.",
+            "Question": "Would you like to rest your Pokémon?",
+            "Take": "OK, I'll take your Pokémon for a few seconds.",
+            "Thank1": "Thank you for waiting.",
+            "Thank2": "We've restored your Pokémon to full health.",
+            "Goodbye": "We hope to see you again!"
+        }
+    }
+}
