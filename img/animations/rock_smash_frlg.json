@@ -25,7 +25,7 @@
         },
         "rock_smash_frlg.png_1": {
             "frame": {
-                "x": 16,
+                "x": 17,
                 "y": 0,
                 "w": 16,
                 "h": 16
@@ -43,7 +43,7 @@
         },
         "rock_smash_frlg.png_2": {
             "frame": {
-                "x": 32,
+                "x": 34,
                 "y": 0,
                 "w": 16,
                 "h": 16
@@ -61,7 +61,7 @@
         },
         "rock_smash_frlg.png_3": {
             "frame": {
-                "x": 48,
+                "x": 51,
                 "y": 0,
                 "w": 16,
                 "h": 16
@@ -79,7 +79,7 @@
         },
         "rock_smash_frlg.png_4": {
             "frame": {
-                "x": 64,
+                "x": 68,
                 "y": 0,
                 "w": 16,
                 "h": 16
