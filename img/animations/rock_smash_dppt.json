@@ -1,0 +1,431 @@
+{
+    "meta": {
+        "image": "rock_smash_dppt.png",
+        "format": "RGBA8888",
+        "scale": 1
+    },
+    "frames": {
+        "rock_smash_dppt.png_0": {
+            "frame": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_1": {
+            "frame": {
+                "x": 0,
+                "y": 80,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_2": {
+            "frame": {
+                "x": 0,
+                "y": 160,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_3": {
+            "frame": {
+                "x": 0,
+                "y": 240,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_4": {
+            "frame": {
+                "x": 0,
+                "y": 320,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_5": {
+            "frame": {
+                "x": 0,
+                "y": 400,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_6": {
+            "frame": {
+                "x": 0,
+                "y": 480,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_7": {
+            "frame": {
+                "x": 0,
+                "y": 560,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_8": {
+            "frame": {
+                "x": 0,
+                "y": 640,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_9": {
+            "frame": {
+                "x": 0,
+                "y": 720,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_10": {
+            "frame": {
+                "x": 0,
+                "y": 800,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_11": {
+            "frame": {
+                "x": 80,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_12": {
+            "frame": {
+                "x": 80,
+                "y": 80,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_13": {
+            "frame": {
+                "x": 80,
+                "y": 160,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_14": {
+            "frame": {
+                "x": 80,
+                "y": 240,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_15": {
+            "frame": {
+                "x": 80,
+                "y": 320,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_16": {
+            "frame": {
+                "x": 80,
+                "y": 400,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_17": {
+            "frame": {
+                "x": 80,
+                "y": 480,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_18": {
+            "frame": {
+                "x": 80,
+                "y": 560,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_19": {
+            "frame": {
+                "x": 80,
+                "y": 640,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_20": {
+            "frame": {
+                "x": 80,
+                "y": 720,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        },
+        "rock_smash_dppt.png_21": {
+            "frame": {
+                "x": 80,
+                "y": 800,
+                "w": 80,
+                "h": 80
+            },
+            "sourceSize": {
+                "w": 80,
+                "h": 80
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 80,
+                "h": 80
+            }
+        }
+    },
+    "animations": {
+        "play": [
+            "rock_smash_dppt.png_0",
+            "rock_smash_dppt.png_1",
+            "rock_smash_dppt.png_2",
+            "rock_smash_dppt.png_3",
+            "rock_smash_dppt.png_4",
+            "rock_smash_dppt.png_5",
+            "rock_smash_dppt.png_6",
+            "rock_smash_dppt.png_7",
+            "rock_smash_dppt.png_8",
+            "rock_smash_dppt.png_9",
+            "rock_smash_dppt.png_10",
+            "rock_smash_dppt.png_11",
+            "rock_smash_dppt.png_12",
+            "rock_smash_dppt.png_13",
+            "rock_smash_dppt.png_14",
+            "rock_smash_dppt.png_15",
+            "rock_smash_dppt.png_16",
+            "rock_smash_dppt.png_17",
+            "rock_smash_dppt.png_18",
+            "rock_smash_dppt.png_19",
+            "rock_smash_dppt.png_20",
+            "rock_smash_dppt.png_21"
+        ]
+    }
+}

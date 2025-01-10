@@ -606,6 +606,8 @@ async function TriggerClimb(climbType, to, ...args) {
     return;
   }
 
+  const grid = token?.scene?.grid;
+
   // check if we can do this
   const logic = game.modules.get(MODULENAME).api.logic;
   const fieldMoveParty = logic.FieldMoveParty(token);
@@ -644,7 +646,31 @@ async function TriggerClimb(climbType, to, ...args) {
         });
         return;
       }
-      break;
+      const preTo = to;
+      const animationOptions = {};
+
+      let seq = await new Sequence();
+      if (token.y > to.y) {
+        const dgY = Math.round((token.y - preTo.y) / (grid?.sizeY ?? 100));
+        animationOptions.duration = dgY * 100;
+
+        for (let a=0; a<dgY; a++) {
+          seq = seq.effect()
+              .atLocation(grid?.getSnappedPoint({ 
+                x: (token.x * (dgY - a) + preTo.x * (a)) / dgY,
+                y: token.y - (a * grid.sizeY)
+              }, { mode: CONST.GRID_SNAPPING_MODES.CENTER }))
+              .file("modules/pokemon-assets/img/animations/rock_smash_dppt.json")
+              .size(3, { gridUnits: true })
+              // .belowTokens()
+              .fadeOut(100)
+              .delay(a * 100);
+        }
+      }
+      seq.play();
+      await token.update(to, { animation: animationOptions });
+
+      return;
     case "waterfall":
       const hasFieldMoveWaterfall = fieldMoveParty.find(logic.CanUseWaterfall);
       if (!!hasFieldMoveWaterfall && game.settings.get(MODULENAME, "canUseWaterfall")) {
@@ -678,12 +704,10 @@ async function TriggerClimb(climbType, to, ...args) {
         });
         return;
       }
-      break;
+      await token.update(to);
+      return;
     default: return;
   }
-
-  // TODO
-  await token.update(to);
 }
 
 
