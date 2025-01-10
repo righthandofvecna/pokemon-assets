@@ -187,17 +187,17 @@ export function register() {
 
 export class VolumeSettings extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
 
-	static SFX = ["interact", "collide", "catch", "heal", "computer", "exit", "reaction-surprise", "damage", "low-hp", "rock-smash", "cut"];
+	static SFX = ["interact", "collide", "catch", "heal", "pc", "exit", "damage", "low-hp", "reaction-surprise", "rock-smash", "cut"];
 
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
     super.DEFAULT_OPTIONS,
     {
-      tag: "aside",
-      classes: ["sheet volume"],
+			tag: "form",
+      classes: ["sheet", "pokemon-assets", "settings", "volume"],
       position: {
         height: 'auto',
-        width: 'auto',
+        width: 400,
       },
       window: {
         minimizable: false,
@@ -208,7 +208,6 @@ export class VolumeSettings extends foundry.applications.api.HandlebarsApplicati
 					submitOnChange: true,
 					handler: VolumeSettings.#submit,
 			},
-			tag: "form",
     },
     { inplace: false }
   );
@@ -225,7 +224,8 @@ export class VolumeSettings extends foundry.applications.api.HandlebarsApplicati
 		for (const k of VolumeSettings.SFX) {
 			sfx[k] = {
 				key: `volume-${k}`,
-				label: k.toUpperCase(),
+				label: `POKEMON-ASSETS.Settings.Volume.${k}.label`,
+				hint: `POKEMON-ASSETS.Settings.Volume.${k}.hint`,
 				value: game.settings.get(MODULENAME, `volume-${k}`),
 			}
 		}

@@ -97,7 +97,7 @@ async function PokemonComputer(scene, regionDocument, regionBehavior, event) {
   .sound()
     .file(`modules/pokemon-assets/audio/bgs/computeropen.mp3`)
     .locally(true)
-    .volume(VolumeSettings.getVolume("computer"))
+    .volume(VolumeSettings.getVolume("pc"))
     .async()
   .play();
 

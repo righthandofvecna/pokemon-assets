@@ -46,6 +46,9 @@
   "styles": [
     "css/main.css"
   ],
+  "languages": [
+    {"lang": "en", "name": "English", "path": "lang/en.json"}
+  ],
 	"socket": true,
   "url": "https://github.com/righthandofvecna/pokemon-assets",
   "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",

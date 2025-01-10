@@ -1,0 +1,52 @@
+{
+    "POKEMON-ASSETS": {
+        "Settings": {
+            "Volume": {
+                "interact": {
+                    "label": "Interact",
+                    "hint": "The sound made when you interact with an object or dialog."
+                },
+                "collide": {
+                    "label": "Collide",
+                    "hint": "The sound made when a token collides with a wall or other token."
+                },
+                "catch": {
+                    "label": "Catch",
+                    "hint": "The sound made by Pokeballs when thrown, opened, or used to try catching a Pokemon."
+                },
+                "heal": {
+                    "label": "Heal",
+                    "hint": "The healing sound made in a Pokemon Center."
+                },
+                "pc": {
+                    "label": "PC",
+                    "hint": "The sounds made by a PC."
+                },
+                "exit": {
+                    "label": "Exit",
+                    "hint": "The sounds made when switching scenes via a door."
+                },
+                "reaction-surprise": {
+                    "label": "Reaction: Surprise",
+                    "hint": "The sounds made by a token when it is reacting in surprise."
+                },
+                "damage": {
+                    "label": "Damage",
+                    "hint": "The sounds made a token takes damage."
+                },
+                "low-hp": {
+                    "label": "Low HP Alarm",
+                    "hint": "The sounds made when a token takes damage while below 20% HP."
+                },
+                "rock-smash": {
+                    "label": "Field Move: Rock Smash",
+                    "hint": "The sounds made a token uses Rock Smash to destroy a breakable rock."
+                },
+                "cut": {
+                    "label": "Field Move: Cut",
+                    "hint": "The sounds made a token uses Cut to destroy a breakable plant."
+                }
+            }
+        }
+    }
+}
