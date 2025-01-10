@@ -1,5 +1,6 @@
 
 import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing } from "./utils.mjs";
+import { VolumeSettings } from "./settings.mjs";
 import * as socket from "./socket.mjs";
 
 /**
@@ -19,9 +20,8 @@ async function PokemonCenter(nurse, doHeal) {
       },
     });
   }
-  await talk("Hello, and welcome to the Pokémon Center.").then(()=>{
-    return talk("We restore your tired Pokémon to full health.")
-  })
+  await talk("Hello, and welcome to the Pokémon Center.");
+  await talk("We restore your tired Pokémon to full health.");
 
   if (await new Promise((resolve)=>Dialog.confirm({
     title: "Pokemon Center Nurse",
@@ -64,7 +64,7 @@ async function PokemonCenter(nurse, doHeal) {
   });
 
   await recoverySound.load();
-  await recoverySound.play({ volume: Math.clamp(game.settings.get("core", "globalInterfaceVolume"), 0, 1) });
+  await recoverySound.play({ volume: Math.clamp(game.settings.get("core", "globalInterfaceVolume") * VolumeSettings.getRawVolume("heal"), 0, 1) });
 
   await doHeal();
   await recoverySoundDone;
@@ -72,11 +72,9 @@ async function PokemonCenter(nurse, doHeal) {
   // turn the nurse back
   if (nurse?.object?.direction) nurse.object.direction = "down";
 
-  talk("Thank you for waiting.").then(()=>{
-    return talk("We've restored your Pokémon to full health.")
-  }).then(()=>{
-    return talk("We hope to see you again!");
-  })
+  await talk("Thank you for waiting.");
+  await talk("We've restored your Pokémon to full health.");
+  await talk("We hope to see you again!");
 }
 
 /**
@@ -99,7 +97,7 @@ async function PokemonComputer(scene, regionDocument, regionBehavior, event) {
   .sound()
     .file(`modules/pokemon-assets/audio/bgs/computeropen.mp3`)
     .locally(true)
-    // .audioChannel("environment")
+    .volume(VolumeSettings.getVolume("computer"))
     .async()
   .play();
 
@@ -174,7 +172,7 @@ async function TokenReact(token, reaction) {
     .sound()
       .file(`modules/pokemon-assets/audio/bgs/reactions/${reaction}.mp3`)
       .locally(false)
-      // .audioChannel("environment")
+      .volume(VolumeSettings.getVolume(`reaction-${reaction}`))
     .effect()
       .file(`modules/pokemon-assets/img/reactions/${reaction}.png`, { antialiasing: PIXI.SCALE_MODES.NEAREST })
       .atLocation(destination)
@@ -265,6 +263,7 @@ async function SwitchScenes(newScene, newAttributes, ...args) {
   await new Sequence({ moduleName: "pokemon-assets", softFail: true })
     .sound()
       .file("modules/pokemon-assets/audio/bgs/exit.mp3")
+      .volume(VolumeSettings.getVolume("exit"))
       .forUsers([user.id])
       .async()
     .play();
@@ -376,7 +375,8 @@ async function IndicateDamage(actor, token, lowHp) {
 
   let sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
   sequence = sequence.sound()
-      .file(`modules/pokemon-assets/audio/bgs/hit.mp3`);
+      .file(`modules/pokemon-assets/audio/bgs/hit.mp3`)
+      .volume(VolumeSettings.getVolume("damage"));
   if (!!token) {
     sequence = sequence.animation()
         .on(token)
@@ -405,6 +405,7 @@ async function IndicateDamage(actor, token, lowHp) {
     sequence = sequence
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/low-hp.mp3`)
+        .volume(VolumeSettings.getVolume("low-hp"))
         // .audioChannel("interface")
         .forUsers(users);
   }
@@ -430,10 +431,12 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
     "modules/pokemon-assets/audio/bgs/pokeball-escape.mp3",
   ]);
 
+  const volume = VolumeSettings.getVolume("catch");
   let sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
   sequence = sequence
     .sound()
       .file(`modules/pokemon-assets/audio/bgs/pokeball-throw.mp3`)
+      .volume(volume)
     .effect()
       .file(img)
       .atLocation(source)
@@ -446,6 +449,7 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
       .async()
     .sound()
       .file(`modules/pokemon-assets/audio/bgs/pokeball-drop.mp3`)
+      .volume(volume)
       .async();
 
   if (!hit) {
@@ -468,6 +472,7 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
     sequence = sequence
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/pokeball-shake.mp3`)
+        .volume(volume)
       .effect()
         .file(img)
         .atLocation(target)
@@ -481,6 +486,7 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
     sequence = sequence
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/pokeball-caught.mp3`)
+        .volume(volume)
       .effect()
         .file(img)
         .tint("#555555")
@@ -492,6 +498,7 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
     sequence = sequence
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/pokeball-escape.mp3`)
+        .volume(volume)
       .animation()
         .on(target)
         .show();
@@ -508,6 +515,7 @@ async function Interact() {
     await new Sequence({ moduleName: MODULENAME, softFail: true })
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/a-button.mp3`)
+        .volume(VolumeSettings.getVolume("interact"))
         .locally(true)
         .async()
       .play();
@@ -525,6 +533,7 @@ async function TriggerRockSmash(tile) {
   await new Sequence()
     .sound()
       .file(`modules/pokemon-assets/audio/bgs/field-move-rock-smash.mp3`)
+      .volume(VolumeSettings.getVolume("rock-smash"))
     .animation()
       .on(tile)
       .delay(100)
@@ -551,6 +560,7 @@ async function TriggerCut(tile) {
   await new Sequence()
     .sound()
       .file(`modules/pokemon-assets/audio/bgs/field-move-cut.mp3`)
+      .volume(VolumeSettings.getVolume("cut"))
     .animation()
       .on(tile)
       .delay(100)

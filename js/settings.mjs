@@ -2,6 +2,16 @@ import { MODULENAME } from "./utils.mjs";
 
 export function register() {
 
+	game.settings.registerMenu(MODULENAME, "volume", {
+		name: "Volume",
+		label: "SFX Volume",
+		icon: "fa-solid fa-volume",
+		hint: "Volume settings for individual sound effects",
+		restricted: false,
+		type: VolumeSettings,
+	});
+	VolumeSettings.initSettings();
+
   game.settings.register(MODULENAME, "preloadAssets", {
 		name: "Preload Assets",
 		default: true,
@@ -173,3 +183,96 @@ export function register() {
 	});
 
 };
+
+
+export class VolumeSettings extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+
+	static SFX = ["interact", "collide", "catch", "heal", "computer", "exit", "reaction-surprise", "damage", "low-hp", "rock-smash", "cut"];
+
+
+	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+    super.DEFAULT_OPTIONS,
+    {
+      tag: "aside",
+      classes: ["sheet volume"],
+      position: {
+        height: 'auto',
+        width: 'auto',
+      },
+      window: {
+        minimizable: false,
+        resizable: false,
+      },
+			form: {
+					closeOnSubmit: false,
+					submitOnChange: true,
+					handler: VolumeSettings.#submit,
+			},
+			tag: "form",
+    },
+    { inplace: false }
+  );
+
+	static PARTS = {
+		modifiers: {
+				id: "volume-settings",
+				template: "modules/pokemon-assets/templates/volume-settings.hbs",
+		},
+	};
+
+	async _prepareContext() {
+		const sfx = {};
+		for (const k of VolumeSettings.SFX) {
+			sfx[k] = {
+				key: `volume-${k}`,
+				label: k.toUpperCase(),
+				value: game.settings.get(MODULENAME, `volume-${k}`),
+			}
+		}
+    return {
+			sfx,
+    }
+  }
+
+	static getVolume(k) {
+		// Convert from "perceived volume" to "power" (which is what sequencer's volume settings use for some reason)
+		// normalized to a range [0.0, 1.0]
+		const perceivedToPower = (perceivedVolume) => 10**perceivedVolume / 9 - (1 / 9);
+		try {
+			const perceivedVolume = game.settings.get(MODULENAME, `volume-${k}`);
+			return perceivedToPower(perceivedVolume);
+		} catch (e) {
+			return perceivedToPower(0.5);
+		}
+	}
+
+	static getRawVolume(k) {
+		try {
+			return game.settings.get(MODULENAME, `volume-${k}`);
+		} catch (e) {
+			return 0.5;
+		}
+	}
+
+	static async #submit(event, form, formData) {
+		console.log("VolumeSettings.#submit", formData);
+		for (const [key, value] of Object.entries(formData?.object ?? {})) {
+			await game.settings.set(MODULENAME, key, value);
+		}
+	}
+
+	static initSettings() {
+		for (const k of VolumeSettings.SFX) {
+			game.settings.register(MODULENAME, `volume-${k}`, {
+				name: `SFX Volume: ${k}`,
+				default: 0.5,
+				type: Number,
+				scope: "client",
+				requiresReload: false,
+				config: false,
+				hint: `The volume of the ${k} sound effect.`
+			});
+		}
+	}
+
+}
