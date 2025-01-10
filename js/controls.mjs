@@ -232,7 +232,7 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         width: canvas.grid.sizeX,
         height: canvas.grid.sizeY,
         texture: {
-          src: "modules/pokemon-assets/img/animations/whirlpool_gsc.webm",
+          src: "modules/pokemon-assets/img/animations/whirlpool_frlg.webm",
         },
         x,
         y,
