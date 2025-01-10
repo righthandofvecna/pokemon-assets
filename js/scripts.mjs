@@ -14,29 +14,29 @@ async function PokemonCenter(nurse, doHeal) {
 
   const talk = async function(text, ms=1500) {
     await Dialog.prompt({
-      content: `<p>${text}</p>`,
+      content: `<p>${game.i18n.localize(text)}</p>`,
       options: {
         pokemon: true,
       },
     });
   }
-  await talk("Hello, and welcome to the Pokémon Center.");
-  await talk("We restore your tired Pokémon to full health.");
+  await talk("POKEMON-ASSETS.PokemonCenter.Welcome1");
+  await talk("POKEMON-ASSETS.PokemonCenter.Welcome2");
 
   if (await new Promise((resolve)=>Dialog.confirm({
     title: "Pokemon Center Nurse",
-    content: "Would you like to rest your Pokémon?",
+    content: game.i18n.localize("POKEMON-ASSETS.PokemonCenter.Question"),
     yes: ()=>resolve(false),
     no: ()=>resolve(true),
     options: {
       pokemon: true,
     },
   }))) {
-    await talk("We hope to see you again!");
+    await talk("POKEMON-ASSETS.PokemonCenter.Goodbye");
     return;
   };
 
-  await talk("OK, I'll take your Pokémon for a few seconds.");
+  await talk("POKEMON-ASSETS.PokemonCenter.Take");
 
   // turn the nurse
   if (nurse?.object?.direction) nurse.object.direction = "left";
@@ -72,9 +72,9 @@ async function PokemonCenter(nurse, doHeal) {
   // turn the nurse back
   if (nurse?.object?.direction) nurse.object.direction = "down";
 
-  await talk("Thank you for waiting.");
-  await talk("We've restored your Pokémon to full health.");
-  await talk("We hope to see you again!");
+  await talk("POKEMON-ASSETS.PokemonCenter.Thank1");
+  await talk("POKEMON-ASSETS.PokemonCenter.Thank2");
+  await talk("POKEMON-ASSETS.PokemonCenter.Goodbye");
 }
 
 /**
@@ -625,35 +625,10 @@ async function TriggerClimb(climbType, to, ...args) {
   switch (climbType) {
     case "rocky-wall":
       const hasFieldMoveRockClimb = fieldMoveParty.find(logic.CanUseRockClimb);
-      if (!!hasFieldMoveRockClimb && game.settings.get(MODULENAME, "canUseRockClimb")) {
-        if (token._climbing || await new Promise((resolve)=>Dialog.confirm({
-          title: "Rock Climb",
-          content: "The wall is very rocky... Would you like to use Rock Climb?",
-          yes: ()=>resolve(true),
-          no: ()=>resolve(false),
-          options: {
-            pokemon: true,
-          },
-        }))) {
-          await Dialog.prompt({
-            content: `<p>${hasFieldMoveRockClimb?.name} used Rock Climb!</p>`,
-            options: {
-              pokemon: true,
-            },
-          });
-          // set a volatile local variable that this token is currently using Rock Climb
-          token._climbing = true;
-        } else {
-          return;
-        }
+      if (await UseFieldMove("RockClimb", hasFieldMoveRockClimb, !!hasFieldMoveRockClimb && game.settings.get(MODULENAME, "canUseRockClimb"), token._climbing)) {
+        // set a volatile local variable that this token is currently using Rock Climb
+        token._climbing = true;
       } else {
-        Dialog.prompt({
-          title: "Rock Climb",
-          content: "The wall is very rocky...",
-          options: {
-            pokemon: true,
-          },
-        });
         return;
       }
       const preTo = to;
@@ -683,40 +658,48 @@ async function TriggerClimb(climbType, to, ...args) {
       return;
     case "waterfall":
       const hasFieldMoveWaterfall = fieldMoveParty.find(logic.CanUseWaterfall);
-      if (!!hasFieldMoveWaterfall && game.settings.get(MODULENAME, "canUseWaterfall")) {
-        if (token._waterfall || await new Promise((resolve)=>Dialog.confirm({
-          title: "Waterfall",
-          content: "It's a large waterfall. Would you like to use Waterfall?",
-          yes: ()=>resolve(true),
-          no: ()=>resolve(false),
-          options: {
-            pokemon: true,
-          },
-        }))) {
-          await Dialog.prompt({
-            content: `<p>${hasFieldMoveWaterfall?.name} used Waterfall!</p>`,
-            options: {
-              pokemon: true,
-            },
-          });
-          // set a volatile local variable that this token is currently using Waterfall
-          token._waterfall = true;
-        } else {
-          return;
-        }
+      if (await UseFieldMove("Waterfall", hasFieldMoveWaterfall, !!hasFieldMoveWaterfall && game.settings.get(MODULENAME, "canUseWaterfall"), token._waterfall)) {
+        // set a volatile local variable that this token is currently using Waterfall
+        token._waterfall = true;
       } else {
-        Dialog.prompt({
-          title: "Waterfall",
-          content: "It's a large waterfall.",
-          options: {
-            pokemon: true,
-          },
-        });
         return;
       }
       await token.update(to);
       return;
     default: return;
+  }
+}
+
+export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
+  if (canUse) {
+    if (skipQuery|| await new Promise((resolve)=>Dialog.confirm({
+      title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
+      content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CanUse`),
+      yes: ()=>resolve(true),
+      no: ()=>resolve(false),
+      options: {
+        pokemon: true,
+      },
+    }))) {
+      await Dialog.prompt({
+        title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
+        content: game.i18n.format(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Used`, { name: who?.name}),
+        options: {
+          pokemon: true,
+        },
+      });
+      return true;
+    };
+    return false;
+  } else {
+    Dialog.prompt({
+      title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
+      content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CannotUse`),
+      options: {
+        pokemon: true,
+      },
+    });
+    return false;
   }
 }
 
@@ -961,6 +944,7 @@ export function register() {
     TokenHasDirection,
     UserPaintArea,
     UserChooseDirections,
+    UseFieldMove,
     TriggerRockSmash,
     TriggerCut,
     TriggerClimb,

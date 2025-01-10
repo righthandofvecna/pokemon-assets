@@ -1,5 +1,6 @@
 
 import { MODULENAME, sleep, isFacing } from "./utils.mjs";
+import { UseFieldMove } from "./scripts.mjs";
 import * as socket from "./socket.mjs";
 
 
@@ -156,128 +157,34 @@ async function OnInteract() {
     const hasFieldMoveWhirlpool = fieldMoveParty.find(logic.CanUseWhirlpool);
     const hasFieldMoveStrength = fieldMoveParty.find(logic.CanUseStrength);
 
-    if (!!hasFieldMoveRockSmash && game.settings.get(MODULENAME, "canUseRockSmash")) {
+    if (smashable.length > 0 && await UseFieldMove("RockSmash", hasFieldMoveRockSmash, !!hasFieldMoveRockSmash && game.settings.get(MODULENAME, "canUseRockSmash"), token._smashing)) {
       smashable.forEach(async (rs)=>{
-        if (token._smashing || await new Promise((resolve)=>Dialog.confirm({
-          title: "Rock Smash",
-          content: "This rock appears to be breakable. Would you like to use Rock Smash?",
-          yes: ()=>resolve(true),
-          no: ()=>resolve(false),
-          options: {
-            pokemon: true,
-          },
-        }))) {
-          await Dialog.prompt({
-            content: `<p>${hasFieldMoveRockSmash?.name} used Rock Smash!</p>`,
-            options: {
-              pokemon: true,
-            },
-          });
-          // set a volatile local variable that this token is currently using Rock Smash
-          token._smashing = true;
-          await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
-        };
-      });
-    } else if (smashable.length > 0) {
-      Dialog.prompt({
-        title: "Rock Smash",
-        content: "This rock appears to be breakable.",
-        options: {
-          pokemon: true,
-        },
+        // set a volatile local variable that this token is currently using Rock Smash
+        token._smashing = true;
+        await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
       });
     }
 
-    if (!!hasFieldMoveCut && game.settings.get(MODULENAME, "canUseCut")) {
+    if (cuttable.length > 0 && await UseFieldMove("Cut", hasFieldMoveCut, !!hasFieldMoveCut && game.settings.get(MODULENAME, "canUseCut"), token._cutting)) {
       cuttable.forEach(async (rs)=>{
-        if (token._cutting || await new Promise((resolve)=>Dialog.confirm({
-          title: "Cut",
-          content: "This tree looks like it can be cut down. Would you like to use Cut?",
-          yes: ()=>resolve(true),
-          no: ()=>resolve(false),
-          options: {
-            pokemon: true,
-          },
-        }))) {
-          await Dialog.prompt({
-            content: `<p>${hasFieldMoveCut?.name} used Cut!</p>`,
-            options: {
-              pokemon: true,
-            },
-          });
-          // set a volatile local variable that this token is currently using Cut
-          token._cutting = true;
-          await soc.executeAsGM("triggerCut", rs.document.uuid);
-        };
-      });
-    } else if (cuttable.length > 0) {
-      Dialog.prompt({
-        title: "Cut",
-        content: "This tree looks like it can be cut down.",
-        options: {
-          pokemon: true,
-        },
+        // set a volatile local variable that this token is currently using Cut
+        token._cutting = true;
+        await soc.executeAsGM("triggerCut", rs.document.uuid);
       });
     }
 
-    if (!!hasFieldMoveWhirlpool && game.settings.get(MODULENAME, "canUseWhirlpool")) {
+    if (whirlpool.length > 0 && await UseFieldMove("Whirlpool", hasFieldMoveWhirlpool, !!hasFieldMoveWhirlpool && game.settings.get(MODULENAME, "canUseWhirlpool"), token._whirlpool)) {
       whirlpool.forEach(async (rs)=>{
-        if (token._whirlpool || await new Promise((resolve)=>Dialog.confirm({
-          title: "Whirlpool",
-          content: "It's a huge swirl of water. Would you like to use Whirlpool?",
-          yes: ()=>resolve(true),
-          no: ()=>resolve(false),
-          options: {
-            pokemon: true,
-          },
-        }))) {
-          await Dialog.prompt({
-            content: `<p>${hasFieldMoveWhirlpool?.name} used Whirlpool!</p>`,
-            options: {
-              pokemon: true,
-            },
-          });
-          // set a volatile local variable that this token is currently using whirlpool
-          token._whirlpool = true;
-          await soc.executeAsGM("triggerWhirlpool", rs.document.uuid);
-        };
-      });
-    } else if (whirlpool.length > 0) {
-      Dialog.prompt({
-        title: "Whirlpool",
-        content: "It's a huge swirl of water.",
-        options: {
-          pokemon: true,
-        },
+        // set a volatile local variable that this token is currently using Whirlpool
+        token._whirlpool = true;
+        await soc.executeAsGM("triggerWhirlpool", rs.document.uuid);
       });
     }
 
-    if (!!hasFieldMoveStrength && game.settings.get(MODULENAME, "canUseStrength") && pushable.length > 0) {
-      if (!token._pushing && await new Promise((resolve)=>Dialog.confirm({
-        title: "Strength",
-        content: "It's a big boulder, but a Pokémon may be able to push it aside. Would you like to use Strength?",
-        yes: ()=>resolve(true),
-        no: ()=>resolve(false),
-        options: {
-          pokemon: true,
-        },
-      }))) {
-        await Dialog.prompt({
-          content: `<p>${hasFieldMoveStrength?.name} used Strength! ${hasFieldMoveStrength?.name}'s Strength made it possible to move boulders around!</p>`,
-          options: {
-            pokemon: true,
-          },
-        });
+    if (pushable.length > 0 && await UseFieldMove("Strength", hasFieldMoveStrength, !!hasFieldMoveStrength && game.settings.get(MODULENAME, "canUseStrength"), token._pushing)) {
+      pushable.forEach(async (rs)=>{
         // set a volatile local variable that this token is currently using Strength
         token._pushing = true;
-      };
-    } else if (pushable.length > 0) {
-      Dialog.prompt({
-        title: "Strength",
-        content: "It's a big boulder, but a Pokémon may be able to push it aside.",
-        options: {
-          pokemon: true,
-        },
       });
     }
   }
