@@ -20,7 +20,7 @@ async function OnRenderTokenConfig(config, html, context) {
   /**
    * Recalculate all the computed fields, create them if they don't exist, and update them.
    */
-  const refreshConfig = async function () {
+  const refreshConfig = async function ({ updateScale } = { updateScale: true }) {
     const rawSrc = form.querySelector("[name='texture.src'] input[type='text']")?.value ?? form.querySelector("[name='texture.src'][type='text']")?.value;
     const src = (()=>{
       if (rawSrc.startsWith("modules/pokemon-assets/img")) return rawSrc;
@@ -52,7 +52,7 @@ async function OnRenderTokenConfig(config, html, context) {
     form.querySelector("[name='flags.pokemon-assets.spritesheet']").readonly = isPredefined;
 
     // additional spritesheet-specific configurations
-    data.isPmd = data.sheetstyle == "pmd";
+    data.showframes = (form.querySelector("[name='flags.pokemon-assets.sheetstyle']")?.value ?? data.sheetstyle) != "trainer3";
     data.hide = !data.spritesheet || isPredefined;
     const rendered = $(await renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
     if (!form.querySelector(".spritesheet-config")) {
@@ -74,7 +74,31 @@ async function OnRenderTokenConfig(config, html, context) {
       form.querySelector("[name='texture.anchorX']").value = 0.5;
       form.querySelector("[name='texture.anchorY']").value = 0.5;
       return;
+    } else {
+      switch (game.system.id) {
+        case "ptu":
+          if (token?.flags?.ptu?.autoscale) {
+            await token.setFlag("ptu", "autoscale", false).then(()=>refreshConfig({ updateScale }));
+            return;
+          }
+          break;
+        case "ptr2e":
+          if (token?.flags?.ptr2e?.autoscale) {
+            await token.setFlag("ptr2e", "autoscale", false).then(()=>refreshConfig({ updateScale }));
+            return;
+          }
+          break;
+      }
     };
+
+    const scaleFormEl = form.querySelector("input[name='scale']");
+    if (updateScale && !!scaleFormEl) {
+      scaleFormEl.value = data.scale ?? 1;
+      const scaleFormLabel = $(scaleFormEl).next();
+      if (scaleFormLabel.is(".range-value")) {
+        scaleFormLabel.text(`${data.scale ?? 1}`);
+      }
+    }
 
     const texture = await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
     const { width, height } = texture ?? {};
@@ -107,9 +131,9 @@ async function OnRenderTokenConfig(config, html, context) {
   // listeners
   //
 
-  $(html).find("[name='texture.src'] input[type='text'], input[name='texture.src'][type='text']").on("change", refreshConfig);
+  $(form).on("change", "[name='texture.src'] input[type='text'], input[name='texture.src'][type='text']", refreshConfig);
   // dumb workaround to listen on the filepicker button too
-  $(html).find("[name='texture.src'] button").on("click", function () {
+  $(form).on("click", "[name='texture.src'] button", function () {
     const filePicker = $(this).closest("file-picker")?.get(0)?.picker;
     if (!filePicker) return;
     filePicker.callback = ((callback)=>{
@@ -121,14 +145,14 @@ async function OnRenderTokenConfig(config, html, context) {
   })
 
   // listen for the "spritesheet" toggle
-  $(html).find("[name='flags.pokemon-assets.spritesheet']").on("change", refreshConfig);
+  $(form).on("change", "[name='flags.pokemon-assets.spritesheet']", refreshConfig);
 
-  $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", refreshConfig);
+  $(form).on("change", "[name='flags.pokemon-assets.sheetstyle']", refreshConfig);
 
-  $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", refreshConfig);
+  $(form).on("change", "[name='flags.pokemon-assets.animationframes']", refreshConfig);
 
   // listen for the "scale" value
-  $(html).find("[name='scale']").on("change", refreshConfig);
+  $(form).on("change", "[name='scale']", ()=>refreshConfig({updateScale: false}));
 }
 
 
