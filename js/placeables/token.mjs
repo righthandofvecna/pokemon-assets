@@ -52,7 +52,7 @@ async function OnRenderTokenConfig(config, html, context) {
     form.querySelector("[name='flags.pokemon-assets.spritesheet']").readonly = isPredefined;
 
     // additional spritesheet-specific configurations
-    data.isPmd = data.sheetstyle == "pmd";
+    data.showframes = (form.querySelector("[name='flags.pokemon-assets.sheetstyle']")?.value ?? data.sheetstyle) != "trainer3";
     data.hide = !data.spritesheet || isPredefined;
     const rendered = $(await renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
     if (!form.querySelector(".spritesheet-config")) {
@@ -131,9 +131,9 @@ async function OnRenderTokenConfig(config, html, context) {
   // listeners
   //
 
-  $(html).find("[name='texture.src'] input[type='text'], input[name='texture.src'][type='text']").on("change", refreshConfig);
+  $(form).on("change", "[name='texture.src'] input[type='text'], input[name='texture.src'][type='text']", refreshConfig);
   // dumb workaround to listen on the filepicker button too
-  $(html).find("[name='texture.src'] button").on("click", function () {
+  $(form).on("click", "[name='texture.src'] button", function () {
     const filePicker = $(this).closest("file-picker")?.get(0)?.picker;
     if (!filePicker) return;
     filePicker.callback = ((callback)=>{
@@ -145,14 +145,14 @@ async function OnRenderTokenConfig(config, html, context) {
   })
 
   // listen for the "spritesheet" toggle
-  $(html).find("[name='flags.pokemon-assets.spritesheet']").on("change", refreshConfig);
+  $(form).on("change", "[name='flags.pokemon-assets.spritesheet']", refreshConfig);
 
-  $(html).find("[name='flags.pokemon-assets.sheetstyle']").on("change", refreshConfig);
+  $(form).on("change", "[name='flags.pokemon-assets.sheetstyle']", refreshConfig);
 
-  $(html).find("[name='flags.pokemon-assets.animationframes']").on("change", refreshConfig);
+  $(form).on("change", "[name='flags.pokemon-assets.animationframes']", refreshConfig);
 
   // listen for the "scale" value
-  $(html).find("[name='scale']").on("change", ()=>refreshConfig({updateScale: false}));
+  $(form).on("change", "[name='scale']", ()=>refreshConfig({updateScale: false}));
 }
 
 
