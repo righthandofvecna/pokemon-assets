@@ -274,7 +274,11 @@ function HasMoveFunction(slug) {
   };
 }
 
-
+// re-prepare the token document on render? to account for weird size issues
+function Token_applyRenderFlags(wrapped, flags) {
+  TokenDocument.prototype.prepareData.apply(this.document);
+  wrapped(flags);
+}
 
 /**
  * Overridden for the purposes of mega evolutions
@@ -345,6 +349,7 @@ export function register() {
 
   Hooks.on("preCreateToken", OnPreCreateToken);
   libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
+  libWrapper.register(MODULENAME, "CONFIG.Token.objectClass.prototype._applyRenderFlags", Token_applyRenderFlags, "WRAPPER");
 
   libWrapper.register(MODULENAME, "CONFIG.ActiveEffect.dataModels.passive.schema.fields.changes.element.types.token-alterations.model.prototype.apply", TokenAlterations_apply, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Token.documentClass.prototype.prepareDerivedData", TokenDocument_prepareDerivedData, "WRAPPER");
