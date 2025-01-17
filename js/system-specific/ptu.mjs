@@ -190,7 +190,7 @@ function TokenImageRuleElement_afterPrepareData(wrapped, ...args) {
   if (game.settings.get(MODULENAME, "autoOverrideMegaEvolutionSprite")) {
     // check if this is a mega evolution that we have a sprite for
     const foundMegaEvo = (()=>{
-      const basename = this.value.substring(this.value.lastIndexOf("/"), this.value.lastIndexOf("."));
+      const basename = this.value.substring(this.value.lastIndexOf("/")+1, this.value.lastIndexOf("."));
       if (!basename) return false;
 
       const alternateForm = basename.substring(basename.indexOf("_"));

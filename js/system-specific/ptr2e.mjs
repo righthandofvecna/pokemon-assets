@@ -276,6 +276,68 @@ function HasMoveFunction(slug) {
 
 
 
+/**
+ * Overridden for the purposes of mega evolutions
+ */
+function TokenAlterations_apply(wrapped, ...args) {
+  wrapped(...args);
+  if (!this.test()) return;
+
+  if (true || game.settings.get(MODULENAME, "autoOverrideMegaEvolutionSprite")) {
+    // check if this is a mega evolution that we have a sprite for
+    const foundMegaEvo = (()=>{
+      const basename = this.texture.substring(this.texture.lastIndexOf("/")+1, this.texture.lastIndexOf("."));
+      if (!basename) return false;
+
+      const src = (()=>{
+        for (const src of Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) {
+          if (src.toLowerCase().includes(basename.toLowerCase())) return src;
+        }
+      })();
+
+      if (!src) return false;
+      const spritesheetSettings = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
+
+      this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, {
+        "flags.pokemon-assets": {
+          spritesheet: true,
+          sheetstyle: spritesheetSettings.sheetstyle,
+          animationframes: spritesheetSettings.animationframes,
+        },
+        "texture.src": src,
+        "texture.scale": spritesheetSettings.scale,
+        "texture.anchorY": spritesheetSettings.anchor,
+      });
+      return true;
+    })();
+    if (foundMegaEvo) return;
+  }
+
+  // if not, disable spritesheet processing
+  this.actor.synthetics.tokenOverrides.flags ??= {};
+  this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= { spritesheet: false };
+  this.actor.synthetics.tokenOverrides.rotation ??= 0; // force rotation to be 0
+}
+
+
+/**
+ * Overridden for the purposes of mega evolutions, setting flags
+ */
+function TokenDocument_prepareDerivedData(wrapped, ...args) {
+  wrapped(...args);
+  if (!(this.actor && this.scene)) return;
+  const { tokenOverrides } = this.actor.synthetics;
+
+  if (tokenOverrides.flags) {
+    this.flags = foundry.utils.mergeObject(this.flags, tokenOverrides.flags);
+  }
+
+  if (tokenOverrides.rotation !== undefined) {
+    this.rotation = tokenOverrides.rotation;
+  }
+}
+
+
 export function register() {
   if (early_isGM) {
     Hooks.on("createChatMessage", OnCreateChatMessage);
@@ -283,6 +345,9 @@ export function register() {
 
   Hooks.on("preCreateToken", OnPreCreateToken);
   libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
+
+  libWrapper.register(MODULENAME, "CONFIG.ActiveEffect.dataModels.passive.schema.fields.changes.element.types.token-alterations.model.prototype.apply", TokenAlterations_apply, "WRAPPER");
+  libWrapper.register(MODULENAME, "CONFIG.Token.documentClass.prototype.prepareDerivedData", TokenDocument_prepareDerivedData, "WRAPPER");
 
   const module = game.modules.get(MODULENAME);
   module.api ??= {};
