@@ -27,7 +27,7 @@ export function register() {
 		default: true,
 		type: Boolean,
 		scope: "world",
-		requiresReload: false,
+		requiresReload: true,
 		config: true,
 		hint: "Avoid blurring the canvas and tokens when they get scaled up."
 	});
@@ -42,6 +42,16 @@ export function register() {
 		hint: "Preload audio playlist when switching to a scene, and when a combat is completed, move to the next track."
 	});
 
+  game.settings.register(MODULENAME, "autoTrainerImage", {
+		name: "Auto Set Trainer Profile Image",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Automatically set the profile image of a Trainer to a random trainer upon creation."
+	});
+
   game.settings.register(MODULENAME, "autoSetTokenSprite", {
 		name: "Auto Set Token Sprite",
 		default: true,
@@ -50,6 +60,16 @@ export function register() {
 		requiresReload: false,
 		config: true,
 		hint: "Automatically set the token sprite of a Pokemon to one defined in this module when the actor is created."
+	});
+
+  game.settings.register(MODULENAME, "autoMatchTokenSprite", {
+		name: "Auto Match Token Sprite",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Automatically set the token sprite of a Trainer to the matching overworld spritesheet when you set the trainer's profile sprite."
 	});
 
 	game.settings.register(MODULENAME, "autoOverrideMegaEvolutionSprite", {

@@ -1,5 +1,6 @@
 import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
+import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
 /**
  * A Chat Message listener, that should only be run on the GM's client
@@ -124,22 +125,39 @@ function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
   if (!src || !(src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) return;
 
-  const data = {...SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src]};
-  data.spritesheet = true;
-  const updates = {
-    "flags.pokemon-assets": data,
-  };
-  if ("scale" in data || "anchor" in data) {
-    updates["flags.ptr2e.autoscale"] = false;
-    updates["texture.scaleX"] = updates["texture.scaleY"] = data.scale ?? 1;
-    updates["texture.fit"] = "width";
-    updates["texture.anchorX"] = 0.5;
-    updates["texture.anchorY"] = data.anchor ?? 0.5;
-    delete data.scale;
-    delete data.anchor;
-  }
-
+  const updates = _getTokenChangesForSpritesheet(src);
   token.updateSource(updates);
+}
+
+function OnPreCreateActor(actor, data) {
+  if (!game.settings.get(MODULENAME, "autoTrainerImage")) return;
+  if ((data.type ?? actor.type) !== "humanoid") return;
+  if (!(data.img ?? actor.img).includes("icons/svg/mystery-man.svg")) return;
+
+  const img = (()=>{
+    let possibleImages = Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS).filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+    const gender = (()=>{
+      const genderSet = (data?.system?.sex ?? actor?.system?.sex ?? "genderless").toLowerCase().trim();
+      if (genderSet === "genderless") return "";
+      if (["f", "female", "girl", "woman", "lady", "she", "feminine", "fem", "dame", "gal", "lass", "lassie", "madam", "maiden", "doll", "mistress"].includes(genderSet)) {
+        return "_f_";
+      }
+      return "_m_";
+    })();
+    possibleImages = possibleImages.filter(k=>k.includes(gender));
+    // TODO: maybe filter also based on some mapping of perks to the official pokemon trainer classes?
+    if (possibleImages.length === 0) return null;
+    return possibleImages[~~(Math.random() * possibleImages.length)];
+  })();
+  if (!img) return;
+
+
+  const updates = {
+    img: `modules/pokemon-assets/img/trainers-profile/${img}`,
+    prototypeToken: _getTokenChangesForSpritesheet(`modules/pokemon-assets/img/trainers-overworld/${img}`),
+  }
+  foundry.utils.mergeObject(data, foundry.utils.deepClone(updates));
+  actor.updateSource(updates);
 }
 
 
@@ -274,6 +292,11 @@ function HasMoveFunction(slug) {
   };
 }
 
+
+// 
+
+
+
 // re-prepare the token document on render? to account for weird size issues
 function Token_applyRenderFlags(wrapped, flags) {
   TokenDocument.prototype.prepareData.apply(this.document);
@@ -300,18 +323,8 @@ function TokenAlterations_apply(wrapped, ...args) {
       })();
 
       if (!src) return false;
-      const spritesheetSettings = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
 
-      this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, {
-        "flags.pokemon-assets": {
-          spritesheet: true,
-          sheetstyle: spritesheetSettings.sheetstyle,
-          animationframes: spritesheetSettings.animationframes,
-        },
-        "texture.src": src,
-        "texture.scale": spritesheetSettings.scale,
-        "texture.anchorY": spritesheetSettings.anchor,
-      });
+      this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, _getTokenChangesForSpritesheet(src));
       return true;
     })();
     if (foundMegaEvo) return;
@@ -348,6 +361,7 @@ export function register() {
   }
 
   Hooks.on("preCreateToken", OnPreCreateToken);
+  Hooks.on("preCreateActor", OnPreCreateActor);
   libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Token.objectClass.prototype._applyRenderFlags", Token_applyRenderFlags, "WRAPPER");
 

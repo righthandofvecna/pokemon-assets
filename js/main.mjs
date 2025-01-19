@@ -1,6 +1,7 @@
 
 import * as settings from "./settings.mjs";
 import * as preload from "./preload.mjs";
+import * as actor from "./actor.mjs";
 import * as audio from "./audio.mjs";
 import * as controls from "./controls.mjs";
 import * as dialog from "./dialog.mjs";
@@ -16,6 +17,7 @@ import * as socket from "./socket.mjs";
 Hooks.on("init", ()=>{
   for (const m of [settings,
     preload,
+    actor,
     audio,
     controls,
     dialog,
