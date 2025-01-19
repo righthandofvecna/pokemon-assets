@@ -1,5 +1,6 @@
 import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
+import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
 /**
  * A Chat Message listener, that should only be run on the GM's client
@@ -110,11 +111,7 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
   if (!src) return {};
   
   const updates = {
-    "prototypeToken.texture.src": src,
-    "prototypeToken.flags.pokemon-assets": {
-      spritesheet: true,
-      ...SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src],
-    }
+    "prototypeToken": _getTokenChangesForSpritesheet(src),
   };
   return updates;
 }
@@ -125,14 +122,56 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
  * @param {*} actor
  * @returns 
  */
-function OnPreCreateActor(actor) {
+function OnPreCreateActor(actor, data) {
   if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
-  if (actor.type !== "pokemon") return;
-  const species = actor.items.find(i=>i.type === "species");
-  if (!species) return;
 
-  const updates = _getPrototypeTokenUpdates(actor, species);
-  actor.updateSource(updates);
+  if (actor.type === "pokemon") {
+    const species = actor.items.find(i=>i.type === "species");
+    if (!species) return;
+  
+    const updates = _getPrototypeTokenUpdates(actor, species);
+    actor.updateSource(updates);
+    return;
+  }
+
+  if (actor.type === "character") {
+    if (!game.settings.get(MODULENAME, "autoTrainerImage")) return;
+    if (!(data.img ?? actor.img ?? "icons/svg/mystery-man.svg").includes("icons/svg/mystery-man.svg")) return;
+  
+    const img = (()=>{
+      let possibleImages = Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS).filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+      const sex = (()=>{
+        const sexSet = data?.system?.sex ?? actor?.system?.sex;
+        if (!sexSet) return "";
+        if (["f", "female", "girl", "woman", "lady", "she", "feminine", "fem", "dame", "gal", "lass", "lassie", "madam", "maiden", "doll", "mistress"].includes(sexSet.toLowerCase().trim())) {
+          return "_f_";
+        }
+        return "_m_";
+      })();
+      possibleImages = possibleImages.filter(k=>k.includes(sex));
+      // TODO: maybe filter also based on some mapping of classes to the official pokemon trainer classes?
+      if (possibleImages.length === 0) return null;
+      return possibleImages[~~(Math.random() * possibleImages.length)];
+    })();
+    if (!img) return;
+
+    const updates = {
+      img: `modules/pokemon-assets/img/trainers-profile/${img}`,
+      prototypeToken: _getTokenChangesForSpritesheet(`modules/pokemon-assets/img/trainers-overworld/${img}`),
+    }
+    foundry.utils.mergeObject(data, foundry.utils.deepClone(updates));
+    actor.updateSource(updates);
+    return;
+  }
+  
+}
+
+// Disable the autoscaling
+function OnPreCreateToken(token, data) {
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
+  token.updateSource({
+    "flags.ptu.autoscale": false,
+  });
 }
 
 /**
@@ -190,7 +229,7 @@ function TokenImageRuleElement_afterPrepareData(wrapped, ...args) {
   if (game.settings.get(MODULENAME, "autoOverrideMegaEvolutionSprite")) {
     // check if this is a mega evolution that we have a sprite for
     const foundMegaEvo = (()=>{
-      const basename = this.value.substring(this.value.lastIndexOf("/"), this.value.lastIndexOf("."));
+      const basename = this.value.substring(this.value.lastIndexOf("/")+1, this.value.lastIndexOf("."));
       if (!basename) return false;
 
       const alternateForm = basename.substring(basename.indexOf("_"));
@@ -407,6 +446,7 @@ export function register() {
     Hooks.on("createChatMessage", OnCreateChatMessage);
   }
   Hooks.on("preCreateActor", OnPreCreateActor);
+  Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("createToken", OnCreateToken);
   Hooks.on("createItem", OnCreateItem);
 
