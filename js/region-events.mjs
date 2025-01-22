@@ -71,6 +71,65 @@ function _is_adjacent(a, b, requireFacing=true) {
   return isFacing(a, b);
 }
 
+async function runAsMacro(self, {speaker, actor, token, ...scope}={}) {
+  // get the command
+  const command = self?.flags?.[MODULENAME]?.script;
+  const executeAsGM = self?.flags?.[MODULENAME]?.scriptGm;
+
+  if (!command) return;
+
+  // Add variables to the evaluation scope
+  speaker = speaker || ChatMessage.implementation.getSpeaker({actor, token});
+  const character = game.user.character;
+  token = token || (canvas.ready ? canvas.tokens.get(speaker.token) : null) || null;
+  actor = actor || token?.actor || game.actors.get(speaker.actor) || null;
+  self = self || null;
+
+  // Unpack argument names and values
+  const argNames = Object.keys(scope);
+  if ( argNames.some(k => Number.isNumeric(k)) ) {
+    throw new Error("Illegal numeric Macro parameter passed to execution scope.");
+  }
+  const argValues = Object.values(scope);
+
+  // Define an AsyncFunction that wraps the macro content
+  // eslint-disable-next-line no-new-func
+  const fn = new foundry.utils.AsyncFunction("speaker", "actor", "token", "self", "character", "scope", ...argNames,
+    `{${command}\n}`);
+
+  // Attempt macro execution
+  try {
+    if (!executeAsGM || game.user.isGM) {
+      return fn.call(self, speaker, actor, token, self, character, scope, ...argValues);
+    }
+    return socket.current()?.executeAsGM("runAsMacro", self.uuid, speaker, actor.uuid, token.uuid, character.uuid, scope);
+  } catch(err) {
+    ui.notifications.error("MACRO.Error", { localize: true });
+  }
+}
+
+async function runAsMacro_socket(selfUuid, speaker, actorUuid, tokenUuid, characterUuid, scope) {
+  const self = await fromUuid(selfUuid);
+  const actor = await fromUuid(actorUuid);
+  const token = await fromUuid(tokenUuid);
+  const character = await fromUuid(characterUuid);
+  const argNames = Object.keys(scope);
+  const argValues = Object.values(scope);
+  const command = self?.flags?.[MODULENAME]?.script;
+  
+  // Define an AsyncFunction that wraps the macro content
+  // eslint-disable-next-line no-new-func
+  const fn = new foundry.utils.AsyncFunction("speaker", "actor", "token", "self", "character", "scope", ...argNames,
+    `{${command}\n}`);
+
+  // Attempt macro execution
+  try {
+    return fn.call(self, speaker, actor, token, self, character, scope, ...argValues);
+  } catch(err) {
+    ui.notifications.error("MACRO.Error", { localize: true });
+  }
+}
+
 /**
  * Trigger the "tokenInteract" region behavior for all selected tokens
  */
@@ -129,7 +188,8 @@ async function OnInteract() {
     if (!tileAssetsFlags?.smashable &&
         !tileAssetsFlags?.cuttable &&
         !tileAssetsFlags?.whirlpool &&
-        !tileAssetsFlags?.pushable) return false;
+        !tileAssetsFlags?.pushable &&
+        !tileAssetsFlags?.script) return false;
     const { x: ox, y: oy } = canvas.grid.getCenterPoint(tile.center);
     return _is_adjacent(
       tokenBounds,
@@ -147,6 +207,7 @@ async function OnInteract() {
     const cuttable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.cuttable);
     const whirlpool = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.whirlpool);
     const pushable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.pushable);
+    const withScript = facingTiles.filter(t=>!!t?.document?.flags?.[MODULENAME]?.script);
 
     const soc = socket.current();
     const logic = game.modules.get(MODULENAME).api.logic;
@@ -187,6 +248,12 @@ async function OnInteract() {
         token._pushing = true;
       });
     }
+
+    if (withScript.length > 0) {
+      withScript.forEach(async (tile)=>{
+        await runAsMacro(tile?.document);
+      });
+    }
   }
   
   // check if we're facing a wall/door
@@ -216,6 +283,8 @@ export function register() {
   libWrapper.register(MODULENAME, "foundry.applications.sheets.RegionBehaviorConfig.prototype._getFields", RegionBehaviorConfig_getFields, "WRAPPER");
   libWrapper.register(MODULENAME, "foundry.applications.sheets.RegionBehaviorConfig.prototype._prepareSubmitData", RegionBehaviorConfig_prepareSubmitData, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.RegionBehavior.documentClass.prototype._handleRegionEvent", RegionBehavior_handleRegionEvent, "WRAPPER");
+
+  socket.registerSocket("runAsMacro", runAsMacro_socket);
 
   game.keybindings.register(MODULENAME, "tokenInteract", {
     name: "Token Interact",

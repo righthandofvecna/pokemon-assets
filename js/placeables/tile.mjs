@@ -4,7 +4,7 @@ import { registerSocket } from "../socket.mjs";
 
 
 async function OnRenderTileConfig(sheet, html, context) {
-  const form = $(html).find("form").get(0) ?? config.form;
+  const form = $(html).find("form").get(0) ?? sheet.form;
   const tile = sheet.object;
 
   // exit if the puzzle settings page already exists
@@ -12,7 +12,7 @@ async function OnRenderTileConfig(sheet, html, context) {
 
   $(form.querySelector(`.sheet-tabs`)).append(`<a class="item" data-tab="puzzle"><i class="fa-solid fa-puzzle-piece"></i> Puzzle</a>`);
 
-  const { solid, cuttable, smashable, whirlpool, pushable } = tile?.flags?.[MODULENAME] ?? {};
+  const { solid, cuttable, smashable, whirlpool, pushable, scriptGm, script } = tile?.flags?.[MODULENAME] ?? {};
 
   const tabs = form.getElementsByClassName("tab");
   $(tabs[tabs.length-1]).after(`<div class="tab" data-tab="puzzle">
@@ -45,6 +45,13 @@ async function OnRenderTileConfig(sheet, html, context) {
       <label>Movable by "Strength"</label>
       <div class="form-fields">
         <input type="checkbox" name="flags.${MODULENAME}.pushable" ${pushable ? "checked" : ""}>
+      </div>
+    </div>
+    <div class="form-group stacked">
+      <label>Interaction Script</label>
+      <label>Execute as GM? <input type="checkbox" name="flags.${MODULENAME}.scriptGm" ${scriptGm ? "checked" : ""}></label>
+      <div class="form-fields">
+        <textarea type="checkbox" name="flags.${MODULENAME}.script">${script ?? ""}</textarea>
       </div>
     </div>
   </div>`);
