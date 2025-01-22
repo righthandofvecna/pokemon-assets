@@ -96,6 +96,9 @@ function OnGetSceneControlButtons(controls) {
   const tiles = controls.find(c=>c.name === "tiles");
   const regions = controls.find(c=>c.name === "regions");
 
+  //
+  // Tile tools
+  //
   tiles.tools.push({
     icon: "fa-solid fa-pickaxe",
     name: "breakable-rock",
@@ -152,6 +155,24 @@ function OnGetSceneControlButtons(controls) {
       ],
     },
   });
+  tiles.tools.push({
+    icon: "fa-solid fa-sign-post",
+    name: "sign",
+    title: "Place Sign",
+    toolclip: {
+      heading: "Place Sign",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
+
+  //
+  // Region Tools
+  //
   regions.tools.push({
     icon: "fa-solid fa-hill-rockslide",
     name: "rocky-wall",
@@ -237,6 +258,35 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         x,
         y,
       }])
+      break;
+    case "sign":
+      (new Promise(async (resolve)=>{
+        Dialog.prompt({
+          title: 'Text to Display',
+          content: `
+              <div class="form-group">
+                <label for="text">Text to Display</label>
+                <input name="text" type="text" />
+              </div>
+          `,
+          callback: (html) => resolve(html.find('[name="text"]')?.val() ?? null),
+        }).catch(()=>{
+          resolve(null);
+        });
+      })).then((text)=>{
+        if (!text) return;
+        canvas.scene.createEmbeddedDocuments("Tile", [{
+          "flags.pokemon-assets.solid": true,
+          "flags.pokemon-assets.script": `Dialog.prompt({ content: "${text.replaceAll('"', '\\"')}", options: { pokemon: true }});`,
+          width: canvas.grid.sizeX,
+          height: canvas.grid.sizeY,
+          texture: {
+            src: "modules/pokemon-assets/img/items-overworld/sign_frlg.png",
+          },
+          x,
+          y,
+        }])
+      });
       break;
   }
 }
