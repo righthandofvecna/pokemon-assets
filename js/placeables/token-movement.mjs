@@ -79,7 +79,7 @@ async function PlaceablesLayer_moveMany({dx=0, dy=0, rotate=false, ids, includeL
   });
   await canvas.scene.updateEmbeddedDocuments(this.constructor.documentName, updateData);
   if (bumped && game.settings.get(MODULENAME, "playCollisionSound")) {
-    await new Sequence({ moduleName: "pokemon-assets", softFail: true })
+    new Sequence({ moduleName: "pokemon-assets", softFail: true })
       .sound()
         .file(`modules/pokemon-assets/audio/bgs/wall-bump.mp3`)
         .volume(VolumeSettings.getVolume("collide"))
