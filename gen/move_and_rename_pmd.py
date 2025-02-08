@@ -177,6 +177,7 @@ def main():
             "Original",
             "Noice",
             "Droopy",
+            "Ultimate",
             "Substitute",
             "Egg"
             ):
