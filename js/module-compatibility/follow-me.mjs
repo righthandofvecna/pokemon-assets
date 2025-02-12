@@ -16,7 +16,7 @@ function getFollowMap(scene) {
   return followMap;
 }
 
-function getAllFollowing(token) {
+export function getAllFollowing(token) {
   const allSceneTokens = token?.scene?.tokens;
   const followMap = getFollowMap(token?.scene);
   const followerIds = [];
@@ -34,19 +34,28 @@ function getAllFollowing(token) {
 }
 
 
-function getFollowerUpdates(tPos, followers) {
-  const followerUpdates = [];
-
-  const followChainObjects = new Set();
-  const addToChainObject = (doc) => {
-    if (!doc || followChainObjects.has(doc.object)) return;
-    followChainObjects.add(doc.object);
+export function getAllInFollowChain(token) {
+  const followers = getAllFollowing(token);
+  
+  const followChain = new Set();
+  const addToChain = (doc) => {
+    if (!doc || followChain.has(doc)) return;
+    followChain.add(doc);
     const following = doc.getFlag(MODULENAME, FLAG_FOLLOWING)?.who;
     if (following) {
-      addToChainObject(doc?.scene?.tokens?.get(following));
+      addToChain(doc?.scene?.tokens?.get(following));
     }
   };
-  followers.forEach(addToChainObject);
+
+  addToChain(token);
+  followers.forEach(addToChain);
+  
+  return followChain;
+}
+
+
+function getFollowerUpdates(tPos, followers) {
+  const followerUpdates = [];
 
   let p = tPos;
   for (const follower of followers) {
@@ -70,11 +79,9 @@ function getFollowerUpdates(tPos, followers) {
     const grid = follower.scene?.grid;
     const width = (follower.width ?? 1) * (grid?.sizeX ?? grid?.size ?? 100);
     const height = (follower.height ?? 1) * (grid?.sizeY ?? grid?.size ?? 100);
-    if (!follower.object) break;
-    const collisions = follower.object.checkCollision(
+    if (!follower.object || follower.object.checkCollision(
       vAdd(new_pos, { x: width / 2, y: height / 2 } ),
-      {type: "move", mode: "all"});
-    if (collisions.some(collision=>collision.edges?.some(edge=>!followChainObjects.has(edge.object)))) {
+      {type: "move", mode: "any", follow: true})) {
       // Do not apply this update or any further ones
       break;
     }
