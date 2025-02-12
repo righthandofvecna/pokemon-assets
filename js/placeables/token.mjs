@@ -677,6 +677,10 @@ export function register() {
       }
     }
 
+    get shouldHaveEdges() {
+      return game.settings.get(MODULENAME, "tokenCollision") && (this.document.disposition !== CONST.TOKEN_DISPOSITIONS.FRIENDLY || game.settings.get(MODULENAME, "tokenCollisionAllied"));
+    }
+
     initializeEdges({ changes, deleted=false}={}) {
       // the token has been deleted
       if ( deleted ) {
@@ -684,8 +688,7 @@ export function register() {
         return;
       }
 
-      if (!game.settings.get(MODULENAME, "tokenCollision")) return;
-      if (this.document.disposition == CONST.TOKEN_DISPOSITIONS.FRIENDLY && !game.settings.get(MODULENAME, "tokenCollisionAllied")) return;
+      if (!this.shouldHaveEdges) return;
 
       // re-create the edges for the token
       const docX = changes?.x ?? this.document.x;
@@ -826,7 +829,7 @@ export function register() {
       }
       super._onUpdate(changed, options, userId);
       if ("x" in changed || "y" in changed || "width" in changed || "height" in changed) {
-        this.initializeEdges({ changes: changed });
+        this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });
       }
     }
 
