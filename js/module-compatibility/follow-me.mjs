@@ -36,6 +36,18 @@ function getAllFollowing(token) {
 
 function getFollowerUpdates(tPos, followers) {
   const followerUpdates = [];
+
+  const followChainObjects = new Set();
+  const addToChainObject = (doc) => {
+    if (!doc || followChainObjects.has(doc.object)) return;
+    followChainObjects.add(doc.object);
+    const following = doc.getFlag(MODULENAME, FLAG_FOLLOWING)?.who;
+    if (following) {
+      addToChainObject(doc?.scene?.tokens?.get(following));
+    }
+  };
+  followers.forEach(addToChainObject);
+
   let p = tPos;
   for (const follower of followers) {
     const desc = foundry.utils.deepClone(follower.getFlag(MODULENAME, FLAG_FOLLOWING));
@@ -58,9 +70,11 @@ function getFollowerUpdates(tPos, followers) {
     const grid = follower.scene?.grid;
     const width = (follower.width ?? 1) * (grid?.sizeX ?? grid?.size ?? 100);
     const height = (follower.height ?? 1) * (grid?.sizeY ?? grid?.size ?? 100);
-    if (!follower.object || follower.object.checkCollision(
+    if (!follower.object) break;
+    const collisions = follower.object.checkCollision(
       vAdd(new_pos, { x: width / 2, y: height / 2 } ),
-      {type: "move", mode: "any"})) {
+      {type: "move", mode: "all"});
+    if (collisions.some(collision=>collision.edges?.some(edge=>!followChainObjects.has(edge.object)))) {
       // Do not apply this update or any further ones
       break;
     }
