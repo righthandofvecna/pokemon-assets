@@ -693,7 +693,6 @@ export function register() {
         if (follow) return getAllInFollowChain(this.document);
         return new Set(getAllFollowing(this.document));
       })();
-      console.log("checkCollision", this, followChain);
       const unignoredCollisions = collisions.filter(collision=>collision.edges?.some(edge=>!followChain.has(edge?.object?.document) && (edge?.object?.document?.disposition != this.document.disposition || game.settings.get(MODULENAME, "tokenCollisionAllied"))));
 
       if (mode == "all") return unignoredCollisions;
