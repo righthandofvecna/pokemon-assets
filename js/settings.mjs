@@ -109,7 +109,7 @@ export function register() {
 		scope: "world",
 		requiresReload: true,
 		config: true,
-		hint: "Treat hostile, neutral, and secret tokens as walls for the purpose of movement."
+		hint: "Treat tokens as walls for the purpose of movement."
 	});
 
 	game.settings.register(MODULENAME, "tokenCollisionAllied", {
@@ -118,8 +118,18 @@ export function register() {
 		type: Boolean,
 		scope: "world",
 		requiresReload: true,
-		config: false,
-		hint: "Treat allied tokens as walls for the purpose of movement."
+		config: true,
+		hint: "Treat allied tokens as walls for the purpose of movement. Requires 'Token Collisions' to be enabled."
+	});
+
+	game.settings.register(MODULENAME, "tokenCollisionHidden", {
+		name: "Token Collisions (Hidden)",
+		default: false,
+		type: Boolean,
+		scope: "world",
+		requiresReload: true,
+		config: true,
+		hint: "Treat hidden tokens as walls for the purpose of movement. Requires 'Token Collisions' to be enabled."
 	});
 
   game.settings.register(MODULENAME, "playCollisionSound", {

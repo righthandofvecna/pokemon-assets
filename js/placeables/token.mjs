@@ -1,4 +1,5 @@
 import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
+import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 
 const WALK_SPEED = 4;
@@ -677,6 +678,27 @@ export function register() {
       }
     }
 
+    get shouldHaveEdges() {
+      return game.settings.get(MODULENAME, "tokenCollision") && (!this.document.hidden || game.settings.get(MODULENAME, "tokenCollisionHidden"));
+    }
+
+    /**
+     * Check for collisions, but exclude tokens of the same disposition and tokens in your follow chain
+     */
+    checkCollision(destination, {origin, type="move", mode="any", follow=false}={}) {
+      const collisions = super.checkCollision(destination, { origin, type, mode: "all" });
+      if (!collisions) return collisions;
+
+      const followChain = (()=>{
+        if (follow) return getAllInFollowChain(this.document);
+        return new Set(getAllFollowing(this.document));
+      })();
+      const unignoredCollisions = collisions.filter(collision=>collision.edges?.some(edge=>!followChain.has(edge?.object?.document) && (edge?.object?.document?.disposition != this.document.disposition || game.settings.get(MODULENAME, "tokenCollisionAllied"))));
+
+      if (mode == "all") return unignoredCollisions;
+      return unignoredCollisions[0] || null;
+    }
+
     initializeEdges({ changes, deleted=false}={}) {
       // the token has been deleted
       if ( deleted ) {
@@ -684,8 +706,7 @@ export function register() {
         return;
       }
 
-      if (!game.settings.get(MODULENAME, "tokenCollision")) return;
-      if (this.document.disposition == CONST.TOKEN_DISPOSITIONS.FRIENDLY && !game.settings.get(MODULENAME, "tokenCollisionAllied")) return;
+      if (!this.shouldHaveEdges) return;
 
       // re-create the edges for the token
       const docX = changes?.x ?? this.document.x;
@@ -825,8 +846,8 @@ export function register() {
         this._handleTeleportAnimation(to);
       }
       super._onUpdate(changed, options, userId);
-      if ("x" in changed || "y" in changed || "width" in changed || "height" in changed) {
-        this.initializeEdges({ changes: changed });
+      if ("x" in changed || "y" in changed || "width" in changed || "height" in changed || "hidden" in changed) {
+        this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });
       }
     }
 
