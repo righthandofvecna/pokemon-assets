@@ -37,6 +37,8 @@ async function OnRenderTokenConfig(config, html, context) {
       sheetstyle: form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer",
       animationframes: (parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || token.getFlag("pokemon-assets", "animationframes")) ?? 4,
       separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? token.getFlag("pokemon-assets", "separateidle") ?? false,
+      unlockedanchor: token.getFlag("pokemon-assets", "unlockedanchor") ?? false,
+      unlockedfit: token.getFlag("pokemon-assets", "unlockedfit") ?? false,
       ...(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {}),
     };
 
@@ -47,17 +49,39 @@ async function OnRenderTokenConfig(config, html, context) {
 
     // checkbox for whether or not this should be a spritesheet!
     if (!form.querySelector("[name='flags.pokemon-assets.spritesheet']")) {
-      $(html).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${data.spritesheet ? "checked" : ""}>`);
+      $(form).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${data.spritesheet ? "checked" : ""}>`);
     };
     form.querySelector("[name='flags.pokemon-assets.spritesheet']").checked = data.spritesheet;
     form.querySelector("[name='flags.pokemon-assets.spritesheet']").readonly = isPredefined;
+
+    // locks for "unlockedanchor" and "unlockedfit"
+    $(form).find(".toggle-link-anchor-to-sheet").remove();
+    const unlockedAnchorLink = $(`<a class="toggle-link-anchor-to-sheet" title="${data.unlockedanchor ? "Base Anchors on Sheet" : "Manual Anchors"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedanchor ? "fa-lock-open" : "fa-lock"}"></i></a>`);
+    $(form).find('[name="texture.anchorX"]').closest('.form-group').find('> label').append(unlockedAnchorLink);
+    $(unlockedAnchorLink).on("click", ()=>{
+      token.setFlag("pokemon-assets", "unlockedanchor", !data.unlockedanchor);
+    });
+    if (!data.unlockedanchor) {
+      $(form).find('[name="texture.anchorX"]').prop("disabled", true);
+      $(form).find('[name="texture.anchorY"]').prop("disabled", true);
+    }
+
+    $(form).find(".toggle-link-fit-to-sheet").remove();
+    const unlockedFitLink = $(`<a class="toggle-link-fit-to-sheet" title="${data.unlockedfit ? "Base Fit on Sheet" : "Manual Fit"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedfit ? "fa-lock-open" : "fa-lock"}"></i></a>`);
+    $(form).find('[name="texture.fit"]').closest('.form-group').find('> label').append(unlockedFitLink);
+    $(unlockedFitLink).on("click", ()=>{
+      token.setFlag("pokemon-assets", "unlockedfit", !data.unlockedfit);
+    });
+    if (!data.unlockedfit) {
+      $(form).find('[name="texture.fit"]').prop("disabled", true);
+    }
 
     // additional spritesheet-specific configurations
     data.showframes = (form.querySelector("[name='flags.pokemon-assets.sheetstyle']")?.value ?? data.sheetstyle) != "trainer3";
     data.hide = !data.spritesheet || isPredefined;
     const rendered = $(await renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
     if (!form.querySelector(".spritesheet-config")) {
-      $(html).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
+      $(form).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
     };
     form.querySelector(".spritesheet-config").replaceWith(rendered);
 
@@ -71,9 +95,11 @@ async function OnRenderTokenConfig(config, html, context) {
     // update the anchors
     if (!data.spritesheet) {
       // reset the anchors if they exist
-      form.querySelector("[name='texture.fit']").value = "contain";
-      form.querySelector("[name='texture.anchorX']").value = 0.5;
-      form.querySelector("[name='texture.anchorY']").value = 0.5;
+      if (!data.unlockedfit) form.querySelector("[name='texture.fit']").value = "contain";
+      if (!data.unlockedanchor) {
+        form.querySelector("[name='texture.anchorX']").value = 0.5;
+        form.querySelector("[name='texture.anchorY']").value = 0.5;
+      }
       return;
     } else {
       switch (game.system.id) {
@@ -121,9 +147,11 @@ async function OnRenderTokenConfig(config, html, context) {
     })();
 
     // set the anchoring fields
-    form.querySelector("[name='texture.fit']").value = "width";
-    form.querySelector("[name='texture.anchorX']").value = 0.5;
-    form.querySelector("[name='texture.anchorY']").value = Math.ceil(100 * anchorY) / 100;
+    if (data.spritesheet && !data.unlockedfit) form.querySelector("[name='texture.fit']").value = "width";
+    if (data.spritesheet && !data.unlockedanchor) {
+      form.querySelector("[name='texture.anchorX']").value = 0.5;
+      form.querySelector("[name='texture.anchorY']").value = Math.ceil(100 * anchorY) / 100;
+    }
   };
 
   await refreshConfig();
