@@ -304,6 +304,7 @@ export function register() {
     #direction;
     #animationData;
     #priorAnimationData;
+    #localOpacity;
 
     constructor(document) {
       super(document);
@@ -313,6 +314,7 @@ export function register() {
     #initialize() {
       this.#animationData = this._getAnimationData();
       this.#priorAnimationData = foundry.utils.deepClone(this.#animationData);
+      this.#localOpacity = 1;
     }
 
     /** @override */
@@ -450,6 +452,22 @@ export function register() {
           });
         }
       }
+    }
+
+    set localOpacity(opacity) {
+      opacity = Math.clamp(opacity ?? 1, 0, 1);
+      const oldLocal = this.#localOpacity;
+      this.#localOpacity = opacity;
+      if (oldLocal !== opacity) {
+        this.renderFlags.set({
+          refreshState: true,
+        })
+        this.applyRenderFlags();
+      }
+    }
+    
+    _getTargetAlpha() {
+      return this.#localOpacity * super._getTargetAlpha();
     }
 
     _canDrag() {

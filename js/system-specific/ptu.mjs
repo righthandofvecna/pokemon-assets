@@ -3,7 +3,7 @@ import { SpritesheetGenerator } from "../spritesheets.mjs";
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
 /**
- * A Chat Message listener, that should only be run on the GM's client
+ * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
  * @returns 
  */
@@ -442,9 +442,7 @@ function fixLockAndKey() {
 
 
 export function register() {
-  if (early_isGM) {
-    Hooks.on("createChatMessage", OnCreateChatMessage);
-  }
+  Hooks.on("createChatMessage", OnCreateChatMessage);
   Hooks.on("preCreateActor", OnPreCreateActor);
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("createToken", OnCreateToken);

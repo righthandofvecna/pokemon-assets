@@ -3,14 +3,11 @@ import { SpritesheetGenerator } from "../spritesheets.mjs";
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
 /**
- * A Chat Message listener, that should only be run on the GM's client
+ * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
  * @returns 
  */
 async function OnCreateChatMessage(message) {
-  // early return if you are not the "first" logged in GM
-  if (!isTheGM()) return;
-  
   //
   // Handle Capture Animations
   //
