@@ -1,4 +1,4 @@
-import { sleep } from "../utils.mjs";
+import { early_isGM, sleep } from "../utils.mjs";
 
 function registerLocalAnimation() {
   class LocalAnimation extends Sequencer.BaseSection {
@@ -48,7 +48,9 @@ function registerLocalAnimation() {
 
 export function register() {
   if (!game.modules.get("sequencer")?.active) {
-    ui.notifications.error(`"Pokemon Assets": The "Sequencer" module is not active. Please activate it, or many of this module's animations will not function.`);
+    if (early_isGM()) {
+      ui.notifications.error(`"Pokemon Assets": The "Sequencer" module is not active. Please activate it, or many of this module's animations will not function.`);
+    }
     return;
   }
 
