@@ -41,7 +41,7 @@
     ]
   },
   "esmodules": [
-    "js/main.mjs"
+    "pokemon-assets.js"
   ],
   "styles": [
     "css/main.css"
