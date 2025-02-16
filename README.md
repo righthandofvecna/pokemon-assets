@@ -19,6 +19,13 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 
 ## Usage
 
+### Setting Sprites
+
+***Method 1.*** **Setting the Trainer Profile.** You can set the actor's profile to one of the images in `modules/pokemon-assets/img/trainers-profile`, which will automatically set the actor's Prototype Token to use the associated spritesheet.
+
+***Method 2.*** **Manual Setting.** The trainer overworld sprites are located in `modules/pokemon-assets/img/trainers-overworld`; the Pokemon ones are in `modules/pokemon-assets/img/pmd-overworld` (but the Pokemon sprites should get automatically set for PTR and PTR2e)
+
+
 ### Token Following
 
 1. **Follow Target**: Hover over the target token and press `F`.
