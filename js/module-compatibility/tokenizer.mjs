@@ -1,4 +1,4 @@
-import { early_isGM, sleep } from "../utils.mjs";
+import { early_isGM } from "../utils.mjs";
 
 export function register() {
   if (game.modules.get("vtta-tokenizer")?.active) {

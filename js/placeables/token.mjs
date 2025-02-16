@@ -465,9 +465,10 @@ export function register() {
         this.applyRenderFlags();
       }
     }
-    
-    _getTargetAlpha() {
-      return this.#localOpacity * super._getTargetAlpha();
+
+    _refreshState() {
+      super._refreshState();
+      this.mesh.alpha = this.alpha * (this.hover ? Math.clamp(this.#localOpacity, 0.2, 1) : this.#localOpacity ) * this.document.alpha;
     }
 
     _canDrag() {

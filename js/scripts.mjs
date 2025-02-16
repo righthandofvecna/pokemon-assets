@@ -414,16 +414,23 @@ async function IndicateDamage(actor, token, lowHp) {
  * @param {*} target the targeted token
  * @param {*} img the image of the pokeball to throw
  * @param {*} hit whether the pokeball hit or not
- * @param {*} shakes how many shakes the pokeball does
- * @param {*} caught whether or not to play the caught or escaped animation
+ * @returns the sequence to play
  */
-async function ThrowPokeball(source, target, img, hit, shakes, caught) {
+function ThrowPokeball(source, target, img, hit) {
   Sequencer.Preloader.preload([
+    "modules/pokemon-assets/audio/bgs/pokeball-throw.mp3",
     "modules/pokemon-assets/audio/bgs/pokeball-drop.mp3",
-    "modules/pokemon-assets/audio/bgs/pokeball-shake.mp3",
-    "modules/pokemon-assets/audio/bgs/pokeball-caught.mp3",
-    "modules/pokemon-assets/audio/bgs/pokeball-escape.mp3",
   ]);
+
+  const targetCenter = target.center ?? {
+    x: target.x + (target.width * target.scene.grid.sizeX / 2),
+    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+  };
+
+  const sourceCenter = source.center ?? {
+    x: source.x + (source.width * source.scene.grid.sizeX / 2),
+    y: source.y + (source.height * source.scene.grid.sizeY / 2)
+  };
 
   const volume = VolumeSettings.getVolume("catch");
   const sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
@@ -433,8 +440,8 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
     .locally();
   sequence.effect()
     .file(img)
-    .atLocation(source)
-    .moveTowards(target)
+    .atLocation(sourceCenter)
+    .moveTowards(targetCenter)
     .missed(!hit)
     .duration(500)
     .size(0.35, { gridUnits: true })
@@ -447,18 +454,39 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
     .volume(volume)
     .locally()
     .waitUntilFinished();
-
-  if (!hit) {
-    await sequence.play();
-    return;
-  }
   
+  return sequence;
+}
+
+/**
+ * Play a "Catch" animation from the thrown Pokeball
+ * @param {*} target the targeted token
+ * @param {*} img the image of the pokeball to throw
+ * @param {*} shakes how many shakes the pokeball does
+ * @param {*} caught whether or not to play the caught or escaped animation
+ * @returns the sequence to play
+ */
+function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
+  Sequencer.Preloader.preload([
+    "modules/pokemon-assets/audio/bgs/pokeball-shake.mp3",
+    "modules/pokemon-assets/audio/bgs/pokeball-caught.mp3",
+    "modules/pokemon-assets/audio/bgs/pokeball-escape.mp3",
+  ]);
+
+  const volume = VolumeSettings.getVolume("catch");
+  const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
+
+  const targetCenter = target.center ?? {
+    x: target.x + (target.width * target.scene.grid.sizeX / 2),
+    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+  };
+
   sequence.localAnimation()
     .on(target)
     .opacity(0);
   sequence.effect()
     .file(img)
-    .atLocation(target)
+    .atLocation(targetCenter)
     .duration(2000)
     .size(0.35, { gridUnits: true })
     .locally()
@@ -470,7 +498,7 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
       .locally();
     sequence.effect()
       .file(img)
-      .atLocation(target)
+      .atLocation(targetCenter)
       .duration(2000)
       .size(0.35, { gridUnits: true })
       .rotateIn(45, 2000, { ease: "easeOutElastic", delay: 0 })
@@ -486,7 +514,7 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
     sequence.effect()
       .file(img)
       .tint("#555555")
-      .atLocation(target)
+      .atLocation(targetCenter)
       .duration(2000)
       .size(0.35, { gridUnits: true })
       .locally()
@@ -501,7 +529,59 @@ async function ThrowPokeball(source, target, img, hit, shakes, caught) {
       .opacity(1);
   }
   
-  await sequence.play();
+  return sequence;
+}
+
+/**
+ * Play a "Summon" animation for a Pokemon
+ * @param {*} target 
+ * @param {*} extendSequence 
+ * @returns 
+ */
+function SummonPokemon(target, shiny, extendSequence=null) {
+  Sequencer.Preloader.preload([
+    "modules/pokemon-assets/audio/bgs/pokeball-escape.mp3",
+  ]);
+
+  const volume = VolumeSettings.getVolume("catch");
+  const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
+
+  const targetCenter = target.center ?? {
+    x: target.x + (target.width * target.scene.grid.sizeX / 2),
+    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+  };
+
+  sequence.sound()
+    .file(`modules/pokemon-assets/audio/bgs/pokeball-escape.mp3`)
+    .volume(volume)
+    .locally()
+  sequence.effect()
+    .atLocation(targetCenter)
+    .file("modules/pokemon-assets/img/animations/pokeball_open.json")
+    .playbackRate(0.75)
+    .size((target?.width ?? 1) * 3, { gridUnits: true })
+    .locally()
+    .waitUntilFinished();
+  sequence.localAnimation()
+    .on(target)
+    .opacity(1);
+
+  if (shiny) {
+    sequence.sound()
+      .file(`modules/pokemon-assets/audio/bgs/pokemon-shiny.mp3`)
+      .delay(500)
+      .volume(volume)
+      .locally()
+    sequence.effect()
+      .atLocation(targetCenter)
+      .delay(500)
+      .file("modules/pokemon-assets/img/animations/shiny_sparkle.json")
+      .playbackRate(0.5)
+      .size((target?.width ?? 1) * 3, { gridUnits: true })
+      .locally()
+  }
+
+  return sequence;
 }
 
 /**
@@ -936,6 +1016,8 @@ export function register() {
     HandleIce,
     HandleJumps,
     ThrowPokeball,
+    CatchPokemon,
+    SummonPokemon,
     IndicateDamage,
     Interact,
     TokenHasDirection,

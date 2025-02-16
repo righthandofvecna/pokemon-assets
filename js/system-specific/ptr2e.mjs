@@ -2,6 +2,9 @@ import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
+
+const BASIC_BALL_IMG = "systems/ptr2e/img/item-icons/basic ball.webp";
+
 /**
  * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
@@ -34,7 +37,7 @@ async function OnCreateChatMessage(message) {
       const ballSlug = message.system.slug.substr(0, message.system.slug.length - 4);
       const domainItem = message.system.origin?.items?.filter?.((i)=>i.system.slug === ballSlug);
       if (!!domainItem && domainItem.length > 0) return domainItem[0].img;
-      return "systems/ptr2e/img/item-icons/basic ball.webp";
+      return BASIC_BALL_IMG;
     })();
     
     const crit = message.system.context.state.crit;
@@ -44,13 +47,21 @@ async function OnCreateChatMessage(message) {
       message.system.context.state.shake2,
       message.system.context.state.shake1,
     ].lastIndexOf(false);
-    game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(
+
+    let sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(
       source,
       target,
       ballImg,
-      message.system.context.state.accuracy,
-      Math.min(shakes, crit ? 1 : 3),
-      crit ? shakes >= 1 : shakes >= 4);
+      message.system.context.state.accuracy);
+    if (hit) {
+      sequence = game.modules.get("pokemon-assets").api.scripts.CatchPokemon(
+        target,
+        ballImg,
+        Math.min(shakes, crit ? 1 : 3),
+        crit ? shakes >= 1 : shakes >= 4,
+        sequence);
+    }
+    await sequence.play();
     return;
   }
 
@@ -155,6 +166,23 @@ function OnPreCreateActor(actor, data) {
   }
   foundry.utils.mergeObject(data, foundry.utils.deepClone(updates));
   actor.updateSource(updates);
+}
+
+
+async function OnCreateToken(token) {
+  const actor = token.actor;
+  if (!actor || actor.type !== "pokemon") return;
+  if (!actor.party?.party?.includes(actor)) return;
+  if (token.object) token.object.localOpacity = 0;
+  const source = actor.party.owner ? token.scene.tokens.find(t=>t.actor?.id === actor.party.owner.id) : null;
+
+  let sequence = null;
+  if (source) {
+    // TODO the pokeball the pokemon was caught with, when PTR2e eventually stores that information
+    sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, BASIC_BALL_IMG, true);
+  }
+  sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
+  await sequence.play();
 }
 
 
@@ -359,6 +387,7 @@ export function register() {
 
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateActor", OnPreCreateActor);
+  Hooks.on("createToken", OnCreateToken);
   libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Token.objectClass.prototype._applyRenderFlags", Token_applyRenderFlags, "WRAPPER");
 
