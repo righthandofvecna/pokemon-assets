@@ -227,7 +227,7 @@ function OnPreUpdateToken(doc, change, options) {
 
   const dx = nx - ox;
   const dy = ny - oy;
-  if (dx !== 0 || dy !== 0) {
+  if ((dx !== 0 || dy !== 0) && !options.teleport) {
     change.rotation = getAngleFromDirection(getDirection(dx, dy));
   };
 
