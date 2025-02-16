@@ -25,9 +25,19 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 2. **Move Target**: Move the leader token to see the following token move accordingly. Moving a token manually that's following another token will break the follow.
 3. **Combat Mode**: Tokens **do not** follow if there is an active combat on the current scene.
 
+### Interacting with Rocks/Trees/Signs/etc
+
+To interact with an already placed object, select your character's token, move it up to the object (be sure it's facing the object) and press `Enter`. This should trigger whatever behavior is defined for that tile/region.
+
+For "Field Moves" like *Rock Smash*, *Cut*, and so on, the selected character needs to be assigned the relevant move, or be the owner of a party which contains a character assigned those moves.
+
 ### Interactable Tiles
 
 Select the tool on the Tile layer and double-click the spot you want to place the tile. Click-and-drag functionality will be added in a future update.
+
+### Region Tools
+
+On the Regions layer, while editing a region, you can add new behaviors as defined in this module. To add, click the `Behaviors` tab, and then click the `🧩 (Puzzle Piece)` icon. This should bring up a wizard to run you through, step-by-step, adding the following features: Sliding Ice, One-Way-Jumps, "Eyes Meeting", Pokemon Centers & Computers
 
 ## Troubleshooting
 
