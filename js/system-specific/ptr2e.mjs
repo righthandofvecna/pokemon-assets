@@ -119,7 +119,7 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
       `${pmdPath}${dexString}${regionalVariant}.png`,
       `${pmdPath}${dexString}.png`,
     ]) {
-      if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
+      if (SpritesheetGenerator.hasSheetSettings(testSrc)) {
         result.result = testSrc;
         return result;
       }
@@ -131,7 +131,7 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
 
 function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
-  if (!src || !(src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) return;
+  if (!src || !SpritesheetGenerator.hasSheetSettings(src)) return;
 
   const updates = _getTokenChangesForSpritesheet(src);
   token.updateSource(updates);
@@ -143,7 +143,7 @@ function OnPreCreateActor(actor, data) {
   if (!(data.img ?? actor.img).includes("icons/svg/mystery-man.svg")) return;
 
   const img = (()=>{
-    let possibleImages = Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS).filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+    let possibleImages = SpritesheetGenerator.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
     const gender = (()=>{
       const genderSet = (data?.system?.sex ?? actor?.system?.sex ?? "genderless").toLowerCase().trim();
       if (genderSet === "genderless") return "";
@@ -154,8 +154,8 @@ function OnPreCreateActor(actor, data) {
     })();
     possibleImages = possibleImages.filter(k=>k.includes(gender));
     // TODO: maybe filter also based on some mapping of perks to the official pokemon trainer classes?
-    if (possibleImages.length === 0) return null;
-    return possibleImages[~~(Math.random() * possibleImages.length)];
+    if (possibleImages.size === 0) return null;
+    return [...possibleImages][~~(Math.random() * possibleImages.size)];
   })();
   if (!img) return;
 
@@ -342,7 +342,7 @@ function TokenAlterations_apply(wrapped, ...args) {
       if (!basename) return false;
 
       const src = (()=>{
-        for (const src of Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) {
+        for (const src of SpritesheetGenerator.allSheetKeys()) {
           if (src.toLowerCase().includes(basename.toLowerCase())) return src;
         }
       })();

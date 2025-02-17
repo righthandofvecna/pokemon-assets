@@ -30,7 +30,8 @@ async function OnRenderTokenConfig(config, html, context) {
       }
       return rawSrc;
     })();
-    const isPredefined = src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS;
+    const predefinedSheetSettings = SpritesheetGenerator.getSheetSettings(src);
+    const isPredefined = predefinedSheetSettings !== undefined;
 
     const data = {
       spritesheet: isPredefined || (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked ?? token.getFlag("pokemon-assets", "spritesheet")),
@@ -39,7 +40,7 @@ async function OnRenderTokenConfig(config, html, context) {
       separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? token.getFlag("pokemon-assets", "separateidle") ?? false,
       unlockedanchor: token.getFlag("pokemon-assets", "unlockedanchor") ?? false,
       unlockedfit: token.getFlag("pokemon-assets", "unlockedfit") ?? false,
-      ...(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src] ?? {}),
+      ...(predefinedSheetSettings ?? {}),
     };
 
     // Populate the dropdown for the types of spritesheet layouts available

@@ -108,7 +108,7 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
       `${pmdPath}${dexString}${variant}.png`,
       formOverride == null ? `${pmdPath}${dexString}.png` : "INVALID",
     ]) {
-      if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
+      if (SpritesheetGenerator.hasSheetSettings(testSrc)) {
         return testSrc;
       }
     }
@@ -116,7 +116,7 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
   })();
 
   if (!src) return {};
-  
+
   const updates = {
     "prototypeToken": _getTokenChangesForSpritesheet(src),
   };
@@ -146,7 +146,7 @@ function OnPreCreateActor(actor, data) {
     if (!(data.img ?? actor.img ?? "icons/svg/mystery-man.svg").includes("icons/svg/mystery-man.svg")) return;
   
     const img = (()=>{
-      let possibleImages = Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS).filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+      let possibleImages = SpritesheetGenerator.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
       const sex = (()=>{
         const sexSet = data?.system?.sex ?? actor?.system?.sex;
         if (!sexSet) return "";
@@ -157,8 +157,8 @@ function OnPreCreateActor(actor, data) {
       })();
       possibleImages = possibleImages.filter(k=>k.includes(sex));
       // TODO: maybe filter also based on some mapping of classes to the official pokemon trainer classes?
-      if (possibleImages.length === 0) return null;
-      return possibleImages[~~(Math.random() * possibleImages.length)];
+      if (possibleImages.size === 0) return null;
+      return [...possibleImages][~~(Math.random() * possibleImages.size)];
     })();
     if (!img) return;
 
