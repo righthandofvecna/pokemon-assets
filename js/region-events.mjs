@@ -92,14 +92,12 @@ async function runAsMacro(self, {speaker, actor, token, ...scope}={}) {
   }
   const argValues = Object.values(scope);
 
-  // Define an AsyncFunction that wraps the macro content
-  // eslint-disable-next-line no-new-func
-  const fn = new foundry.utils.AsyncFunction("speaker", "actor", "token", "self", "character", "scope", ...argNames,
-    `{${command}\n}`);
-
   // Attempt macro execution
   try {
     if (!executeAsGM || game.user.isGM) {
+      // Define an AsyncFunction that wraps the macro content
+      // eslint-disable-next-line no-new-func
+      const fn = new foundry.utils.AsyncFunction("speaker", "actor", "token", "self", "character", "scope", ...argNames, `{${command}\n}`);
       return fn.call(self, speaker, actor, token, self, character, scope, ...argValues);
     }
     return socket.current()?.executeAsGM("runAsMacro", self.uuid, speaker, actor.uuid, token.uuid, character.uuid, scope);

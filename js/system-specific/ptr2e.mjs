@@ -2,15 +2,15 @@ import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
+
+const BASIC_BALL_IMG = "systems/ptr2e/img/item-icons/basic ball.webp";
+
 /**
- * A Chat Message listener, that should only be run on the GM's client
+ * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
  * @returns 
  */
 async function OnCreateChatMessage(message) {
-  // early return if you are not the "first" logged in GM
-  if (!isTheGM()) return;
-  
   //
   // Handle Capture Animations
   //
@@ -37,7 +37,7 @@ async function OnCreateChatMessage(message) {
       const ballSlug = message.system.slug.substr(0, message.system.slug.length - 4);
       const domainItem = message.system.origin?.items?.filter?.((i)=>i.system.slug === ballSlug);
       if (!!domainItem && domainItem.length > 0) return domainItem[0].img;
-      return "systems/ptr2e/img/item-icons/basic ball.webp";
+      return BASIC_BALL_IMG;
     })();
     
     const crit = message.system.context.state.crit;
@@ -47,13 +47,21 @@ async function OnCreateChatMessage(message) {
       message.system.context.state.shake2,
       message.system.context.state.shake1,
     ].lastIndexOf(false);
-    game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(
+
+    let sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(
       source,
       target,
       ballImg,
-      message.system.context.state.accuracy,
-      Math.min(shakes, crit ? 1 : 3),
-      crit ? shakes >= 1 : shakes >= 4);
+      message.system.context.state.accuracy);
+    if (hit) {
+      sequence = game.modules.get("pokemon-assets").api.scripts.CatchPokemon(
+        target,
+        ballImg,
+        Math.min(shakes, crit ? 1 : 3),
+        crit ? shakes >= 1 : shakes >= 4,
+        sequence);
+    }
+    await sequence.play();
     return;
   }
 
@@ -111,7 +119,7 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
       `${pmdPath}${dexString}${regionalVariant}.png`,
       `${pmdPath}${dexString}.png`,
     ]) {
-      if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
+      if (SpritesheetGenerator.hasSheetSettings(testSrc)) {
         result.result = testSrc;
         return result;
       }
@@ -123,7 +131,7 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
 
 function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
-  if (!src || !(src in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) return;
+  if (!src || !SpritesheetGenerator.hasSheetSettings(src)) return;
 
   const updates = _getTokenChangesForSpritesheet(src);
   token.updateSource(updates);
@@ -135,7 +143,7 @@ function OnPreCreateActor(actor, data) {
   if (!(data.img ?? actor.img).includes("icons/svg/mystery-man.svg")) return;
 
   const img = (()=>{
-    let possibleImages = Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS).filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+    let possibleImages = SpritesheetGenerator.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
     const gender = (()=>{
       const genderSet = (data?.system?.sex ?? actor?.system?.sex ?? "genderless").toLowerCase().trim();
       if (genderSet === "genderless") return "";
@@ -146,8 +154,8 @@ function OnPreCreateActor(actor, data) {
     })();
     possibleImages = possibleImages.filter(k=>k.includes(gender));
     // TODO: maybe filter also based on some mapping of perks to the official pokemon trainer classes?
-    if (possibleImages.length === 0) return null;
-    return possibleImages[~~(Math.random() * possibleImages.length)];
+    if (possibleImages.size === 0) return null;
+    return [...possibleImages][~~(Math.random() * possibleImages.size)];
   })();
   if (!img) return;
 
@@ -158,6 +166,23 @@ function OnPreCreateActor(actor, data) {
   }
   foundry.utils.mergeObject(data, foundry.utils.deepClone(updates));
   actor.updateSource(updates);
+}
+
+
+async function OnCreateToken(token) {
+  const actor = token.actor;
+  if (!actor || actor.type !== "pokemon") return;
+  if (!actor.party?.party?.includes(actor)) return;
+  if (token.object) token.object.localOpacity = 0;
+  const source = actor.party.owner ? token.scene.tokens.find(t=>t.actor?.id === actor.party.owner.id) : null;
+
+  let sequence = null;
+  if (source) {
+    // TODO the pokeball the pokemon was caught with, when PTR2e eventually stores that information
+    sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, BASIC_BALL_IMG, true);
+  }
+  sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
+  await sequence.play();
 }
 
 
@@ -317,7 +342,7 @@ function TokenAlterations_apply(wrapped, ...args) {
       if (!basename) return false;
 
       const src = (()=>{
-        for (const src of Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) {
+        for (const src of SpritesheetGenerator.allSheetKeys()) {
           if (src.toLowerCase().includes(basename.toLowerCase())) return src;
         }
       })();
@@ -362,6 +387,7 @@ export function register() {
 
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateActor", OnPreCreateActor);
+  Hooks.on("createToken", OnCreateToken);
   libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Token.objectClass.prototype._applyRenderFlags", Token_applyRenderFlags, "WRAPPER");
 

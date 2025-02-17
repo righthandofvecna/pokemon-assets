@@ -107,7 +107,9 @@ def main():
                     fileName = f"{dexnumber}{suffix}.png"
                     toCopy[fileName] = variants[key]
                     # load the sheet anim data
-                    foundryPath = "/".join(("modules", "pokemon-assets", "img", "pmd-overworld", d3, d2, fileName, ))
+                    foundryPathA = "modules/pokemon-assets/img/pmd-overworld/"
+                    foundryPathB = "/".join((d3, d2, fileName, ))
+
                     folder, file = os.path.split(variants[key])
                     metadataPath = os.path.join(folder, "AnimData.xml")
                     frames = 4
@@ -117,12 +119,12 @@ def main():
                         for anim in root.find("Anims"):
                             if anim.find("Name").text == file.replace("-Anim.png", ""):
                                 frames = len(anim.find("Durations"))
-                    if foundryPath not in spritesheetSettings or spritesheetSettings[foundryPath]["animationframes"] != frames:
+                    pmdImages = spritesheetSettings[foundryPathA]["images"]
+                    if foundryPathB not in pmdImages or pmdImages[foundryPathB]["animationframes"] != frames:
                         newPath = os.path.join(newDirpath, fileName)
                         if os.path.exists(newPath):
                             os.remove(newPath)
-                        spritesheetSettings[foundryPath] = {
-                            "sheetstyle": "pmd",
+                        pmdImages[foundryPathB] = {
                             "animationframes": frames,
                         }
         def processVariant(key, suffix):

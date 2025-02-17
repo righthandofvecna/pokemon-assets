@@ -367,47 +367,41 @@ async function HandleIce() {
  * @param {boolean} lowHp if below 1/5 hp, we should play the alert
  */
 async function IndicateDamage(actor, token, lowHp) {
-  const allowedLevels = [CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER, CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER];
-  const users = (()=>{
-    if (allowedLevels.includes(actor.ownership.default)) return game.users;
-    return game.users.filter(u=>u.isGM || allowedLevels.includes(actor.ownership[u.id] ?? CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE));
-  })().map(u=>u.id);
-
-  let sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
-  sequence = sequence.sound()
+  const sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
+  sequence.sound()
       .file(`modules/pokemon-assets/audio/bgs/hit.mp3`)
-      .volume(VolumeSettings.getVolume("damage"));
+      .volume(VolumeSettings.getVolume("damage"))
+      .locally();
   if (!!token) {
-    sequence = sequence.animation()
-        .on(token)
-        .opacity(0.5)
-        .duration(125)
-        .async()
-      .animation()
-        .on(token)
-        .opacity(1)
-        .duration(125)
-        .async()
-      .animation()
-        .on(token)
-        .opacity(0.5)
-        .duration(125)
-        .async()
-      .animation()
-        .on(token)
-        .opacity(1)
-        .duration(125)
-        .async();
+    sequence.localAnimation()
+      .on(token)
+      .opacity(0.5)
+      .duration(125)
+      .waitUntilFinished();
+    sequence.localAnimation()
+      .on(token)
+      .opacity(1)
+      .duration(125)
+      .waitUntilFinished();
+    sequence.localAnimation()
+      .on(token)
+      .opacity(0.5)
+      .duration(125)
+      .waitUntilFinished();
+    sequence.localAnimation()
+      .on(token)
+      .opacity(1)
+      .duration(125)
+      .waitUntilFinished();
   }
   
   // check if 1/5 hp or less
-  if (lowHp) {
-    sequence = sequence
-      .sound()
-        .file(`modules/pokemon-assets/audio/bgs/low-hp.mp3`)
-        .volume(VolumeSettings.getVolume("low-hp"))
-        // .audioChannel("interface")
-        .forUsers(users);
+  if (lowHp && actor.isOwner) {
+    sequence.sound()
+      .file(`modules/pokemon-assets/audio/bgs/low-hp.mp3`)
+      .volume(VolumeSettings.getVolume("low-hp"))
+      // .audioChannel("interface")
+      .locally();
   }
 
   sequence.play()
@@ -420,91 +414,174 @@ async function IndicateDamage(actor, token, lowHp) {
  * @param {*} target the targeted token
  * @param {*} img the image of the pokeball to throw
  * @param {*} hit whether the pokeball hit or not
+ * @returns the sequence to play
+ */
+function ThrowPokeball(source, target, img, hit) {
+  Sequencer.Preloader.preload([
+    "modules/pokemon-assets/audio/bgs/pokeball-throw.mp3",
+    "modules/pokemon-assets/audio/bgs/pokeball-drop.mp3",
+  ]);
+
+  const targetCenter = target.center ?? {
+    x: target.x + (target.width * target.scene.grid.sizeX / 2),
+    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+  };
+
+  const sourceCenter = source.center ?? {
+    x: source.x + (source.width * source.scene.grid.sizeX / 2),
+    y: source.y + (source.height * source.scene.grid.sizeY / 2)
+  };
+
+  const volume = VolumeSettings.getVolume("catch");
+  const sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
+  sequence.sound()
+    .file(`modules/pokemon-assets/audio/bgs/pokeball-throw.mp3`)
+    .volume(volume)
+    .locally();
+  sequence.effect()
+    .file(img)
+    .atLocation(sourceCenter)
+    .moveTowards(targetCenter)
+    .missed(!hit)
+    .duration(500)
+    .size(0.35, { gridUnits: true })
+    .randomSpriteRotation()
+    .rotateOut(360, 100)
+    .locally()
+    .waitUntilFinished();
+  sequence.sound()
+    .file(`modules/pokemon-assets/audio/bgs/pokeball-drop.mp3`)
+    .volume(volume)
+    .locally()
+    .waitUntilFinished();
+  
+  return sequence;
+}
+
+/**
+ * Play a "Catch" animation from the thrown Pokeball
+ * @param {*} target the targeted token
+ * @param {*} img the image of the pokeball to throw
  * @param {*} shakes how many shakes the pokeball does
  * @param {*} caught whether or not to play the caught or escaped animation
+ * @returns the sequence to play
  */
-async function ThrowPokeball(source, target, img, hit, shakes, caught) {
+function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
   Sequencer.Preloader.preload([
-    "modules/pokemon-assets/audio/bgs/pokeball-drop.mp3",
     "modules/pokemon-assets/audio/bgs/pokeball-shake.mp3",
     "modules/pokemon-assets/audio/bgs/pokeball-caught.mp3",
     "modules/pokemon-assets/audio/bgs/pokeball-escape.mp3",
   ]);
 
   const volume = VolumeSettings.getVolume("catch");
-  let sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
-  sequence = sequence
-    .sound()
-      .file(`modules/pokemon-assets/audio/bgs/pokeball-throw.mp3`)
-      .volume(volume)
-    .effect()
-      .file(img)
-      .atLocation(source)
-      .moveTowards(target)
-      .missed(!hit)
-      .duration(500)
-      .size(0.35, { gridUnits: true })
-      .randomSpriteRotation()
-      .rotateOut(360, 100)
-      .async()
-    .sound()
-      .file(`modules/pokemon-assets/audio/bgs/pokeball-drop.mp3`)
-      .volume(volume)
-      .async();
+  const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
-  if (!hit) {
-    await sequence.play();
-    return;
-  }
-  
-  sequence = sequence
-    .effect()
+  const targetCenter = target.center ?? {
+    x: target.x + (target.width * target.scene.grid.sizeX / 2),
+    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+  };
+
+  sequence.localAnimation()
+    .on(target)
+    .opacity(0);
+  sequence.effect()
+    .file(img)
+    .atLocation(targetCenter)
+    .duration(2000)
+    .size(0.35, { gridUnits: true })
+    .locally()
+    .waitUntilFinished();
+  for (let shake=0; shake < shakes; shake++) {
+    sequence.sound()
+      .file(`modules/pokemon-assets/audio/bgs/pokeball-shake.mp3`)
+      .volume(volume)
+      .locally();
+    sequence.effect()
       .file(img)
-      .atLocation(target)
+      .atLocation(targetCenter)
       .duration(2000)
       .size(0.35, { gridUnits: true })
-    .animation()
-      .on(target)
-      .hide()
-      .duration(2000)
-      .async();
-  for (let shake=0; shake < shakes; shake++) {
-    sequence = sequence
-      .sound()
-        .file(`modules/pokemon-assets/audio/bgs/pokeball-shake.mp3`)
-        .volume(volume)
-      .effect()
-        .file(img)
-        .atLocation(target)
-        .duration(2000)
-        .size(0.35, { gridUnits: true })
-        .rotateIn(45, 2000, { ease: "easeOutElastic", delay: 0 })
-        .async();
+      .rotateIn(45, 2000, { ease: "easeOutElastic", delay: 0 })
+      .waitUntilFinished()
+      .locally();
   }
 
   if (caught) {
-    sequence = sequence
-      .sound()
-        .file(`modules/pokemon-assets/audio/bgs/pokeball-caught.mp3`)
-        .volume(volume)
-      .effect()
-        .file(img)
-        .tint("#555555")
-        .atLocation(target)
-        .duration(2000)
-        .size(0.35, { gridUnits: true })
-        .async();
+    sequence.sound()
+      .file(`modules/pokemon-assets/audio/bgs/pokeball-caught.mp3`)
+      .volume(volume)
+      .locally();
+    sequence.effect()
+      .file(img)
+      .tint("#555555")
+      .atLocation(targetCenter)
+      .duration(2000)
+      .size(0.35, { gridUnits: true })
+      .locally()
+      .waitUntilFinished();
   } else {
-    sequence = sequence
-      .sound()
-        .file(`modules/pokemon-assets/audio/bgs/pokeball-escape.mp3`)
-        .volume(volume)
-      .animation()
-        .on(target)
-        .show();
+    sequence.sound()
+      .file(`modules/pokemon-assets/audio/bgs/pokeball-escape.mp3`)
+      .volume(volume)
+      .locally();
+    sequence.localAnimation()
+      .on(target)
+      .opacity(1);
   }
   
-  await sequence.play();
+  return sequence;
+}
+
+/**
+ * Play a "Summon" animation for a Pokemon
+ * @param {*} target 
+ * @param {*} extendSequence 
+ * @returns 
+ */
+function SummonPokemon(target, shiny, extendSequence=null) {
+  Sequencer.Preloader.preload([
+    "modules/pokemon-assets/audio/bgs/pokeball-escape.mp3",
+  ]);
+
+  const volume = VolumeSettings.getVolume("catch");
+  const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
+
+  const targetCenter = target.center ?? {
+    x: target.x + (target.width * target.scene.grid.sizeX / 2),
+    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+  };
+
+  sequence.sound()
+    .file(`modules/pokemon-assets/audio/bgs/pokeball-escape.mp3`)
+    .volume(volume)
+    .locally()
+  sequence.effect()
+    .atLocation(targetCenter)
+    .file("modules/pokemon-assets/img/animations/pokeball_open.json")
+    .playbackRate(0.75)
+    .size((target?.width ?? 1) * 3, { gridUnits: true })
+    .locally()
+    .waitUntilFinished();
+  sequence.localAnimation()
+    .on(target)
+    .opacity(1);
+
+  if (shiny) {
+    sequence.sound()
+      .file(`modules/pokemon-assets/audio/bgs/pokemon-shiny.mp3`)
+      .delay(500)
+      .volume(volume)
+      .locally()
+    sequence.effect()
+      .atLocation(targetCenter)
+      .delay(500)
+      .file("modules/pokemon-assets/img/animations/shiny_sparkle.json")
+      .playbackRate(0.5)
+      .size((target?.width ?? 1) * 3, { gridUnits: true })
+      .locally()
+  }
+
+  return sequence;
 }
 
 /**
@@ -517,7 +594,7 @@ async function Interact() {
         .file(`modules/pokemon-assets/audio/bgs/a-button.mp3`)
         .volume(VolumeSettings.getVolume("interact"))
         .locally(true)
-        .async()
+        .waitUntilFinished()
       .play();
   }
 }
@@ -939,6 +1016,8 @@ export function register() {
     HandleIce,
     HandleJumps,
     ThrowPokeball,
+    CatchPokemon,
+    SummonPokemon,
     IndicateDamage,
     Interact,
     TokenHasDirection,

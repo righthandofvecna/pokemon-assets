@@ -20,7 +20,7 @@ for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")
             continue
         gotThere = True
 
-        sss = spritesheetSettings["/".join(["modules", "pokemon-assets", *imgPath.split(os.path.sep)])]
+        sss = spritesheetSettings["modules/pokemon-assets/img/pmd-overworld/"]["images"]["/".join([*imgPath.split(os.path.sep)][2:])]
         animationFrames = sss['animationframes']
 
         img = Image.open(imgPath)

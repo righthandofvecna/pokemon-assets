@@ -88,12 +88,10 @@ def scrapeTrainerClassPage(pageSrc):
                 "url": f"https://pokengine.org{ownerLink}"
             }
 
-            foundryPath = "/".join(["modules", "pokemon-assets", "img", "trainers-overworld", fname])
-            if foundryPath not in spritesheetSettings:
-                spritesheetSettings[foundryPath] = {
-                    "animationframes": 3,
-                    "sheetstyle": "trainer3"
-                }
+            foundryPathA = "modules/pokemon-assets/img/trainers-overworld/trainer_"
+            foundryPathB = fname[len("trainer_"):]
+            if foundryPathB not in spritesheetSettings[foundryPathA]["images"]:
+                spritesheetSettings[foundryPathA]["images"][foundryPathB] = {}
         except Exception as e:
             print(e)
 

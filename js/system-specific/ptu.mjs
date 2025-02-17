@@ -2,8 +2,10 @@ import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
+const BASIC_BALL_IMG = "systems/ptu/images/item_icons/basic ball.webp";
+
 /**
- * A Chat Message listener, that should only be run on the GM's client
+ * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
  * @returns 
  */
@@ -28,7 +30,7 @@ async function OnCreateChatMessage(message) {
 
     // get the ball image
     const item = await fromUuid(message?.flags?.ptu?.origin?.uuid);
-    const ballImage = item?.img ?? "systems/ptu/images/item_icons/basic ball.webp";
+    const ballImg = item?.img ?? BASIC_BALL_IMG;
 
     // get the roll and the dc
     const captureDC = contextTarget.dc?.value ?? 50;
@@ -36,13 +38,18 @@ async function OnCreateChatMessage(message) {
     const caught = contextTarget.outcome === "hit" || contextTarget.outcome === "crit-hit";
     const shakes = caught ? 3 : Math.max(0, Math.min(Math.round(3 * captureDC / roll), 3));
     
-    game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(
+    let sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(
       source,
       target,
-      ballImage,
-      true,
+      ballImg,
+      true);
+    sequence = game.modules.get("pokemon-assets").api.scripts.CatchPokemon(
+      target,
+      ballImg,
       shakes,
-      caught);
+      caught,
+      sequence);
+    await sequence.play();
     return;
   }
 
@@ -101,7 +108,7 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
       `${pmdPath}${dexString}${variant}.png`,
       formOverride == null ? `${pmdPath}${dexString}.png` : "INVALID",
     ]) {
-      if (testSrc in SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS) {
+      if (SpritesheetGenerator.hasSheetSettings(testSrc)) {
         return testSrc;
       }
     }
@@ -109,7 +116,7 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
   })();
 
   if (!src) return {};
-  
+
   const updates = {
     "prototypeToken": _getTokenChangesForSpritesheet(src),
   };
@@ -139,7 +146,7 @@ function OnPreCreateActor(actor, data) {
     if (!(data.img ?? actor.img ?? "icons/svg/mystery-man.svg").includes("icons/svg/mystery-man.svg")) return;
   
     const img = (()=>{
-      let possibleImages = Object.keys(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS).filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+      let possibleImages = SpritesheetGenerator.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
       const sex = (()=>{
         const sexSet = data?.system?.sex ?? actor?.system?.sex;
         if (!sexSet) return "";
@@ -150,8 +157,8 @@ function OnPreCreateActor(actor, data) {
       })();
       possibleImages = possibleImages.filter(k=>k.includes(sex));
       // TODO: maybe filter also based on some mapping of classes to the official pokemon trainer classes?
-      if (possibleImages.length === 0) return null;
-      return possibleImages[~~(Math.random() * possibleImages.length)];
+      if (possibleImages.size === 0) return null;
+      return [...possibleImages][~~(Math.random() * possibleImages.size)];
     })();
     if (!img) return;
 
@@ -178,25 +185,64 @@ function OnPreCreateToken(token, data) {
  *  Whenever a token would be created, try to populate its sprite
  */
 function OnCreateToken(token) {
-  if (!isTheGM()) return;
-  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
-  const actor = token.actor;
-  if (!actor) return;
-  if (actor.type !== "pokemon") return;
-  if (actor.prototypeToken.randomImg) return;
+  // if the token is a pokemon, doesn't have a random image, and hasn't been configured yet, set its sprite
+  (()=>{
+    if (!isTheGM()) return;
+    if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
+    const actor = token.actor;
+    if (!actor) return;
+    if (actor.type !== "pokemon") return;
+    if (actor.prototypeToken.randomImg) return;
+  
+    // check if the 'ptu' flag is set
+    if (!token.flags.ptu) return;
+  
+    // check that the pokemon-assets flags are not set
+    if (token.flags[MODULENAME] !== undefined) return;
+  
+    const species = actor.itemTypes.species?.at(0);
+    if (!species) return;
+  
+    const actorUpdates = _getPrototypeTokenUpdates(actor, species);
+    const updates = foundry.utils.expandObject(actorUpdates)?.prototypeToken ?? {};
+    token.update(updates);
+  })();
 
-  // check if the 'ptu' flag is set
-  if (!token.flags.ptu) return;
+  // If the token is a pokemon owned by a trainer, play the summoning animation
+  (async ()=>{
+    console.log("created token:", token);
+    const actor = token.actor;
+    if (!actor || actor.type !== "pokemon") return;
+    if (!actor.trainer) return;
+    if (token.object) token.object.localOpacity = 0;
+    const source = token.scene.tokens.find(t=>t.actor?.id === actor.trainer.id);
 
-  // check that the pokemon-assets flags are not set
-  if (token.flags[MODULENAME] !== undefined) return;
+    let sequence = null;
+    if (source) {
+      const ballImg = await (async ()=>{
+        const img = `systems/ptu/images/item_icons/${actor.system.pokeball.toLowerCase()}.webp`;
+        if (actor.system.pokeball && testFilePath(img)) return img;
+        return BASIC_BALL_IMG;
+      })();
+      sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
+    }
+    sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
+    sequence.play();
+  })();
+}
 
-  const species = actor.itemTypes.species?.at(0);
-  if (!species) return;
-
-  const actorUpdates = _getPrototypeTokenUpdates(actor, species);
-  const updates = foundry.utils.expandObject(actorUpdates)?.prototypeToken ?? {};
-  token.update(updates);
+/**
+ * Test if a particular file path resolves
+ * @param {string} filePath - The file path to test
+ * @returns {Promise<boolean>} - Returns true if the file exists, false otherwise
+ */
+async function testFilePath(filePath) {
+  try {
+    const response = await fetch(filePath, { method: 'HEAD' });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
 }
 
 
@@ -442,9 +488,7 @@ function fixLockAndKey() {
 
 
 export function register() {
-  if (early_isGM) {
-    Hooks.on("createChatMessage", OnCreateChatMessage);
-  }
+  Hooks.on("createChatMessage", OnCreateChatMessage);
   Hooks.on("preCreateActor", OnPreCreateActor);
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("createToken", OnCreateToken);

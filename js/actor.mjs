@@ -5,7 +5,7 @@ import { SpritesheetGenerator } from "./spritesheets.mjs";
 
 
 export function _getTokenChangesForSpritesheet(src) {
-  const spritesheetSettings = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
+  const spritesheetSettings = SpritesheetGenerator.getSheetSettings(src);
   if (spritesheetSettings === undefined) return {};
 
   const data = {...spritesheetSettings};
@@ -36,7 +36,7 @@ function OnPreUpdateActor(actor, updates) {
 
   // the image has changed!
   const src = updates.img.replace("modules/pokemon-assets/img/trainers-profile/", "modules/pokemon-assets/img/trainers-overworld/");
-  const spritesheet = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
+  const spritesheet = SpritesheetGenerator.getSheetSettings(src);
   if (!spritesheet) return;
 
   foundry.utils.mergeObject(updates, {
@@ -49,7 +49,7 @@ function OnPreCreateActor(actor, data) {
   if (!img || !img.includes("modules/pokemon-assets/img/trainers-profile/")) return;
 
   const src = img.replace("modules/pokemon-assets/img/trainers-profile/", "modules/pokemon-assets/img/trainers-overworld/");
-  const spritesheet = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
+  const spritesheet = SpritesheetGenerator.getSheetSettings(src);
   if (!spritesheet) return;
 
   foundry.utils.mergeObject(data, {
@@ -62,7 +62,7 @@ function OnCreateActor(actor) {
   if (!actor.img.includes("modules/pokemon-assets/img/trainers-profile/")) return;
   
   const src = actor.img.replace("modules/pokemon-assets/img/trainers-profile/", "modules/pokemon-assets/img/trainers-overworld/");
-  const spritesheet = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
+  const spritesheet = SpritesheetGenerator.getSheetSettings(src);
   if (!spritesheet) return;
 
   actor.update({
