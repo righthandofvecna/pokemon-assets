@@ -1,7 +1,6 @@
 export default
 {
   "modules/pokemon-assets/img/pmd-overworld/": {
-    "sheetstyle": "pmd",
     "images": {
       "00XX/000X/0000.png": {
         "animationframes": 9
@@ -247,6 +246,9 @@ export default
       "00XX/002X/0028s.png": {
         "animationframes": 4
       },
+      "00XX/002X/0028s_alolan.png": {
+        "animationframes": 4
+      },
       "00XX/002X/0029.png": {
         "animationframes": 7
       },
@@ -433,6 +435,9 @@ export default
         "animationframes": 4
       },
       "00XX/005X/0052_alolan.png": {
+        "animationframes": 4
+      },
+      "00XX/005X/0052_galarian.png": {
         "animationframes": 4
       },
       "00XX/005X/0052s.png": {
@@ -844,6 +849,9 @@ export default
         "animationframes": 7
       },
       "01XX/010X/0101s.png": {
+        "animationframes": 7
+      },
+      "01XX/010X/0101s_hisuian.png": {
         "animationframes": 7
       },
       "01XX/010X/0102.png": {
@@ -5415,6 +5423,9 @@ export default
       "07XX/070X/0702.png": {
         "animationframes": 8
       },
+      "07XX/070X/0702s.png": {
+        "animationframes": 8
+      },
       "07XX/070X/0703.png": {
         "animationframes": 7
       },
@@ -7408,14 +7419,11 @@ export default
       "10XX/102X/1025s.png": {
         "animationframes": 10
       }
-    }
+    },
+    "sheetstyle": "pmd"
   },
-
-
-
   "modules/pokemon-assets/img/trainers-overworld/": {
     "animationframes": 4,
-    "sheetstyle": "trainer",
     "images": {
       "aromalady.png": {},
       "biker.png": {},
@@ -7456,22 +7464,12 @@ export default
       "tuber_f.png": {},
       "tuber_m.png": {},
       "youngster.png": {}
-    }
+    },
+    "sheetstyle": "trainer"
   },
-
-
-
-
-
-
-
-
-
   "modules/pokemon-assets/img/trainers-overworld/trainer_": {
     "anchor": 0.65,
     "animationframes": 3,
-    "scale": 1.5,
-    "sheetstyle": "trainer3",
     "images": {
       "acetrainer_f_pe_013xjbv5.webp": {},
       "acetrainer_f_pe_01mbms4g.webp": {},
@@ -7886,6 +7884,8 @@ export default
       "youngster_m_pe_01l7tn5v.webp": {},
       "youngster_m_pe_01qvg1yg.webp": {},
       "youngster_m_pe_01u2uyla.webp": {}
-    }
+    },
+    "scale": 1.5,
+    "sheetstyle": "trainer3"
   }
 }
