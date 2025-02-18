@@ -44,7 +44,7 @@ async function OnRenderTokenConfig(config, html, context) {
     };
 
     // Populate the dropdown for the types of spritesheet layouts available
-    data.sheetSizeOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
+    data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
       return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${label}</option>`;
     }, "");
 

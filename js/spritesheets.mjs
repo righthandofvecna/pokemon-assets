@@ -7,6 +7,7 @@ export class SpritesheetGenerator {
     trainer3: "4-directions (Reduced Trainer Overworld Style)",
     pkmn: "4-directions (Pokemon Overworld Style)",
     pmd: "8-direction (Mystery Dungeon Style)",
+    digimon: "4-directions, diagonal (Digimon)"
   };
 
   static DIRECTIONS = {
@@ -164,6 +165,38 @@ export class SpritesheetGenerator {
       // duplicate the first texture of each row
       for (const [k, anim] of Object.entries(spritesheetSlicingInfo.animations)) {
         spritesheetSlicingInfo.animations[k] = [anim[0], anim[1], anim[0], anim[2]];
+      }
+    } else if (mode === "digimon") {
+      for (let c=0; c<frames; c++) {
+        for (let r=0; r<4; r++) {
+          const direction = (()=>{
+            switch (r) {
+              case 0: return "downright";
+              case 1: return "upright";
+              case 2: return "upleft";
+              case 3: return "downleft";
+            }
+          })();
+          const key = `${src}-${direction}${c}`;
+
+          spritesheetSlicingInfo.animations[direction].push(key);
+          // handle the fact that this sheet doesn't have diagonals
+          if (direction === "downright") {
+            spritesheetSlicingInfo.animations.down.push(key);
+          } else if (direction === "upright") {
+            spritesheetSlicingInfo.animations.right.push(key);
+          } else if (direction === "upleft") {
+            spritesheetSlicingInfo.animations.up.push(key);
+          } else if (direction === "downleft") {
+            spritesheetSlicingInfo.animations.left.push(key);
+          }
+
+          spritesheetSlicingInfo.frames[key] = {
+            frame: { x: frameWidth * c, y: frameHeight * r, w: frameWidth, h: frameHeight },
+            sourceSize: { w: frameWidth, h: frameHeight },
+            spriteSourceSize: { x: 0, y: 0, w: frameWidth, h: frameHeight },
+          }
+        }
       }
     } else {
       for (let c=0; c<frames; c++) {
