@@ -25,8 +25,6 @@ function OnPreCreateCombatant(actor, { actorId, hidden, sceneId, tokenId }={}, m
 function insertActorHeaderButtons(actorSheet) {
   if (!game.user.isGM) return;
 
-  console.log(actorSheet);
-
   let obj = actorSheet?.object ?? actorSheet?.actor;
   if (!actorSheet.options.window.controls.find(c=>c.action === "configure-item-piles")) {
     actorSheet.options.window.controls.unshift({
