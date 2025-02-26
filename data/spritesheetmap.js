@@ -7323,6 +7323,9 @@ export default
       "10XX/100X/1006s.png": {
         "animationframes": 4
       },
+      "10XX/100X/1007.png": {
+        "animationframes": 4
+      },
       "10XX/100X/1008.png": {
         "animationframes": 4
       },

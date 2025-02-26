@@ -11,8 +11,6 @@ export function register() {
     case "ptu":
       ptu.register();
       break;
-    default:
-      generic.register();
-      break;
   }
+  generic.register();
 }
