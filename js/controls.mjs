@@ -169,6 +169,20 @@ function OnGetSceneControlButtons(controls) {
       ],
     },
   });
+  tiles.tools.push({
+    icon: "fa-solid fa-box",
+    name: "item",
+    title: "Place Item",
+    toolclip: {
+      heading: "Place Item",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
 
   //
   // Region Tools
@@ -277,11 +291,132 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         if (!text) return;
         canvas.scene.createEmbeddedDocuments("Tile", [{
           "flags.pokemon-assets.solid": true,
-          "flags.pokemon-assets.script": `Dialog.prompt({ content: "${text.replaceAll('"', '\\"')}", options: { pokemon: true }});`,
+          "flags.pokemon-assets.script": `Dialog.prompt({ content: ${JSON.stringify(text)}, options: { pokemon: true }});`,
           width: canvas.grid.sizeX,
           height: canvas.grid.sizeY,
           texture: {
             src: "modules/pokemon-assets/img/items-overworld/sign_frlg.png",
+          },
+          x,
+          y,
+        }])
+      });
+      break;
+    case "item":
+      (new Promise(async (resolve)=>{
+        Dialog.prompt({
+          title: 'Items Contained',
+          content: `
+              <!--<div class="form-group">
+                <label for="text">Overworld Type</label>
+                <div class="form-fields">
+                  <label><img src="modules/pokemon-assets/img/items-overworld/pokeball.png"></img><input type="radio" name="overworldType" value="item" checked></label>
+                </div>
+              </div>-->
+              <div class="form-group">
+                <div id="item-drop-zone" style="min-height: 100px; border: 2px dashed #ccc; padding: 10px; margin-bottom: 10px;">
+                  <p class="drop-text">Drag and drop items here</p>
+                  <div id="dropped-items-list"></div>
+                </div>
+              </div>
+          `,
+          callback: (html) => {
+            // const overworldType = html.find('[name="overworldType"]')?.val() ?? null;
+            const items = html.find('#dropped-items-list').data('items') || [];
+            resolve({items});
+          },
+          render: (html) => {
+            const dropZone = html.find('#item-drop-zone')[0];
+            const itemsList = html.find('#dropped-items-list');
+            const items = [];
+    
+            // Set up drag and drop handlers
+            dropZone.addEventListener('dragover', (e) => {
+              e.preventDefault();
+              dropZone.style.backgroundColor = '#f0f0f0';
+            });
+    
+            dropZone.addEventListener('dragleave', (e) => {
+              e.preventDefault();
+              dropZone.style.backgroundColor = 'transparent';
+            });
+    
+            dropZone.addEventListener('drop', async (e) => {
+              e.preventDefault();
+              dropZone.style.backgroundColor = 'transparent';
+              
+              const data = TextEditor.getDragEventData(e);
+              const item = await (async ()=>{
+                let item = await fromUuid(data.uuid);
+                if (!item) return null;
+                if (item instanceof RollTable) {
+                  let result = await item.roll();
+                  if (result.results.length != 1) {
+                    return null;
+                  } else {
+                    let r = result.results[0];
+                    let uuid = "";
+                    if (r.type == "pack") {
+                      uuid = `Compendium.${r.documentCollection}.Item.${r.documentId}`;
+                    } else {
+                      return null;
+                    }
+                    console.log(uuid, r);
+                    item = await fromUuid(uuid);
+                  }
+                }
+                return item;
+              })()
+              if (!item) return;
+    
+              items.push(item.uuid);
+              itemsList.data('items', items);
+    
+              // Update visual list
+              const itemElement = document.createElement('div');
+              itemElement.innerHTML = `
+                <div class="item" style="display: flex; align-items: center; margin: 5px 0;">
+                  <img src="${item.img}" width="24" height="24" style="margin-right: 8px;">
+                  <span>${item.name}</span>
+                  <a class="remove-item" style="margin-left: auto;"><i class="fas fa-times"></i></a>
+                </div>
+              `;
+    
+              // Add remove handler
+              itemElement.querySelector('.remove-item').addEventListener('click', () => {
+                const index = items.indexOf(item);
+                if (index > -1) {
+                  items.splice(index, 1);
+                  itemsList.data('items', items);
+                  itemElement.remove();
+                }
+              });
+    
+              itemsList.append(itemElement);
+            });
+          },
+        }).catch(()=>{
+          resolve(null);
+        });
+      })).then(async ({items})=>{
+        if (!items) return;
+        const itemFrequency = items.reduce((l,i)=>({...l, [i]: (l[i] ?? 0) + 1}), {});
+        const itemObjects = await Promise.all(Object.keys(itemFrequency).map(uuid=>fromUuid(uuid)));
+        const itemTexts = itemObjects.map((item, i)=>itemFrequency[item.uuid] > 1 ? `${itemFrequency[item.uuid]}&times; ${item.name}` : ("aeiou".includes(item.name.toLowerCase()[0]) ? `an ${item.name}` : `a ${item.name}`));
+        // do a natural join of the item names (eg, "a, b, and c" or "a and b")
+        if (itemTexts.length > 1) {
+          itemTexts[itemTexts.length - 2] += " and " + itemTexts.pop();
+        }
+        const message = `You found ${itemTexts.join(", ")}`;
+        canvas.scene.createEmbeddedDocuments("Tile", [{
+          "flags.pokemon-assets.solid": true,
+          "flags.pokemon-assets.script": `const itemUuids = [${items.reduce((l,i)=>l+'"'+i+'",', "")}];\nconst items = (await Promise.all(itemUuids.map(uuid=>fromUuid(uuid)))).map(item=>item.toObject());\nconst awardItems = game.modules.get(${JSON.stringify(MODULENAME)})?.api?.scripts?.AwardItems;\nDialog.prompt({ content: ${JSON.stringify(message)}, options: { pokemon: true }, callback: async ()=>{\nself.delete().then(()=>awardItems(actor, items)).catch(()=>{\nDialog.prompt({ content: "Oops! Someone else grabbed ${items.length > 1 ? "them" : "it"} first!", options: { pokemon: true }});})\n}});`,
+          width: canvas.grid.sizeX,
+          height: canvas.grid.sizeY,
+          texture: {
+            src: "modules/pokemon-assets/img/items-overworld/pokeball.png",
+            scaleX: 0.5,
+            scaleY: 0.5,
           },
           x,
           y,

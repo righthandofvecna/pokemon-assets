@@ -396,7 +396,8 @@ export function register() {
 
   const module = game.modules.get(MODULENAME);
   module.api ??= {};
-  module.api.controls = {
+  const api = module.api;
+  api.controls = {
     ...(module.api.controls ?? {}),
     "pokemonCenter": {
       "label": "Pokemon Center",
@@ -408,19 +409,19 @@ export function register() {
     },
   }
 
-  module.api.logic ??= {};
+  api.logic ??= {};
   /**
    * Return all the actors this token can make use of for the purposes of field moves
    * @param {TokenDocument} token 
    */
-  module.api.logic.FieldMoveParty ??= (token)=>[token?.actor, token.actor?.party?.owner, ...(token.actor?.party?.party ?? [])].filter((t, i, a)=>!!t && i === a.indexOf(t));
-  module.api.logic.CanUseRockSmash ??= HasMoveFunction("rock-smash");
-  module.api.logic.CanUseCut ??= HasMoveFunction("cut");
-  module.api.logic.CanUseStrength ??= HasMoveFunction("strength");
-  module.api.logic.CanUseRockClimb ??= HasMoveFunction("rock-climb");
-  module.api.logic.CanUseWaterfall ??= HasMoveFunction("waterfall");
-  module.api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
+  api.logic.FieldMoveParty ??= (token)=>[token?.actor, token.actor?.party?.owner, ...(token.actor?.party?.party ?? [])].filter((t, i, a)=>!!t && i === a.indexOf(t));
+  api.logic.CanUseRockSmash ??= HasMoveFunction("rock-smash");
+  api.logic.CanUseCut ??= HasMoveFunction("cut");
+  api.logic.CanUseStrength ??= HasMoveFunction("strength");
+  api.logic.CanUseRockClimb ??= HasMoveFunction("rock-climb");
+  api.logic.CanUseWaterfall ??= HasMoveFunction("waterfall");
+  api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
 
-  module.api.scripts ??= {};
-  module.api.scripts.HasMoveFunction ??= (actor, slug)=>HasMoveFunction(slug)(actor);;
+  api.scripts ??= {};
+  api.scripts.HasMoveFunction ??= (actor, slug)=>HasMoveFunction(slug)(actor);;
 }

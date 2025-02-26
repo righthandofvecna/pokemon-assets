@@ -106,7 +106,6 @@ function integrateItemPiles() {
     // PTR2e seems to use the actor hook for ITEMS as well....
     // Hooks.on("getActorSheetHeaderButtons", insertActorHeaderButtons);
     Hooks.on("getActorSheetHeaderButtons", (sheet)=>{
-      console.log("hi-diddly-ho")
       if ((sheet?.object ?? sheet?.item) instanceof Item)
         return insertItemHeaderButtons(sheet);
       return insertActorHeaderButtons(sheet);
