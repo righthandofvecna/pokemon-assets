@@ -585,6 +585,27 @@ function SummonPokemon(target, shiny, extendSequence=null) {
 }
 
 /**
+ * 
+ * @param {*} tile 
+ * @param {*} actor 
+ * @param {*} items 
+ * @param {*} message 
+ */
+async function PickUpItem(tile, actor, items, message) {
+  const itemObjects = (await Promise.all(items.map(uuid=>fromUuid(uuid)))).map(item=>item.toObject());
+  
+  const awardItems = game.modules.get(MODULENAME)?.api?.scripts?.AwardItems;
+  Dialog.prompt({ content: message, options: { pokemon: true }, callback: async ()=>{
+    DeleteTile(tile.uuid).then(()=>awardItems(actor, itemObjects)).catch(()=>{
+      Dialog.prompt({
+        content: `Oops! Someone else grabbed ${items.length > 1 ? "them" : "it"} first!`,
+        options: { pokemon: true }
+      });
+    })
+  }});
+}
+
+/**
  * Play the interaction sound!
  */
 async function Interact() {
@@ -597,6 +618,12 @@ async function Interact() {
         .waitUntilFinished()
       .play();
   }
+}
+
+async function DeleteTile(tileUuid) {
+  if (!game.user.isGM) return socket.current().executeAsGM("deleteTile", tileUuid);
+  const tile = await fromUuid(tileUuid);
+  await tile.delete();
 }
 
 /**
@@ -1028,8 +1055,10 @@ export function register() {
     TriggerCut,
     TriggerClimb,
     TriggerWhirlpool,
+    PickUpItem,
   };
 
+  socket.registerSocket("deleteTile", DeleteTile);
   socket.registerSocket("triggerRockSmash", async (tileId)=>TriggerRockSmash(await fromUuid(tileId)));
   socket.registerSocket("triggerCut", async (tileId)=>TriggerCut(await fromUuid(tileId)));
   socket.registerSocket("triggerWhirlpool", async (tileId)=>TriggerWhirlpool(await fromUuid(tileId)));

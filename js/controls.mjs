@@ -410,7 +410,7 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         const message = `You found ${itemTexts.join(", ")}`;
         canvas.scene.createEmbeddedDocuments("Tile", [{
           "flags.pokemon-assets.solid": true,
-          "flags.pokemon-assets.script": `const itemUuids = [${items.reduce((l,i)=>l+'"'+i+'",', "")}];\nconst items = (await Promise.all(itemUuids.map(uuid=>fromUuid(uuid)))).map(item=>item.toObject());\nconst awardItems = game.modules.get(${JSON.stringify(MODULENAME)})?.api?.scripts?.AwardItems;\nDialog.prompt({ content: ${JSON.stringify(message)}, options: { pokemon: true }, callback: async ()=>{\nself.delete().then(()=>awardItems(actor, items)).catch(()=>{\nDialog.prompt({ content: "Oops! Someone else grabbed ${items.length > 1 ? "them" : "it"} first!", options: { pokemon: true }});})\n}});`,
+          "flags.pokemon-assets.script": `const items = [${items.reduce((l,i)=>l+'"'+i+'",', "")}];\game.modules.get("${MODULENAME}")?.api?.scripts?.PickUpItem?.(self, actor, items, ${JSON.stringify(message)});`,
           width: canvas.grid.sizeX,
           height: canvas.grid.sizeY,
           texture: {
