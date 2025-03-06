@@ -180,6 +180,7 @@ def main():
             "Noice",
             "Droopy",
             "Ultimate",
+            "Lowkey",
             "Substitute",
             "Egg"
             ):

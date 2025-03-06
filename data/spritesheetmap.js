@@ -6226,6 +6226,9 @@ export default
       "08XX/081X/0810s.png": {
         "animationframes": 7
       },
+      "08XX/081X/0811.png": {
+        "animationframes": 4
+      },
       "08XX/081X/0813.png": {
         "animationframes": 4
       },
@@ -6367,6 +6370,9 @@ export default
       "08XX/084X/0849.png": {
         "animationframes": 4
       },
+      "08XX/084X/0849_Lowkey.png": {
+        "animationframes": 4
+      },
       "08XX/084X/0849s.png": {
         "animationframes": 4
       },
@@ -6459,6 +6465,9 @@ export default
       },
       "08XX/086X/0867s.png": {
         "animationframes": 6
+      },
+      "08XX/086X/0868.png": {
+        "animationframes": 4
       },
       "08XX/086X/0869.png": {
         "animationframes": 4
@@ -6686,6 +6695,9 @@ export default
         "animationframes": 4
       },
       "08XX/087X/0870s_Trooper.png": {
+        "animationframes": 4
+      },
+      "08XX/087X/0871.png": {
         "animationframes": 4
       },
       "08XX/087X/0872.png": {
@@ -7329,7 +7341,19 @@ export default
       "10XX/100X/1008.png": {
         "animationframes": 4
       },
+      "10XX/100X/1008s": {
+        "animationframes": 4
+      },
+      "10XX/100X/1008_Ultimate.png": {
+        "animationframes": 4
+      },
+      "10XX/100X/1008s_Ultimate.png": {
+        "animationframes": 4
+      },
       "10XX/100X/1009.png": {
+        "animationframes": 4
+      },
+      "10XX/100X/1009s.png": {
         "animationframes": 4
       },
       "10XX/101X/1011.png": {
