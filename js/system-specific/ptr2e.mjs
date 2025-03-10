@@ -2,9 +2,6 @@ import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
-
-const BASIC_BALL_IMG = "systems/ptr2e/img/item-icons/basic ball.webp";
-
 /**
  * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
@@ -37,7 +34,7 @@ async function OnCreateChatMessage(message) {
       const ballSlug = message.system.slug.substr(0, message.system.slug.length - 4);
       const domainItem = message.system.origin?.items?.filter?.((i)=>i.system.slug === ballSlug);
       if (!!domainItem && domainItem.length > 0) return domainItem[0].img;
-      return BASIC_BALL_IMG;
+      return game.settings.get(MODULENAME, "defaultBallImage");
     })();
     
     const hit = message.system.context.state.accuracy;
@@ -180,7 +177,10 @@ async function OnCreateToken(token) {
   let sequence = null;
   if (source) {
     // TODO the pokeball the pokemon was caught with, when PTR2e eventually stores that information
-    sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, BASIC_BALL_IMG, true);
+    const ballImg = (()=>{
+      return game.settings.get(MODULENAME, "defaultBallImage");
+    })();
+    sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
   }
   sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
   await sequence.play();

@@ -212,6 +212,23 @@ export function register() {
 		hint: "Whether or not a character that knows Waterfall can use it as a field move to climb waterfalls."
 	});
 
+	const BALL_IMG_DEFAULT = (()=>{
+		switch (game.system.id) {
+			case "ptu": return "systems/ptu/images/item_icons/basic ball.webp";
+			case "ptr2e": return "systems/ptr2e/img/item-icons/basic ball.webp";
+		}
+		return "modules/pokemon-assets/img/items-overworld/pokeball.png";
+	})();
+  game.settings.register(MODULENAME, "defaultBallImage", {
+		name: "Default Pokeball Image",
+		default: BALL_IMG_DEFAULT,
+		type: new foundry.data.fields.FilePathField({default: BALL_IMG_DEFAULT, categories: ["IMAGE"]}),
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "The default fallback Pokeball image to use if a Pokeball image is not set or cannot be found."
+	});
+
 };
 
 

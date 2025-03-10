@@ -2,8 +2,6 @@ import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
-const BASIC_BALL_IMG = "systems/ptu/images/item_icons/basic ball.webp";
-
 /**
  * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
@@ -30,7 +28,7 @@ async function OnCreateChatMessage(message) {
 
     // get the ball image
     const item = await fromUuid(message?.flags?.ptu?.origin?.uuid);
-    const ballImg = item?.img ?? BASIC_BALL_IMG;
+    const ballImg = item?.img ?? game.settings.get(MODULENAME, "defaultBallImage");
 
     // get the roll and the dc
     const captureDC = contextTarget.dc?.value ?? 50;
@@ -222,7 +220,7 @@ function OnCreateToken(token) {
       const ballImg = await (async ()=>{
         const img = `systems/ptu/images/item_icons/${actor.system.pokeball.toLowerCase()}.webp`;
         if (actor.system.pokeball && testFilePath(img)) return img;
-        return BASIC_BALL_IMG;
+        return game.settings.get(MODULENAME, "defaultBallImage");
       })();
       sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
     }
