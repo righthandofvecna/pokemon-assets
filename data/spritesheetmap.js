@@ -6685,6 +6685,9 @@ export default
       "08XX/086X/0869s_StarSweet.png": {
         "animationframes": 4
       },
+      "08XX/087X/0870.png": {
+        "animationframes": 4
+      },
       "08XX/087X/0870_Brass.png": {
         "animationframes": 4
       },
@@ -7341,7 +7344,7 @@ export default
       "10XX/100X/1008.png": {
         "animationframes": 4
       },
-      "10XX/100X/1008s": {
+      "10XX/100X/1008s.png": {
         "animationframes": 4
       },
       "10XX/100X/1008_Ultimate.png": {
