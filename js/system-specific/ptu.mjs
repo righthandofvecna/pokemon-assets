@@ -206,30 +206,36 @@ function OnCreateToken(token) {
     token.update(updates);
   })();
 
-  // If the token is a pokemon owned by a trainer, play the summoning animation
+  // If the token is a pokemon, play the summoning animation
   (async ()=>{
-    console.log("created token:", token);
+    if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
+
     const actor = token.actor;
     if (!actor || actor.type !== "pokemon") return;
     const trainer = (()=>{
-      if (actor.trainer) return trainer;
+      if (actor.trainer) return actor.trainer;
       // infer a trainer from the folder structure
       return actor?.folder?.folder?.contents?.[0] ?? null;
     })();
-    if (!trainer) return;
-    if (token.object) token.object.localOpacity = 0;
-    const source = token.scene.tokens.find(t=>t.actor?.id === trainer.id);
+    const source = trainer !== null ? token.scene.tokens.find(t=>t.actor?.id === trainer.id) : null;
 
     let sequence = null;
-    if (source) {
-      const ballImg = await (async ()=>{
-        const img = `systems/ptu/images/item_icons/${actor.system.pokeball.toLowerCase()}.webp`;
-        if (actor.system.pokeball && testFilePath(img)) return img;
-        return game.settings.get(MODULENAME, "defaultBallImage");
-      })();
-      sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
+    if (trainer !== null) {
+      if (token.object) token.object.localOpacity = 0;
+
+      if (source) {
+        const ballImg = await (async ()=>{
+          const img = `systems/ptu/images/item_icons/${actor.system.pokeball.toLowerCase()}.webp`;
+          if (actor.system.pokeball && testFilePath(img)) return img;
+          return game.settings.get(MODULENAME, "defaultBallImage");
+        })();
+        sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
+      }
+
+      sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
+    } else {
+      sequence = game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
     }
-    sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
     sequence.play();
   })();
 }

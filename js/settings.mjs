@@ -102,6 +102,16 @@ export function register() {
 		hint: "When a capture attempt is made, play the Pokemon capture sounds and animations."
 	});
 
+  game.settings.register(MODULENAME, "playSummonAnimation", {
+		name: "Play Summon Animation",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "When a Pokemon token is added to the scene, play either a Pokeball release animation, or a Tall Grass animation."
+	});
+
   game.settings.register(MODULENAME, "tokenCollision", {
 		name: "Token Collisions",
 		default: true,
