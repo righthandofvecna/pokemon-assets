@@ -2,8 +2,6 @@ import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
-const BASIC_BALL_IMG = "systems/ptu/images/item_icons/basic ball.webp";
-
 /**
  * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
@@ -30,7 +28,7 @@ async function OnCreateChatMessage(message) {
 
     // get the ball image
     const item = await fromUuid(message?.flags?.ptu?.origin?.uuid);
-    const ballImg = item?.img ?? BASIC_BALL_IMG;
+    const ballImg = item?.img ?? game.settings.get(MODULENAME, "defaultBallImage");
 
     // get the roll and the dc
     const captureDC = contextTarget.dc?.value ?? 50;
@@ -208,25 +206,36 @@ function OnCreateToken(token) {
     token.update(updates);
   })();
 
-  // If the token is a pokemon owned by a trainer, play the summoning animation
+  // If the token is a pokemon, play the summoning animation
   (async ()=>{
-    console.log("created token:", token);
+    if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
+
     const actor = token.actor;
     if (!actor || actor.type !== "pokemon") return;
-    if (!actor.trainer) return;
-    if (token.object) token.object.localOpacity = 0;
-    const source = token.scene.tokens.find(t=>t.actor?.id === actor.trainer.id);
+    const trainer = (()=>{
+      if (actor.trainer) return actor.trainer;
+      // infer a trainer from the folder structure
+      return actor?.folder?.folder?.contents?.[0] ?? null;
+    })();
+    const source = trainer !== null ? token.scene.tokens.find(t=>t.actor?.id === trainer.id) : null;
 
     let sequence = null;
-    if (source) {
-      const ballImg = await (async ()=>{
-        const img = `systems/ptu/images/item_icons/${actor.system.pokeball.toLowerCase()}.webp`;
-        if (actor.system.pokeball && testFilePath(img)) return img;
-        return BASIC_BALL_IMG;
-      })();
-      sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
+    if (trainer !== null) {
+      if (token.object) token.object.localOpacity = 0;
+
+      if (source) {
+        const ballImg = await (async ()=>{
+          const img = `systems/ptu/images/item_icons/${actor.system.pokeball.toLowerCase()}.webp`;
+          if (actor.system.pokeball && testFilePath(img)) return img;
+          return game.settings.get(MODULENAME, "defaultBallImage");
+        })();
+        sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
+      }
+
+      sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
+    } else {
+      sequence = game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
     }
-    sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
     sequence.play();
   })();
 }

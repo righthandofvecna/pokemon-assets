@@ -102,6 +102,16 @@ export function register() {
 		hint: "When a capture attempt is made, play the Pokemon capture sounds and animations."
 	});
 
+  game.settings.register(MODULENAME, "playSummonAnimation", {
+		name: "Play Summon Animation",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "When a Pokemon token is added to the scene, play either a Pokeball release animation, or a Tall Grass animation."
+	});
+
   game.settings.register(MODULENAME, "tokenCollision", {
 		name: "Token Collisions",
 		default: true,
@@ -210,6 +220,23 @@ export function register() {
 		requiresReload: false,
 		config: true,
 		hint: "Whether or not a character that knows Waterfall can use it as a field move to climb waterfalls."
+	});
+
+	const BALL_IMG_DEFAULT = (()=>{
+		switch (game.system.id) {
+			case "ptu": return "systems/ptu/images/item_icons/basic ball.webp";
+			case "ptr2e": return "systems/ptr2e/img/item-icons/basic ball.webp";
+		}
+		return "modules/pokemon-assets/img/items-overworld/pokeball.png";
+	})();
+  game.settings.register(MODULENAME, "defaultBallImage", {
+		name: "Default Pokeball Image",
+		default: BALL_IMG_DEFAULT,
+		type: new foundry.data.fields.FilePathField({default: BALL_IMG_DEFAULT, categories: ["IMAGE"]}),
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "The default fallback Pokeball image to use if a Pokeball image is not set or cannot be found."
 	});
 
 };

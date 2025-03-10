@@ -1,11 +1,11 @@
 {
     "meta": {
-        "image": "grass_sheet.png",
+        "image": "grass_shake.png",
         "format": "RGBA8888",
         "scale": 1
     },
     "frames": {
-        "grass_sheet.png_0": {
+        "grass_shake.png_0": {
             "frame": {
                 "x": 0,
                 "y": 0,
@@ -23,7 +23,7 @@
                 "h": 32
             }
         },
-        "grass_sheet.png_1": {
+        "grass_shake.png_1": {
             "frame": {
                 "x": 32,
                 "y": 0,
@@ -41,7 +41,7 @@
                 "h": 32
             }
         },
-        "grass_sheet.png_2": {
+        "grass_shake.png_2": {
             "frame": {
                 "x": 64,
                 "y": 0,
@@ -61,6 +61,6 @@
         }
     },
     "animations": {
-        "play": ["grass_sheet.png_0", "grass_sheet.png_1", "grass_sheet.png_2"]
+        "play": ["grass_shake.png_0", "grass_shake.png_1", "grass_shake.png_2"]
     }
 }

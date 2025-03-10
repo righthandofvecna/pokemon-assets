@@ -2,9 +2,6 @@ import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
-
-const BASIC_BALL_IMG = "systems/ptr2e/img/item-icons/basic ball.webp";
-
 /**
  * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
@@ -37,9 +34,10 @@ async function OnCreateChatMessage(message) {
       const ballSlug = message.system.slug.substr(0, message.system.slug.length - 4);
       const domainItem = message.system.origin?.items?.filter?.((i)=>i.system.slug === ballSlug);
       if (!!domainItem && domainItem.length > 0) return domainItem[0].img;
-      return BASIC_BALL_IMG;
+      return game.settings.get(MODULENAME, "defaultBallImage");
     })();
     
+    const hit = message.system.context.state.accuracy;
     const crit = message.system.context.state.crit;
     const shakes = 3 - [
       message.system.context.state.shake4,
@@ -52,7 +50,7 @@ async function OnCreateChatMessage(message) {
       source,
       target,
       ballImg,
-      message.system.context.state.accuracy);
+      hit);
     if (hit) {
       sequence = game.modules.get("pokemon-assets").api.scripts.CatchPokemon(
         target,
@@ -170,18 +168,29 @@ function OnPreCreateActor(actor, data) {
 
 
 async function OnCreateToken(token) {
+  if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
+  
   const actor = token.actor;
   if (!actor || actor.type !== "pokemon") return;
-  if (!actor.party?.party?.includes(actor)) return;
-  if (token.object) token.object.localOpacity = 0;
-  const source = actor.party.owner ? token.scene.tokens.find(t=>t.actor?.id === actor.party.owner.id) : null;
+  const isTrained = actor.party?.party?.includes(actor) && actor.party.owner;
+  const source = isTrained ? token.scene.tokens.find(t=>t.actor?.id === actor.party.owner.id) : null;
 
   let sequence = null;
-  if (source) {
-    // TODO the pokeball the pokemon was caught with, when PTR2e eventually stores that information
-    sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, BASIC_BALL_IMG, true);
+  if (isTrained) {
+    if (token.object) token.object.localOpacity = 0;
+
+    if (source) {
+      // TODO the pokeball the pokemon was caught with, when PTR2e eventually stores that information
+      const ballImg = (()=>{
+        return game.settings.get(MODULENAME, "defaultBallImage");
+      })();
+      sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
+    }
+
+    sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
+  } else {
+    sequence = game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
   }
-  sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
   await sequence.play();
 }
 

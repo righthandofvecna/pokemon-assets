@@ -585,6 +585,54 @@ function SummonPokemon(target, shiny, extendSequence=null) {
 }
 
 /**
+ * Play a "Summon" animation for a wild Pokemon
+ * @param {*} target 
+ * @param {*} shiny 
+ * @param {*} extendSequence 
+ */
+function SummonWildPokemon(target, shiny, extendSequence=null) {
+  Sequencer.Preloader.preload([
+    "modules/pokemon-assets/audio/bgs/grass-shake.mp3",
+  ]);
+  const volume = VolumeSettings.getVolume("catch");
+  const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
+
+  const targetCenter = target.center ?? {
+    x: target.x + (target.width * target.scene.grid.sizeX / 2),
+    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+  };
+
+  sequence.sound()
+    .file(`modules/pokemon-assets/audio/bgs/grass-shake.mp3`)
+    .volume(volume)
+    .locally()
+  sequence.effect()
+    .atLocation(targetCenter)
+    .file("modules/pokemon-assets/img/animations/grass_shake.json")
+    .playbackRate(0.2)
+    .size((target?.width ?? 1) * 2, { gridUnits: true })
+    .locally()
+    .waitUntilFinished();
+
+  if (shiny) {
+    sequence.sound()
+      .file(`modules/pokemon-assets/audio/bgs/pokemon-shiny.mp3`)
+      .delay(500)
+      .volume(volume)
+      .locally()
+    sequence.effect()
+      .atLocation(targetCenter)
+      .delay(500)
+      .file("modules/pokemon-assets/img/animations/shiny_sparkle.json")
+      .playbackRate(0.5)
+      .size((target?.width ?? 1) * 3, { gridUnits: true })
+      .locally()
+  }
+
+  return sequence;
+}
+
+/**
  * 
  * @param {*} tile 
  * @param {*} actor 
@@ -1045,6 +1093,7 @@ export function register() {
     ThrowPokeball,
     CatchPokemon,
     SummonPokemon,
+    SummonWildPokemon,
     IndicateDamage,
     Interact,
     TokenHasDirection,
