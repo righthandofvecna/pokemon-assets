@@ -40,6 +40,7 @@ async function OnCreateChatMessage(message) {
       return BASIC_BALL_IMG;
     })();
     
+    const hit = message.system.context.state.accuracy;
     const crit = message.system.context.state.crit;
     const shakes = 3 - [
       message.system.context.state.shake4,
@@ -52,7 +53,7 @@ async function OnCreateChatMessage(message) {
       source,
       target,
       ballImg,
-      message.system.context.state.accuracy);
+      hit);
     if (hit) {
       sequence = game.modules.get("pokemon-assets").api.scripts.CatchPokemon(
         target,
