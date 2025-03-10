@@ -211,9 +211,14 @@ function OnCreateToken(token) {
     console.log("created token:", token);
     const actor = token.actor;
     if (!actor || actor.type !== "pokemon") return;
-    if (!actor.trainer) return;
+    const trainer = (()=>{
+      if (actor.trainer) return trainer;
+      // infer a trainer from the folder structure
+      return actor?.folder?.folder?.contents?.[0] ?? null;
+    })();
+    if (!trainer) return;
     if (token.object) token.object.localOpacity = 0;
-    const source = token.scene.tokens.find(t=>t.actor?.id === actor.trainer.id);
+    const source = token.scene.tokens.find(t=>t.actor?.id === trainer.id);
 
     let sequence = null;
     if (source) {
