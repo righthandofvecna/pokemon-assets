@@ -84,6 +84,12 @@
                 "CannotUse": "It's a large waterfall.",
                 "CanUse": "It's a large waterfall. Would you like to use Waterfall?",
                 "Used": "{name} used Waterfall!"
+            },
+            "Headbutt": {
+                "Title": "Headbutt",
+                "CannotUse": "A Pokémon could be in this tree.",
+                "CanUse": "A Pokémon could be in this tree. Do you want to headbutt it?",
+                "Used": "{name} used Headbutt!"
             }
         },
         "PokemonCenter": {

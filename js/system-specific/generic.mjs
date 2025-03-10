@@ -1,4 +1,4 @@
-import { MODULENAME } from "../utils.mjs";
+import { MODULENAME, getUuidFromTableResult } from "../utils.mjs";
 
 
 export function register() {
@@ -15,6 +15,8 @@ export function register() {
   api.logic.CanUseWhirlpool ??= (actor)=>true;
   
   api.scripts ??= {};
-  api.scripts.HasMoveFunction ??= (actor, slug)=>true;
+  api.scripts.HasMoveFunction ??= (slug)=>function (actor){ return true };
   api.scripts.AwardItems ??= (actor, item)=>actor.createEmbeddedDocuments("Item", item instanceof Array ? item : [item]);
+
+  api.scripts.GetUuidFromTableResult ??= getUuidFromTableResult;
 }

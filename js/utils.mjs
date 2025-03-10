@@ -48,3 +48,14 @@ export function isFacing(a, b) {
 	const direction = (Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI) - 90;
   return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(a.r + 22.5) / 8);
 }
+
+
+export function getUuidFromTableResult(result) {
+	if (result.type === "pack") {
+		return `Compendium.${result.documentCollection}.${result.documentId}`;
+	}
+	if (result.type === "document") {
+		return `${result.documentCollection}.${result.documentId}`;
+	}
+	return null;
+}

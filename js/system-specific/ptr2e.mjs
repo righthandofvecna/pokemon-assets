@@ -432,5 +432,5 @@ export function register() {
   api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
 
   api.scripts ??= {};
-  api.scripts.HasMoveFunction ??= (actor, slug)=>HasMoveFunction(slug)(actor);;
+  api.scripts.HasMoveFunction ??= HasMoveFunction;
 }
