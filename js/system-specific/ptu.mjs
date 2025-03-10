@@ -530,7 +530,7 @@ export function register() {
   module.api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
 
   module.api.scripts ??= {};
-  module.api.scripts.HasMoveFunction ??= (actor, slug)=>HasMoveFunction(slug)(actor);
+  module.api.scripts.HasMoveFunction ??= HasMoveFunction;
 
   try {
     fixLockAndKey();

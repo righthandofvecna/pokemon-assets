@@ -183,6 +183,20 @@ function OnGetSceneControlButtons(controls) {
       ],
     },
   });
+  tiles.tools.push({
+    icon: "fa-solid fa-tree",
+    name: "headbutt-tree",
+    title: "Place Headbutt Tree",
+    toolclip: {
+      heading: "Place Headbutt Tree",
+      items: [
+        {
+          heading: "Place",
+          reference: "CONTROLS.DoubleClick",
+        }
+      ],
+    },
+  });
 
   //
   // Region Tools
@@ -423,7 +437,39 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         }])
       });
       break;
-  }
+    case "headbutt-tree":
+      (new Promise(async (resolve)=>{
+        Dialog.prompt({
+          title: 'Pokemon To Spawn',
+          content: `
+              <div class="form-group">
+                <label for="text">Species Rolltable</label>
+                <select name="species">
+                  ${game.tables.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b)}
+                </select>
+              </div>
+          `,
+          callback: (html) => resolve(html.find('[name="species"]')?.val() ?? null),
+        }).catch(()=>{
+          resolve(null);
+        });
+      })).then((speciesTable)=>{
+        if (!speciesTable) return;
+        canvas.scene.createEmbeddedDocuments("Tile", [{
+          "flags.pokemon-assets.solid": true,
+          "flags.pokemon-assets.script": `const api = game.modules.get("${MODULENAME}")?.api;\nconst scripts = api?.scripts;\nconst canUseHeadbutt = api?.logic?.FieldMoveParty(token)?.find(scripts?.HasMoveFunction("headbutt"));\nif (await scripts?.UseFieldMove("Headbutt", canUseHeadbutt, !!canUseHeadbutt, false)){\n  const rollTable = await fromUuid("${speciesTable}");\n  const result = (await rollTable.roll())?.results[0];\n  const resultUuid = scripts?.GetUuidFromTableResult(result);\n  const item = await fromUuid(resultUuid);\n  scripts?.ShowGMPopup(await TextEditor.enrichHTML("<p>Headbutt Tree Roll: "+item.link+"</p>"));\n};`,
+          hidden: true,
+          width: canvas.grid.sizeX,
+          height: canvas.grid.sizeY,
+          texture: {
+            src: "modules/pokemon-assets/img/items-overworld/non_tile.png",
+          },
+          x,
+          y,
+        }])
+      });
+      break;
+    }
 }
 
 function RegionLayer_onClickLeft2(wrapper, event) {

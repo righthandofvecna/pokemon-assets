@@ -1076,6 +1076,22 @@ async function UserChooseDirections({ prompt, directions } = { prompt: "Select a
   return selectedDirections;
 }
 
+async function ShowPopup(username, message) {
+  return Dialog.wait({
+    title: `Message From: ${username}`,
+    content: message,
+    close: ()=>{},
+    buttons: {}, // no buttons
+  });
+}
+
+async function ShowGMPopup(message) {
+  if (game.user.isGM) {
+    return ShowPopup("Yourself", message);
+  }
+  return socket.current().executeAsGM("showPopup", game.user.name, message);
+}
+
 
 
 export function register() {
@@ -1105,10 +1121,13 @@ export function register() {
     TriggerClimb,
     TriggerWhirlpool,
     PickUpItem,
+    ShowGMPopup,
   };
 
   socket.registerSocket("deleteTile", DeleteTile);
   socket.registerSocket("triggerRockSmash", async (tileId)=>TriggerRockSmash(await fromUuid(tileId)));
   socket.registerSocket("triggerCut", async (tileId)=>TriggerCut(await fromUuid(tileId)));
   socket.registerSocket("triggerWhirlpool", async (tileId)=>TriggerWhirlpool(await fromUuid(tileId)));
+
+  socket.registerSocket("showPopup", async (username, message)=>ShowPopup(await fromUuid(tileId)));
 }
