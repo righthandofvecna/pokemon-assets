@@ -6280,6 +6280,12 @@ export default
       "08XX/082X/0823s.png": {
         "animationframes": 6
       },
+      "08XX/082X/0825.png": {
+        "animationframes": 4
+      },
+      "08XX/082X/0826.png": {
+        "animationframes": 8
+      },
       "08XX/082X/0827.png": {
         "animationframes": 5
       },
@@ -6683,6 +6689,9 @@ export default
         "animationframes": 4
       },
       "08XX/086X/0869s_StarSweet.png": {
+        "animationframes": 4
+      },
+      "08XX/087X/0870.png": {
         "animationframes": 4
       },
       "08XX/087X/0870_Brass.png": {
@@ -7341,10 +7350,10 @@ export default
       "10XX/100X/1008.png": {
         "animationframes": 4
       },
-      "10XX/100X/1008s": {
+      "10XX/100X/1008_Ultimate.png": {
         "animationframes": 4
       },
-      "10XX/100X/1008_Ultimate.png": {
+      "10XX/100X/1008s.png": {
         "animationframes": 4
       },
       "10XX/100X/1008s_Ultimate.png": {
