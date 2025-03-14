@@ -180,8 +180,9 @@ async function OnCreateToken(token) {
     if (token.object) token.object.localOpacity = 0;
 
     if (source) {
-      // TODO the pokeball the pokemon was caught with, when PTR2e eventually stores that information
-      const ballImg = (()=>{
+      const ballImg = await (async ()=>{
+        const img = `systems/ptr2e/img/item-icons/${actor.system.details.device.toLowerCase()}.webp`;
+        if (actor.system.details.device && testFilePath(img)) return img;
         return game.settings.get(MODULENAME, "defaultBallImage");
       })();
       sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
@@ -192,6 +193,20 @@ async function OnCreateToken(token) {
     sequence = game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
   }
   await sequence.play();
+}
+
+/**
+ * Test if a particular file path resolves
+ * @param {string} filePath - The file path to test
+ * @returns {Promise<boolean>} - Returns true if the file exists, false otherwise
+ */
+async function testFilePath(filePath) {
+  try {
+    const response = await fetch(filePath, { method: 'HEAD' });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
 }
 
 
