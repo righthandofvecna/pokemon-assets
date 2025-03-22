@@ -164,8 +164,8 @@ function OnPreCreateActor(actor, data) {
       img: `modules/pokemon-assets/img/trainers-profile/${img}`,
       prototypeToken: _getTokenChangesForSpritesheet(`modules/pokemon-assets/img/trainers-overworld/${img}`),
     }
-    foundry.utils.mergeObject(data, foundry.utils.deepClone(updates));
-    actor.updateSource(updates);
+    actor.updateSource(foundry.utils.deepClone(updates));
+    foundry.utils.mergeObject(data, foundry.utils.deepClone(updates)); // this is just in case ptr1e changes the way it handles updates
     return;
   }
   

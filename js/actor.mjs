@@ -26,7 +26,7 @@ export function _getTokenChangesForSpritesheet(src) {
     delete data.scale;
     delete data.anchor;
   }
-  return updates;
+  return foundry.utils.expandObject(updates);
 }
 
 
