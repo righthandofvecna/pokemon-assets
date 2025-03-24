@@ -247,6 +247,7 @@ def main():
             processVariant(t, f"_{t}")
 
         # zygarde formes
+        processVariant("Cell", "_Cell")
         processVariant("10", "_10%")
         processVariant("50", "_50%")
         processVariant("Complete", "_Complete")

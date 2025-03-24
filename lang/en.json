@@ -10,6 +10,10 @@
                     "label": "Collide",
                     "hint": "The sound made when a token collides with a wall or other token."
                 },
+                "cry": {
+                    "label": "Pokemon Cry",
+                    "hint": "The sound made by Pokémon summoned, or when they start their turn."
+                },
                 "catch": {
                     "label": "Catch",
                     "hint": "The sound made by Pokéballs when thrown, opened, or used to try catching a Pokémon."

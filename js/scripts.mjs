@@ -539,12 +539,16 @@ function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
  * @returns 
  */
 function SummonPokemon(target, shiny, extendSequence=null) {
-  Sequencer.Preloader.preload([
-    "modules/pokemon-assets/audio/bgs/pokeball-escape.mp3",
-  ]);
+  const cry = game.modules.get(MODULENAME)?.api?.logic?.ActorCry(target?.actor);
+  const preloads = ["modules/pokemon-assets/audio/bgs/pokeball-escape.mp3"];
+  if (cry) preloads.push(cry);
+  Sequencer.Preloader.preload(preloads);
 
   const volume = VolumeSettings.getVolume("catch");
+  const cryVolume = VolumeSettings.getVolume("cry");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
+
+  console.log(cry, cryVolume, target?.actor);
 
   const targetCenter = target.center ?? {
     x: target.x + (target.width * target.scene.grid.sizeX / 2),
@@ -565,6 +569,15 @@ function SummonPokemon(target, shiny, extendSequence=null) {
   sequence.localAnimation()
     .on(target)
     .opacity(1);
+
+  if (cry) {
+    sequence.sound()
+      .file(cry)
+      .delay(150)
+      .volume(cryVolume)
+      .locally()
+      .waitUntilFinished();
+  }
 
   if (shiny) {
     sequence.sound()
@@ -591,10 +604,13 @@ function SummonPokemon(target, shiny, extendSequence=null) {
  * @param {*} extendSequence 
  */
 function SummonWildPokemon(target, shiny, extendSequence=null) {
-  Sequencer.Preloader.preload([
-    "modules/pokemon-assets/audio/bgs/grass-shake.mp3",
-  ]);
+  const cry = game.modules.get(MODULENAME)?.api?.logic?.ActorCry(target?.actor);
+  const preloads = ["modules/pokemon-assets/audio/bgs/grass-shake.mp3"];
+  if (cry) preloads.push(cry);
+  Sequencer.Preloader.preload(preloads);
+
   const volume = VolumeSettings.getVolume("catch");
+  const cryVolume = VolumeSettings.getVolume("cry");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
   const targetCenter = target.center ?? {
@@ -613,6 +629,14 @@ function SummonWildPokemon(target, shiny, extendSequence=null) {
     .size((target?.width ?? 1) * 2, { gridUnits: true })
     .locally()
     .waitUntilFinished();
+
+  if (cry) {
+    sequence.sound()
+      .file(cry)
+      .volume(cryVolume)
+      .locally()
+      .waitUntilFinished();
+  }
 
   if (shiny) {
     sequence.sound()

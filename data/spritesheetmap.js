@@ -5551,6 +5551,9 @@ export default
       "07XX/071X/0718_10%.png": {
         "animationframes": 4
       },
+      "07XX/071X/0718_Cell.png": {
+        "animationframes": 3
+      },
       "07XX/071X/0718_Complete.png": {
         "animationframes": 4
       },

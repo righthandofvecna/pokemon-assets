@@ -112,6 +112,16 @@ export function register() {
 		hint: "When a Pokemon token is added to the scene, play either a Pokeball release animation, or a Tall Grass animation."
 	});
 
+  game.settings.register(MODULENAME, "playPokemonCryOnTurn", {
+		name: "Play Pokemon Cry On Turn",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "When a Pokemon begins its turn in combat, play that Pokemon's cry."
+	});
+
   game.settings.register(MODULENAME, "tokenCollision", {
 		name: "Token Collisions",
 		default: true,
@@ -244,7 +254,7 @@ export function register() {
 
 export class VolumeSettings extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
 
-	static SFX = ["interact", "collide", "catch", "heal", "pc", "exit", "damage", "low-hp", "reaction-surprise", "rock-smash", "cut"];
+	static SFX = ["interact", "collide", "cry", "catch", "heal", "pc", "exit", "damage", "low-hp", "reaction-surprise", "rock-smash", "cut"];
 
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(

@@ -1,6 +1,7 @@
 import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
+import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
 /**
  * A Chat Message listener, that should be run on EVERY client
@@ -341,6 +342,54 @@ function HasMoveFunction(slug) {
   };
 }
 
+/**
+ * Get the cry for a given actor
+ * @param {*} actor 
+ * @returns the path to the cry file
+ */
+function ActorCry(actor) {
+  if (!actor) return null;
+
+  const dexNum = `${actor.species?.number}`.padStart(4, "0");
+  if (!dexNum || dexNum === "0000") return null;
+  const cryPath = `modules/pokemon-assets/audio/cries/${dexNum.substring(0, 2)}XX/${dexNum.substring(0, 3)}X/`;
+  const form = ((form)=>{
+    if (!form) return "";
+    if (form === "alolan") return "_alolan";
+    if (form === "galarian") return "_galarian";
+    if (form === "hisuian") return "_hisuian";
+    if (form === "paldean") return "_paldean";
+    return "_" + form[0].toUpperCase() + form.substring(1);
+  })(actor.species?.form);
+  const mega = (()=>{
+    const effectRollOptionKeys = Object.keys(actor.rollOptions.all).filter(k=>(k.includes("forme:mega") || k.includes("form:mega")) && k.endsWith(":active"));
+    if (!effectRollOptionKeys || effectRollOptionKeys.length == 0) return "";
+    if (effectRollOptionKeys.some(k=>k.endsWith("-x:active"))) return "_MEGA_X";
+    if (effectRollOptionKeys.some(k=>k.endsWith("-y:active"))) return "_MEGA_Y";
+    return "_MEGA";
+  })();
+  const gender = (()=>{
+    if (actor.system.gender == "male") return "m";
+    if (actor.system.gender == "female") return "f";
+    return "";
+  })();
+  
+  // check if everything is populated!
+  for (const testSrc of [
+    `${dexNum}${gender}${form}${mega}`,
+    `${dexNum}${form}${mega}`,
+    `${dexNum}${gender}${mega}`,
+    `${dexNum}${form}`,
+    `${dexNum}${mega}`,
+    `${dexNum}${gender}`
+  ]) {
+    if (SPECIAL_CRIES.has(testSrc)) {
+      return `${cryPath}${testSrc}.mp3`;
+    }
+  }
+  return `${cryPath}${dexNum}.mp3`;
+}
+
 
 // 
 
@@ -445,6 +494,8 @@ export function register() {
   api.logic.CanUseRockClimb ??= HasMoveFunction("rock-climb");
   api.logic.CanUseWaterfall ??= HasMoveFunction("waterfall");
   api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
+
+  api.logic.ActorCry ??= ActorCry;
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;

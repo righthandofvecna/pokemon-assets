@@ -1,5 +1,6 @@
 
 import { early_isGM, MODULENAME } from "./utils.mjs";
+import { VolumeSettings } from "./settings.mjs";
 
 // make globally accessible helpers, to help 
 
@@ -65,6 +66,22 @@ function OnDeleteCombat(tracker, info, id) {
   }
 }
 
+function OnUpdateCombat(tracker, delta) {
+  if (!game.settings.get(MODULENAME, "playPokemonCryOnTurn") || delta.turn === undefined) return;
+  console.log("OnUpdateCombat", tracker, delta);
+
+  const cry = game.modules.get("pokemon-assets").api.logic.ActorCry(tracker.combatant?.actor);
+  if (!cry) return;
+
+  new Sequence({ moduleName: "pokemon-assets", softFail: true })
+    .sound()
+      .file(cry)
+      .locally(true)
+      .volume(VolumeSettings.getVolume("cry"))
+      .async()
+    .play();
+}
+
 
 export function register() {
   if (!early_isGM()) return;
@@ -72,6 +89,7 @@ export function register() {
   Hooks.on("ready", OnReady);
   Hooks.on("preUpdateScene", OnPreUpdateScene);
   Hooks.on("deleteCombat", OnDeleteCombat);
+  Hooks.on("updateCombat", OnUpdateCombat);
 
   const module = game.modules.get("pokemon-assets");
   module.api ??= {};

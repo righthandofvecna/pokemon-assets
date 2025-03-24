@@ -13,6 +13,8 @@ export function register() {
   api.logic.CanUseRockClimb ??= (actor)=>true;
   api.logic.CanUseWaterfall ??= (actor)=>true;
   api.logic.CanUseWhirlpool ??= (actor)=>true;
+
+  api.logic.ActorCry ??= (actor)=>null;
   
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= (slug)=>function (actor){ return true };
