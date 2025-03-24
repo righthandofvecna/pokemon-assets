@@ -249,6 +249,16 @@ export function register() {
 		hint: "The default fallback Pokeball image to use if a Pokeball image is not set or cannot be found."
 	});
 
+  game.settings.register(MODULENAME, "homebrewCryFolder", {
+		name: "Homebrew Cry Folder",
+		default: "",
+		type: String,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "The folder where cries for unofficial Pokemon are stored. They must be stored in that folder as '<custom dex number>.mp3'."
+	});
+
 };
 
 

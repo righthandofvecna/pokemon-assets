@@ -283,42 +283,53 @@ function ActorCry(actor) {
   const species = actor?.species;
   if (!actor || !species) return null;
 
-  const dexNum = `${species.system.number}`.padStart(4, "0");
-  if (!dexNum || dexNum === "0000") return null;
-  const cryPath = `modules/pokemon-assets/audio/cries/${dexNum.substring(0, 2)}XX/${dexNum.substring(0, 3)}X/`;
-  const form = (()=>{
-    if (species.slug.endsWith("-alolan")) return "_alolan";
-    if (species.slug.endsWith("-galarian")) return "_galarian";
-    if (species.slug.endsWith("-hisuian")) return "_hisuian";
-    if (species.slug.endsWith("-paldean")) return "_paldean";
-    return actor.system.form ? `_${actor.system.form}` : "";
-  })();
-  const gender = (()=>{
-    if (actor.system.gender == "male") return "m";
-    if (actor.system.gender == "female") return "f";
-    return "";
-  })();
-  const mega = (()=>{
-    if (species.name.endsWith("-Mega-X")) return "_MEGA_X";
-    if (species.name.endsWith("-Mega-Y")) return "_MEGA_Y";
-    if (species.name.endsWith("-Mega")) return "_MEGA";
-    return "";
-  })();
+  const dn = species.system.number;
+  if (!dn) return null;
   
-  // check if everything is populated!
-  for (const testSrc of [
-    `${dexNum}${gender}${form}${mega}`,
-    `${dexNum}${form}${mega}`,
-    `${dexNum}${gender}${mega}`,
-    `${dexNum}${form}`,
-    `${dexNum}${mega}`,
-    `${dexNum}${gender}`
-  ]) {
-    if (SPECIAL_CRIES.has(testSrc)) {
-      return `${cryPath}${testSrc}.mp3`;
+  if (dn >= 0 && dn <= 1025) {
+    // Official Pokemon
+    const dexNum = `${species.system.number}`.padStart(4, "0");
+    if (!dexNum || dexNum === "0000") return null;
+    const cryPath = `modules/pokemon-assets/audio/cries/${dexNum.substring(0, 2)}XX/${dexNum.substring(0, 3)}X/`;
+    const form = (()=>{
+      if (species.slug.endsWith("-alolan")) return "_alolan";
+      if (species.slug.endsWith("-galarian")) return "_galarian";
+      if (species.slug.endsWith("-hisuian")) return "_hisuian";
+      if (species.slug.endsWith("-paldean")) return "_paldean";
+      return actor.system.form ? `_${actor.system.form}` : "";
+    })();
+    const gender = (()=>{
+      if (actor.system.gender == "male") return "m";
+      if (actor.system.gender == "female") return "f";
+      return "";
+    })();
+    const mega = (()=>{
+      if (species.name.endsWith("-Mega-X")) return "_MEGA_X";
+      if (species.name.endsWith("-Mega-Y")) return "_MEGA_Y";
+      if (species.name.endsWith("-Mega")) return "_MEGA";
+      return "";
+    })();
+    
+    // check if everything is populated!
+    for (const testSrc of [
+      `${dexNum}${gender}${form}${mega}`,
+      `${dexNum}${form}${mega}`,
+      `${dexNum}${gender}${mega}`,
+      `${dexNum}${form}`,
+      `${dexNum}${mega}`,
+      `${dexNum}${gender}`
+    ]) {
+      if (SPECIAL_CRIES.has(testSrc)) {
+        return `${cryPath}${testSrc}.mp3`;
+      }
     }
+    return `${cryPath}${dexNum}.mp3`;
+  } else {
+    // Custom Pokemon
+    const folder = game.settings.get(MODULENAME, "homebrewCryFolder");
+    if (!folder) return null;
+    return `${folder}/${dn}.mp3`;
   }
-  return `${cryPath}${dexNum}.mp3`;
 }
 
 

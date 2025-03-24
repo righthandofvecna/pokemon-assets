@@ -350,9 +350,9 @@ function HasMoveFunction(slug) {
 function ActorCry(actor) {
   if (!actor) return null;
 
-  const dexNum = `${actor.species?.number}`.padStart(4, "0");
-  if (!dexNum || dexNum === "0000") return null;
-  const cryPath = `modules/pokemon-assets/audio/cries/${dexNum.substring(0, 2)}XX/${dexNum.substring(0, 3)}X/`;
+  const dn = actor.species?.number;
+  if (dn === undefined) return null;
+
   const form = ((form)=>{
     if (!form) return "";
     if (form === "alolan") return "_alolan";
@@ -373,21 +373,33 @@ function ActorCry(actor) {
     if (actor.system.gender == "female") return "f";
     return "";
   })();
-  
-  // check if everything is populated!
-  for (const testSrc of [
-    `${dexNum}${gender}${form}${mega}`,
-    `${dexNum}${form}${mega}`,
-    `${dexNum}${gender}${mega}`,
-    `${dexNum}${form}`,
-    `${dexNum}${mega}`,
-    `${dexNum}${gender}`
-  ]) {
-    if (SPECIAL_CRIES.has(testSrc)) {
-      return `${cryPath}${testSrc}.mp3`;
+
+  if (dn >= 0 && dn <= 1025) {
+    // Official Pokemon
+    const dexNum = `${dn}`.padStart(4, "0");
+    if (!dexNum || dexNum === "0000") return null;
+    const cryPath = `modules/pokemon-assets/audio/cries/${dexNum.substring(0, 2)}XX/${dexNum.substring(0, 3)}X/`;
+    
+    // check if everything is populated!
+    for (const testSrc of [
+      `${dexNum}${gender}${form}${mega}`,
+      `${dexNum}${form}${mega}`,
+      `${dexNum}${gender}${mega}`,
+      `${dexNum}${form}`,
+      `${dexNum}${mega}`,
+      `${dexNum}${gender}`
+    ]) {
+      if (SPECIAL_CRIES.has(testSrc)) {
+        return `${cryPath}${testSrc}.mp3`;
+      }
     }
+    return `${cryPath}${dexNum}.mp3`;
+  } else {
+    // Custom Pokemon
+    const folder = game.settings.get(MODULENAME, "homebrewCryFolder");
+    if (!folder) return null;
+    return `${folder}/${dn}.mp3`;
   }
-  return `${cryPath}${dexNum}.mp3`;
 }
 
 
