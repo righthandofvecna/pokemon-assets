@@ -1,6 +1,7 @@
 import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
+import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
 /**
  * A Chat Message listener, that should be run on EVERY client
@@ -273,6 +274,53 @@ function OnCreateItem(species, metadata, userId) {
   actor.update(updates);
 }
 
+/**
+ * Get the cry for a given actor
+ * @param {*} actor 
+ * @returns the path to the cry file
+ */
+function ActorCry(actor) {
+  const species = actor?.species;
+  if (!actor || !species) return null;
+
+  const dexNum = `${species.system.number}`.padStart(4, "0");
+  if (!dexNum || dexNum === "0000") return null;
+  const cryPath = `modules/pokemon-assets/audio/cries/${dexNum.substring(0, 2)}XX/${dexNum.substring(0, 3)}X/`;
+  const form = (()=>{
+    if (species.slug.endsWith("-alolan")) return "_alolan";
+    if (species.slug.endsWith("-galarian")) return "_galarian";
+    if (species.slug.endsWith("-hisuian")) return "_hisuian";
+    if (species.slug.endsWith("-paldean")) return "_paldean";
+    return actor.system.form ? `_${actor.system.form}` : "";
+  })();
+  const gender = (()=>{
+    if (actor.system.gender == "male") return "m";
+    if (actor.system.gender == "female") return "f";
+    return "";
+  })();
+  const mega = (()=>{
+    if (species.name.endsWith("-Mega-X")) return "_MEGA_X";
+    if (species.name.endsWith("-Mega-Y")) return "_MEGA_Y";
+    if (species.name.endsWith("-Mega")) return "_MEGA";
+    return "";
+  })();
+  
+  // check if everything is populated!
+  for (const testSrc of [
+    `${dexNum}${gender}${form}${mega}`,
+    `${dexNum}${form}${mega}`,
+    `${dexNum}${gender}${mega}`,
+    `${dexNum}${form}`,
+    `${dexNum}${mega}`,
+    `${dexNum}${gender}`
+  ]) {
+    if (SPECIAL_CRIES.has(testSrc)) {
+      return `${cryPath}${testSrc}.mp3`;
+    }
+  }
+  return `${cryPath}${dexNum}.mp3`;
+}
+
 
 /**
  * Overridden for the purposes of mega evolutions
@@ -528,6 +576,8 @@ export function register() {
   module.api.logic.CanUseRockClimb ??= HasMoveFunction("rock-climb");
   module.api.logic.CanUseWaterfall ??= HasMoveFunction("waterfall");
   module.api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
+
+  module.api.logic.ActorCry ??= ActorCry;
 
   module.api.scripts ??= {};
   module.api.scripts.HasMoveFunction ??= HasMoveFunction;

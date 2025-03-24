@@ -4,6 +4,7 @@ import * as primePerformance from "./prime-performance.mjs";
 import * as sequencer from "./sequencer.mjs";
 import * as tokenizer from "./tokenizer.mjs";
 import * as ptr2eItemPiles from "./ptr2e-item-piles.mjs";
+import * as monksSoundEnhancements from "./monks-sound-enhancements.mjs";
 
 export function register() {
   followMe.register();
@@ -12,4 +13,5 @@ export function register() {
   sequencer.register();
   tokenizer.register();
   ptr2eItemPiles.register();
+  monksSoundEnhancements.register();
 }
