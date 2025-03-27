@@ -1052,6 +1052,9 @@ export default
       "01XX/012X/0128s_paldean.png": {
         "animationframes": 7
       },
+      "01XX/012X/0128s_paldean_aqua.png": {
+        "animationframes": 7
+      },
       "01XX/012X/0129.png": {
         "animationframes": 7
       },
@@ -4382,6 +4385,12 @@ export default
       "05XX/055X/0550_White.png": {
         "animationframes": 4
       },
+      "05XX/055X/0550s.png": {
+        "animationframes": 4
+      },
+      "05XX/055X/0550s_Blue.png": {
+        "animationframes": 4
+      },
       "05XX/055X/0550s_White.png": {
         "animationframes": 4
       },
@@ -6880,6 +6889,9 @@ export default
       "08XX/089X/0899.png": {
         "animationframes": 6
       },
+      "08XX/089X/0899s.png": {
+        "animationframes": 6
+      },
       "09XX/090X/0900.png": {
         "animationframes": 4
       },
@@ -6947,6 +6959,9 @@ export default
         "animationframes": 4
       },
       "09XX/090X/0908.png": {
+        "animationframes": 4
+      },
+      "09XX/090X/0908s.png": {
         "animationframes": 4
       },
       "09XX/090X/0909.png": {
@@ -7081,6 +7096,9 @@ export default
       "09XX/093X/0936.png": {
         "animationframes": 4
       },
+      "09XX/093X/0936s.png": {
+        "animationframes": 4
+      },
       "09XX/093X/0937.png": {
         "animationframes": 4
       },
@@ -7194,6 +7212,9 @@ export default
       "09XX/096X/0968.png": {
         "animationframes": 4
       },
+      "09XX/096X/0968s.png": {
+        "animationframes": 4
+      },
       "09XX/096X/0969.png": {
         "animationframes": 8
       },
@@ -7213,6 +7234,9 @@ export default
         "animationframes": 4
       },
       "09XX/097X/0972.png": {
+        "animationframes": 4
+      },
+      "09XX/097X/0972s.png": {
         "animationframes": 4
       },
       "09XX/097X/0976.png": {
@@ -7293,6 +7317,9 @@ export default
       "09XX/098X/0989.png": {
         "animationframes": 4
       },
+      "09XX/098X/0989s.png": {
+        "animationframes": 4
+      },
       "09XX/099X/0990.png": {
         "animationframes": 1
       },
@@ -7312,6 +7339,9 @@ export default
         "animationframes": 4
       },
       "09XX/099X/0995.png": {
+        "animationframes": 4
+      },
+      "09XX/099X/0995s.png": {
         "animationframes": 4
       },
       "09XX/099X/0996.png": {
