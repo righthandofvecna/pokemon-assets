@@ -59,3 +59,18 @@ export function getUuidFromTableResult(result) {
 	}
 	return null;
 }
+
+export function listenFilepickerChange(filepicker, onChange) {
+	$(filepicker).on("change", "input[type='text']", function() {onChange(this.value)});
+  // dumb workaround to listen on the filepicker button too
+  $(filepicker).on("click", "button", function () {
+    const filePicker = $(this).closest("file-picker")?.get(0)?.picker;
+    if (!filePicker) return;
+    filePicker.callback = ((callback)=>{
+      return function () {
+        if (callback) callback(...arguments);
+        onChange(arguments[0]);
+      }
+    })(filePicker.callback);
+  })
+}

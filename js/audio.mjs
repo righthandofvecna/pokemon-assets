@@ -83,6 +83,12 @@ function OnUpdateCombat(tracker, delta) {
 }
 
 
+export const SOUNDS = {
+  "modules/pokemon-assets/audio/bgs/a-button.mp3": "Default Interaction",
+  "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3": "Pick Up Item",
+  "modules/pokemon-assets/audio/bgs/key-item-bw.mp3": "Pick Up Key Item",
+};
+
 export function register() {
   if (!early_isGM()) return;
 

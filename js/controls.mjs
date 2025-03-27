@@ -1,4 +1,5 @@
-import { MODULENAME, early_isGM, sleep, snapToGrid } from "./utils.mjs";
+import { MODULENAME, early_isGM, sleep, snapToGrid, listenFilepickerChange } from "./utils.mjs";
+import { SOUNDS } from "./audio.mjs";
 import { UserPaintArea } from "./scripts.mjs";
 
 
@@ -305,6 +306,7 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         if (!text) return;
         canvas.scene.createEmbeddedDocuments("Tile", [{
           "flags.pokemon-assets.solid": true,
+          "flags.pokemon-assets.interactionSound": "modules/pokemon-assets/audio/bgs/a-button.mp3",
           "flags.pokemon-assets.script": `Dialog.prompt({ content: ${JSON.stringify(text)}, options: { pokemon: true }});`,
           width: canvas.grid.sizeX,
           height: canvas.grid.sizeY,
@@ -322,11 +324,27 @@ function TilesLayer_onClickLeft2(wrapper, event) {
           title: 'Items Contained',
           content: `
               <!--<div class="form-group">
-                <label for="text">Overworld Type</label>
+                <label>Overworld Type</label>
                 <div class="form-fields">
                   <label><img src="modules/pokemon-assets/img/items-overworld/pokeball.png"></img><input type="radio" name="overworldType" value="item" checked></label>
                 </div>
               </div>-->
+              <div class="form-group">
+                <label>Interact Sound</label>
+                <div class="form-fields">
+                  <select name="interactionSound">
+                    <option value="">None</option>
+                    ${Object.entries(SOUNDS).map(([k, v])=>`<option value="${k}" ${k === "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3" ? "default selected" : ""}>${v}</option>`).reduce((a, b)=> a + b)}
+                    <option class="custom-interaction" value="custom">Custom</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group custom-sound" style='display:none'>
+                <label>Custom Interaction Sound</label>
+                <div class="form-fields">
+                  <file-picker class="custom-interaction" type="audio" value=""></file-picker>
+                </div>
+              </div>
               <div class="form-group">
                 <div id="item-drop-zone" style="min-height: 100px; border: 2px dashed #ccc; padding: 10px; margin-bottom: 10px;">
                   <p class="drop-text">Drag and drop items here</p>
@@ -336,10 +354,40 @@ function TilesLayer_onClickLeft2(wrapper, event) {
           `,
           callback: (html) => {
             // const overworldType = html.find('[name="overworldType"]')?.val() ?? null;
+            const interactionSound = html.find('[name="interactionSound"]')?.val() ?? null;
             const items = html.find('#dropped-items-list').data('items') || [];
-            resolve({items});
+            resolve({items, interactionSound});
           },
           render: (html) => {
+            $(html).find(`select[name="interactionSound"]`).on("change", function() {
+              const custom = $(this).find("option.custom-interaction").get(0).value;
+              const customInput = $(html).find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
+              if (this.value === custom) {
+                $(html).find(`.custom-sound`).show();
+                if (this.value == "custom") {
+                  customInput.value = "";
+                } else {
+                  customInput.value = this.value;
+                }
+              } else {
+                $(html).find(`.custom-sound`).hide();
+                customInput.value = "";
+              }
+            });
+          
+            listenFilepickerChange($(html).find(`.custom-interaction`), function(value) {
+              const custom = $(html).find("option.custom-interaction").get(0);
+              const select = $(html).find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
+              if (!value) {
+                select.value = "custom";
+              } else {
+                custom.value = value;
+              }
+            });
+
+            //
+            // set up drag and drop area
+            //
             const dropZone = html.find('#item-drop-zone')[0];
             const itemsList = html.find('#dropped-items-list');
             const items = [];
@@ -412,7 +460,7 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         }).catch(()=>{
           resolve(null);
         });
-      })).then(async ({items})=>{
+      })).then(async ({items, interactionSound})=>{
         if (!items) return;
         const itemFrequency = items.reduce((l,i)=>({...l, [i]: (l[i] ?? 0) + 1}), {});
         const itemObjects = await Promise.all(Object.keys(itemFrequency).map(uuid=>fromUuid(uuid)));
@@ -421,10 +469,11 @@ function TilesLayer_onClickLeft2(wrapper, event) {
         if (itemTexts.length > 1) {
           itemTexts[itemTexts.length - 2] += " and " + itemTexts.pop();
         }
-        const message = `You found ${itemTexts.join(", ")}`;
+        const message = `You found ${itemTexts.join(", ")}!`;
         canvas.scene.createEmbeddedDocuments("Tile", [{
           "flags.pokemon-assets.solid": true,
-          "flags.pokemon-assets.script": `const items = [${items.reduce((l,i)=>l+'"'+i+'",', "")}];\game.modules.get("${MODULENAME}")?.api?.scripts?.PickUpItem?.(self, actor, items, ${JSON.stringify(message)});`,
+          "flags.pokemon-assets.interactionSound": interactionSound ?? null,
+          "flags.pokemon-assets.script": `const items = [${items.reduce((l,i)=>l+'"'+i+'",', "")}];\ngame.modules.get("${MODULENAME}")?.api?.scripts?.PickUpItem?.(self, actor, items, ${JSON.stringify(message)});`,
           width: canvas.grid.sizeX,
           height: canvas.grid.sizeY,
           texture: {

@@ -680,11 +680,11 @@ async function PickUpItem(tile, actor, items, message) {
 /**
  * Play the interaction sound!
  */
-async function Interact() {
+export async function Interact(options = { sound: `modules/pokemon-assets/audio/bgs/a-button.mp3`}) {
   if (game.settings.get(MODULENAME, "playInteractSound")) {
     await new Sequence({ moduleName: MODULENAME, softFail: true })
       .sound()
-        .file(`modules/pokemon-assets/audio/bgs/a-button.mp3`)
+        .file(options.sound ?? `modules/pokemon-assets/audio/bgs/a-button.mp3`)
         .volume(VolumeSettings.getVolume("interact"))
         .locally(true)
         .waitUntilFinished()
