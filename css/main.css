@@ -132,6 +132,9 @@
   background-position: center;
   color: transparent;
 }
+.dialog-content file-picker button {
+  line-height: var(--form-field-height);
+}
 .window-app.pokemon-dialog {
   border-image-source: url("../img/ui/textbox_1.png");
   border-width: 30px;

@@ -1,4 +1,5 @@
-import { MODULENAME } from "../utils.mjs";
+import { MODULENAME, listenFilepickerChange } from "../utils.mjs";
+import { SOUNDS } from "../audio.mjs";
 import { registerSocket } from "../socket.mjs";
 
 
@@ -12,7 +13,9 @@ async function OnRenderTileConfig(sheet, html, context) {
 
   $(form.querySelector(`.sheet-tabs`)).append(`<a class="item" data-tab="puzzle"><i class="fa-solid fa-puzzle-piece"></i> Puzzle</a>`);
 
-  const { solid, cuttable, smashable, whirlpool, pushable, scriptGm, script } = tile?.flags?.[MODULENAME] ?? {};
+  const { solid, cuttable, smashable, whirlpool, pushable, interactionSound, scriptGm, script } = tile?.flags?.[MODULENAME] ?? {};
+
+  const isCustomSound = interactionSound && !Object.keys(SOUNDS).some(v=>v === interactionSound);
 
   const tabs = form.getElementsByClassName("tab");
   $(tabs[tabs.length-1]).after(`<div class="tab" data-tab="puzzle">
@@ -47,6 +50,22 @@ async function OnRenderTileConfig(sheet, html, context) {
         <input type="checkbox" name="flags.${MODULENAME}.pushable" ${pushable ? "checked" : ""}>
       </div>
     </div>
+    <div class="form-group">
+      <label>Interaction Sound</label>
+      <div class="form-fields">
+        <select name="flags.${MODULENAME}.interactionSound">
+          <option value="" default>None</option>
+          ${Object.entries(SOUNDS).map(([k, v])=>`<option value="${k}" ${interactionSound === k ? "selected" : ""}>${v}</option>`).join("")}
+          <option class="custom-interaction" value="${isCustomSound ? interactionSound : "custom"}" ${isCustomSound ? "selected" : ""}>Custom</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group custom-sound" ${isCustomSound ? "" : "style='display:none'"}>
+      <label>Custom Interaction Sound</label>
+      <div class="form-fields">
+        <file-picker class="custom-interaction" type="audio" value="${isCustomSound ? (interactionSound ?? "") : ""}"></file-picker>
+      </div>
+    </div>
     <div class="form-group stacked">
       <label>Interaction Script</label>
       <label>Execute as GM? <input type="checkbox" name="flags.${MODULENAME}.scriptGm" ${scriptGm ? "checked" : ""}></label>
@@ -55,6 +74,34 @@ async function OnRenderTileConfig(sheet, html, context) {
       </div>
     </div>
   </div>`);
+
+  const puzzleTab = $(form).find(".tab[data-tab=puzzle]");
+
+  $(puzzleTab).find(`select[name="flags.${MODULENAME}.interactionSound"]`).on("change", function() {
+    const custom = $(this).find("option.custom-interaction").get(0).value;
+    const customInput = $(puzzleTab).find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
+    if (this.value === custom) {
+      $(puzzleTab).find(`.custom-sound`).show();
+      if (this.value == "custom") {
+        customInput.value = "";
+      } else {
+        customInput.value = this.value;
+      }
+    } else {
+      $(puzzleTab).find(`.custom-sound`).hide();
+      customInput.value = "";
+    }
+  });
+
+  listenFilepickerChange($(puzzleTab).find(`.custom-interaction`), function(value) {
+    const custom = $(puzzleTab).find("option.custom-interaction").get(0);
+    const select = $(puzzleTab).find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
+    if (!value) {
+      select.value = "custom";
+    } else {
+      custom.value = value;
+    }
+  });
 }
 
 

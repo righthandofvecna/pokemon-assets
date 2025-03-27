@@ -1,6 +1,6 @@
 
 import { MODULENAME, sleep, isFacing } from "./utils.mjs";
-import { UseFieldMove } from "./scripts.mjs";
+import { UseFieldMove, Interact } from "./scripts.mjs";
 import * as socket from "./socket.mjs";
 
 
@@ -249,6 +249,10 @@ async function OnInteract() {
 
     if (withScript.length > 0) {
       withScript.forEach(async (tile)=>{
+        const interactionSound = tile?.document?.flags?.[MODULENAME]?.interactionSound;
+        if (interactionSound) {
+          Interact({ sound: interactionSound });
+        };
         await runAsMacro(tile?.document);
       });
     }
