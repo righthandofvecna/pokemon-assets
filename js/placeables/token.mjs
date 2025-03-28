@@ -897,6 +897,9 @@ export function register() {
       if ("x" in changed || "y" in changed || "width" in changed || "height" in changed || "hidden" in changed) {
         this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });
       }
+      if ("hidden" in changed && !changed.hidden) {
+        this.#localOpacity = 1;
+      }
     }
 
     /** @inheritDoc */
