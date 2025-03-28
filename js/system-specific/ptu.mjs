@@ -36,18 +36,33 @@ async function OnCreateChatMessage(message) {
     const roll = message.rolls[0]?.total ?? captureDC;
     const caught = contextTarget.outcome === "hit" || contextTarget.outcome === "crit-hit";
     const shakes = caught ? 3 : Math.max(0, Math.min(Math.round(3 * captureDC / roll), 3));
+
+    // figure out if the previous accuracy check hit
+    const hit = (()=>{
+      const messages = game.messages.contents;
+      for (let msgIdx = messages.length - 1; msgIdx >= 0; msgIdx--) {
+        const msg = messages[msgIdx];
+        if (msg.id === message.id) continue;
+        if (msg.flags?.ptu?.context?.type !== "capture-throw") continue;
+        if (msg.flags?.ptu?.context?.origin?.uuid !== message.flags.ptu.context?.origin?.uuid) continue;
+        return msg.flags?.ptu?.context?.targets?.some(t=>t.outcome === "hit" || t.outcome === "crit-hit");
+      }
+      return false;
+    })();
     
     let sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(
       source,
       target,
       ballImg,
-      true);
-    sequence = game.modules.get("pokemon-assets").api.scripts.CatchPokemon(
-      target,
-      ballImg,
-      shakes,
-      caught,
-      sequence);
+      hit);
+    if (hit) {
+      sequence = game.modules.get("pokemon-assets").api.scripts.CatchPokemon(
+        target,
+        ballImg,
+        shakes,
+        caught,
+        sequence);
+    }
     await sequence.play();
     return;
   }
