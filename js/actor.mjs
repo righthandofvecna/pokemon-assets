@@ -8,7 +8,10 @@ export function _getTokenChangesForSpritesheet(src) {
   const spritesheetSettings = SpritesheetGenerator.getSheetSettings(src);
   if (spritesheetSettings === undefined) return {};
 
-  const data = {...spritesheetSettings};
+  const data = {
+    "spritesheet": true,
+    ...spritesheetSettings
+  };
   data.spritesheet = true;
   const updates = {
     "flags.pokemon-assets": data,
