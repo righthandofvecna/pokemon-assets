@@ -198,7 +198,7 @@ function OnPreCreateToken(token, data) {
 /**
  *  Whenever a token would be created, try to populate its sprite
  */
-function OnCreateToken(token) {
+function OnCreateToken(token, options) {
   // if the token is a pokemon, doesn't have a random image, and hasn't been configured yet, set its sprite
   (()=>{
     if (!isTheGM()) return;
@@ -225,6 +225,7 @@ function OnCreateToken(token) {
   // If the token is a pokemon, play the summoning animation
   (async ()=>{
     if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
+    if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
 
     const actor = token.actor;
     if (!actor || actor.type !== "pokemon") return;

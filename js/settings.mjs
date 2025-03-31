@@ -32,6 +32,16 @@ export function register() {
 		hint: "Avoid blurring the canvas and tokens when they get scaled up."
 	});
 
+	game.settings.register(MODULENAME, "enableFollow", {
+		name: "Enable Token Following",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: true,
+		config: true,
+		hint: "Allows players to mark tokens as to automatically follow when they move."
+	});
+
   game.settings.register(MODULENAME, "autoPlayAudio", {
 		name: "Auto Play Audio",
 		default: true,
@@ -332,7 +342,6 @@ export class VolumeSettings extends foundry.applications.api.HandlebarsApplicati
 	}
 
 	static async #submit(event, form, formData) {
-		console.log("VolumeSettings.#submit", formData);
 		for (const [key, value] of Object.entries(formData?.object ?? {})) {
 			await game.settings.set(MODULENAME, key, value);
 		}

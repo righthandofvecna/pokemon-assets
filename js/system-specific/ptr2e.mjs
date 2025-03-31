@@ -168,8 +168,9 @@ function OnPreCreateActor(actor, data) {
 }
 
 
-async function OnCreateToken(token) {
+async function OnCreateToken(token, options) {
   if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
+  if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
   
   const actor = token.actor;
   if (!actor || actor.type !== "pokemon") return;
