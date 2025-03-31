@@ -2,6 +2,7 @@
 import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing } from "./utils.mjs";
 import { VolumeSettings } from "./settings.mjs";
 import * as socket from "./socket.mjs";
+import { getAllFollowing } from "./module-compatibility/follow-me.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
@@ -258,8 +259,30 @@ async function SwitchScenes(newScene, newAttributes, ...args) {
     ...newAttributes,
   };
 
-  await newScene.createEmbeddedDocuments("Token", [tokenData]);
-  await token.delete();
+  const tokensToMove = [token];
+  if (game.settings.get(MODULENAME, "enableFollow")) {
+    tokensToMove.push(...getAllFollowing(token));
+  }
+  const createData = tokensToMove.map(t=>({
+    ...t.toObject(),
+    ...foundry.utils.deepClone(newAttributes),
+  }));
+
+  const createdTokens = await newScene.createEmbeddedDocuments("Token", createData, { teleport: true });
+  // update following
+  if (game.settings.get(MODULENAME, "enableFollow") && tokensToMove.length > 1) {
+    const idMap = {};
+    createdTokens.forEach((t, idx)=>{
+      idMap[tokensToMove[idx].id] = t.id;
+    });
+    await newScene.updateEmbeddedDocuments("Token", createdTokens.map(t=>({
+      _id: t.id,
+      [`flags.${MODULENAME}.following.who`]: idMap[t?.getFlag(MODULENAME, "following")?.who] ?? null,
+    })));
+  }
+  
+  await scene.deleteEmbeddedDocuments("Token", tokensToMove.map(t=>t.id));
+
   await new Sequence({ moduleName: "pokemon-assets", softFail: true })
     .sound()
       .file("modules/pokemon-assets/audio/bgs/exit.mp3")
@@ -547,8 +570,6 @@ function SummonPokemon(target, shiny, extendSequence=null) {
   const volume = VolumeSettings.getVolume("catch");
   const cryVolume = VolumeSettings.getVolume("cry");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
-
-  console.log(cry, cryVolume, target?.actor);
 
   const targetCenter = target.center ?? {
     x: target.x + (target.width * target.scene.grid.sizeX / 2),

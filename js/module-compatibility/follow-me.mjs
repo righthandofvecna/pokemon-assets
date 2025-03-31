@@ -1,4 +1,5 @@
 import { MODULENAME, isTheGM, isGMOnline, early_isGM } from "../utils.mjs";
+import * as socket from "../socket.mjs";
 
 const FLAG_FOLLOWING = "following";
 
@@ -70,6 +71,10 @@ function getFollowerUpdates(tPos, followers) {
     let new_pos = followPath.parametricPosition(param);
     // Snap the new position to the grid
     new_pos = canvas.grid.getSnappedPoint( new_pos, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX } );
+    // if new_pos is further away from the target than it is currently, don't move
+    if (Math.abs(new_pos.x - p.x) + Math.abs(new_pos.y - p.y) > Math.abs(follower.x - p.x) + Math.abs(follower.y - p.y)) {
+      new_pos = { x: follower.x, y: follower.y };
+    }
     data.x = new_pos.x;
     data.y = new_pos.y;
 
@@ -98,6 +103,145 @@ function getFollowerUpdates(tPos, followers) {
     }
   }
   return followerUpdates;
+}
+
+/**
+ * Allow following tokens to teleport along with the leader token.
+ * @param {*} wrapped 
+ * @param {*} event 
+ */
+async function TeleportTokenRegionBehaviorType_tokenMoveIn(wrapped, event) {
+  if ( !this.destination || event.data.forced ) return;
+  const destination = fromUuidSync(this.destination);
+  if ( !(destination instanceof RegionDocument) ) {
+    console.error(`${this.destination} does not exist`);
+    return;
+  }
+
+  const token = event.data.token;
+  // if the token is following something, skip
+  if (token.getFlag(MODULENAME, FLAG_FOLLOWING)?.who) return;
+  const followers = getAllFollowing(token);
+
+  // check if we currently have the token selected
+  const selected = canvas.tokens.controlled.find(t=>t.document.id === token.id) !== null;
+
+  // figure out if we're about to switch scenes
+  const newScene = (await fromUuid(this.destination))?.parent ?? token.scene;
+  const switchScene = newScene?.id !== token.scene.id;
+  if (switchScene) {
+    await token.update({[`flags.${MODULENAME}.${FLAG_FOLLOWING}.originalid`]: token.id});
+  };
+
+  //
+  // Do the core teleportation logic
+  //
+  const shouldTeleport = await wrapped(event);
+  if (shouldTeleport === false) return false;
+  
+  // Figure out what the new token is
+  let newToken = token;
+  if (switchScene) {
+    newToken = newScene.tokens.find(t=>t.getFlag(MODULENAME, FLAG_FOLLOWING)?.originalid == token.id);
+    if (!newToken) {
+      ui.notifications.warn("Teleporting token not found in new scene");
+      return;
+    }
+  }
+
+  // teleport the followers
+  if (followers.length > 0) {
+    await TeleportFollowers(followers.map(follower=>follower.uuid), {x: newToken.x, y: newToken.y}, newScene.id, token.id, newToken.id);
+  }
+
+  // select the token now if it was selected before
+  if (switchScene && selected) {
+    newToken?.object?.control(true, { releaseOthers: false });
+  }
+}
+
+async function TeleportTokenRegionBehaviorType_tokenPreMove(wrapped, event) {
+  const token = event.data.token;
+  if (token.getFlag(MODULENAME, FLAG_FOLLOWING)?.who) return;
+  return wrapped(event);
+}
+
+async function TeleportFollowers(followerIds, destination, sceneId) {
+  if (!isTheGM() && isGMOnline()) {
+    const soc = socket.current();
+    if (!soc) return;
+    return soc.executeAsGM("TeleportFollowers", followerIds, destination, sceneId);
+  }
+  const scene = game.scenes.get(sceneId);
+  if (!scene) return;
+  const followers = await Promise.all(followerIds.map(uuid=>fromUuid(uuid)));
+  const sameSceneUpdates = [];
+  const crossSceneCreates = [];
+  const crossSceneDeletes = {};
+
+  for (const follower of followers) {
+    if (follower.scene.id === sceneId) {
+      sameSceneUpdates.push({
+        _id: follower.id,
+        x: destination.x,
+        y: destination.y,
+        [`flags.${MODULENAME}.${FLAG_FOLLOWING}.positions`]: [{x: destination.x, y: destination.y}],
+      });
+    } else {
+      crossSceneCreates.push({
+        ...follower.toObject(),
+        x: destination.x,
+        y: destination.y,
+        [`flags.${MODULENAME}.${FLAG_FOLLOWING}.positions`]: [{x: destination.x, y: destination.y}],
+        [`flags.${MODULENAME}.${FLAG_FOLLOWING}.originalid`]: follower.id,
+      });
+      crossSceneDeletes[follower.scene.id] ??= [];
+      crossSceneDeletes[follower.scene.id].push(follower.id);
+    }
+  }
+  await scene.updateEmbeddedDocuments("Token", sameSceneUpdates, { follower_updates: [], forced: true, teleport: true });
+  if (crossSceneCreates.length == 0) return; // we don't appear to have switched scenes
+
+  await scene.createEmbeddedDocuments("Token", crossSceneCreates, { follower_updates: [], teleport: true });
+  await Promise.all(Object.entries(crossSceneDeletes).map(([sceneId, ids])=>{
+    const scene = game.scenes.get(sceneId);
+    if (!scene) return;
+    const tokens = ids.map(id=>scene.tokens.get(id));
+    return scene.deleteEmbeddedDocuments("Token", tokens.map(t=>t.id), { teleport: true });
+  }));
+
+  // figure out what the mapping from old ids to new ids is
+  const idMap = {};
+  for (const token of scene.tokens) {
+    if (token.getFlag(MODULENAME, FLAG_FOLLOWING)?.originalid) {
+      idMap[token.getFlag(MODULENAME, FLAG_FOLLOWING).originalid] = token.id;
+    }
+  };
+  if (Object.keys(idMap).length === 0) return;
+  
+  const newSceneIdUpdates = {};
+
+  // update the following IDs to match the new ones
+  for (const token of scene.tokens) {
+    const following = token.getFlag(MODULENAME, FLAG_FOLLOWING)?.who;
+    if (following && idMap[following] && idMap[following] !== following) {
+      newSceneIdUpdates[token.id] = {
+        _id: token.id,
+        [`flags.${MODULENAME}.${FLAG_FOLLOWING}.who`]: idMap[following],
+      };
+    }
+  };
+  
+  // remove the originalid flag
+  for (const token of scene.tokens) {
+    const originalId = token.getFlag(MODULENAME, FLAG_FOLLOWING)?.originalid;
+    if (originalId) {
+      newSceneIdUpdates[token.id] ??= { _id: token.id };
+      newSceneIdUpdates[token.id][`flags.${MODULENAME}.${FLAG_FOLLOWING}.originalid`] = null;
+    }
+  }
+
+  await scene.updateEmbeddedDocuments("Token", Object.values(newSceneIdUpdates), { follower_updates: [] });
 }
 
 
@@ -252,7 +396,6 @@ function OnManualMove(token, update, follower_updates) {
       stroke: "#FF0000"
     });
   }
-
   follower_updates.push(...getFollowerUpdates({
     x: update.x ?? token.x,
     y: update.y ?? token.y
@@ -264,7 +407,7 @@ function OnUpdateToken(token, change, options, userId) {
   if (!isTheGM() && isGMOnline()) return;
   const scene = token.scene;
   if (!scene) return;
-  scene.updateEmbeddedDocuments("Token", options.follower_updates, { follower_updates: [] });
+  scene.updateEmbeddedDocuments("Token", options.follower_updates, { follower_updates: [], forced: true });
 }
 
 export function register() {
@@ -274,8 +417,15 @@ export function register() {
     }
     return;
   }
+  if (!game.settings.get(MODULENAME, "enableFollow")) return;
+
   Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("pokemon-assets.manualMove", OnManualMove);
+
+  libWrapper.register(MODULENAME, "foundry.data.regionBehaviors.TeleportTokenRegionBehaviorType.events.tokenMoveIn", TeleportTokenRegionBehaviorType_tokenMoveIn, "MIXED");
+  libWrapper.register(MODULENAME, "foundry.data.regionBehaviors.TeleportTokenRegionBehaviorType.events.tokenPreMove", TeleportTokenRegionBehaviorType_tokenPreMove, "MIXED");
+
+  socket.registerSocket("TeleportFollowers", TeleportFollowers);
 
   game.keybindings.register(MODULENAME, "follow", {
     name: "Follow Token",
