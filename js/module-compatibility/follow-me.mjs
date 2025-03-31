@@ -70,6 +70,10 @@ function getFollowerUpdates(tPos, followers) {
     let new_pos = followPath.parametricPosition(param);
     // Snap the new position to the grid
     new_pos = canvas.grid.getSnappedPoint( new_pos, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX } );
+    // if new_pos is further away from the target than it is currently, don't move
+    if (Math.abs(new_pos.x - p.x) + Math.abs(new_pos.y - p.y) > Math.abs(follower.x - p.x) + Math.abs(follower.y - p.y)) {
+      new_pos = { x: follower.x, y: follower.y };
+    }
     data.x = new_pos.x;
     data.y = new_pos.y;
 
@@ -98,6 +102,36 @@ function getFollowerUpdates(tPos, followers) {
     }
   }
   return followerUpdates;
+}
+
+/**
+ * Allow following tokens to teleport along with the leader token.
+ * @param {*} wrapped 
+ * @param {*} event 
+ */
+async function TeleportTokenRegionBehaviorType_tokenMoveIn(wrapped, event) {
+  if ( !this.destination || event.data.forced ) return;
+  const destination = fromUuidSync(this.destination);
+  if ( !(destination instanceof RegionDocument) ) {
+    console.error(`${this.destination} does not exist`);
+    return;
+  }
+
+  const token = event.data.token;
+  // if the token is following something, and it was teleported, skip
+  if (token.getFlag(MODULENAME, FLAG_FOLLOWING)?.who && event.data.teleport) return;
+
+  const followers = getAllFollowing(token);
+  const shouldTeleport = await wrapped(event);
+  if (shouldTeleport === false) return false;
+  if (followers.length == 0) return shouldTeleport;
+  // TODO: better than this
+  token.scene.updateEmbeddedDocuments("Token", followers.map(follower=>({
+    _id:follower.id,
+    x: token.x,
+    y: token.y,
+    [`flags.${MODULENAME}.${FLAG_FOLLOWING}.positions`]: [{x: token.x, y: token.y}],
+  })), { teleport: true, follower_updates: [] });
 }
 
 
@@ -252,7 +286,6 @@ function OnManualMove(token, update, follower_updates) {
       stroke: "#FF0000"
     });
   }
-
   follower_updates.push(...getFollowerUpdates({
     x: update.x ?? token.x,
     y: update.y ?? token.y
@@ -276,6 +309,8 @@ export function register() {
   }
   Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("pokemon-assets.manualMove", OnManualMove);
+
+  libWrapper.register(MODULENAME, "foundry.data.regionBehaviors.TeleportTokenRegionBehaviorType.events.tokenMoveIn", TeleportTokenRegionBehaviorType_tokenMoveIn, "MIXED");
 
   game.keybindings.register(MODULENAME, "follow", {
     name: "Follow Token",
