@@ -446,13 +446,13 @@ function ThrowPokeball(source, target, img, hit) {
   ]);
 
   const targetCenter = target.center ?? {
-    x: target.x + (target.width * target.scene.grid.sizeX / 2),
-    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+    x: target.x + (target.width * (target?.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
+    y: target.y + (target.height * (target?.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeY ?? 100) / 2)
   };
 
   const sourceCenter = source.center ?? {
-    x: source.x + (source.width * source.scene.grid.sizeX / 2),
-    y: source.y + (source.height * source.scene.grid.sizeY / 2)
+    x: source.x + (source.width * (source?.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
+    y: source.y + (source.height * (source?.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeY ?? 100) / 2)
   };
 
   const volume = VolumeSettings.getVolume("catch");
@@ -500,8 +500,8 @@ function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
   const targetCenter = target.center ?? {
-    x: target.x + (target.width * target.scene.grid.sizeX / 2),
-    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+    x: target.x + (target.width * (target?.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
+    y: target.y + (target.height * (target?.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeY ?? 100) / 2)
   };
 
   sequence.localAnimation()
@@ -572,8 +572,8 @@ function SummonPokemon(target, shiny, extendSequence=null) {
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
   const targetCenter = target.center ?? {
-    x: target.x + (target.width * target.scene.grid.sizeX / 2),
-    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+    x: target.x + (target.width * (target.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
+    y: target.y + (target.height * (target.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeX ?? 100) / 2)
   };
 
   sequence.sound()
@@ -635,8 +635,8 @@ function SummonWildPokemon(target, shiny, extendSequence=null) {
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
   const targetCenter = target.center ?? {
-    x: target.x + (target.width * target.scene.grid.sizeX / 2),
-    y: target.y + (target.height * target.scene.grid.sizeY / 2)
+    x: target.x + (target.width * (target.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
+    y: target.y + (target.height * (target.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeX ?? 100) / 2)
   };
 
   sequence.sound()

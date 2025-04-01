@@ -1,6 +1,7 @@
 
 import * as ptr2e from "./ptr2e.mjs";
 import * as ptu from "./ptu.mjs";
+import * as pokerole from "./pokerole.mjs";
 import * as generic from "./generic.mjs";
 
 export function register() {
@@ -10,6 +11,9 @@ export function register() {
       break;
     case "ptu":
       ptu.register();
+      break;
+    case "pokerole":
+      pokerole.register();
       break;
   }
   generic.register();

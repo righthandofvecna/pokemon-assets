@@ -276,6 +276,7 @@ export function register() {
 		switch (game.system.id) {
 			case "ptu": return "systems/ptu/images/item_icons/basic ball.webp";
 			case "ptr2e": return "systems/ptr2e/img/item-icons/basic ball.webp";
+			case "pokerole": return "systems/pokerole/images/items/pokeball.png";
 		}
 		return "modules/pokemon-assets/img/items-overworld/pokeball.png";
 	})();
