@@ -2,12 +2,6 @@ import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 
-const WALK_SPEED = 4;
-const RUN_SPEED = 8;
-const RUN_DISTANCE = 5;
-const SLIDE_SPEED = WALK_SPEED;
-
-
 /**
  * Add the spritesheet settings to the token config page
  * @param {*} config 
@@ -572,13 +566,13 @@ export function register() {
       if ( context ) this.animationContexts.delete(name);
 
       movementSpeed ??= (()=>{
-        if (this.document._sliding) return SLIDE_SPEED;
+        if (this.document._sliding) return game.settings.get(MODULENAME, "walkSpeed") ?? 4;
         const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
         const manhattan = (Math.abs((to.x ?? from.x) - from.x) / sizeX) + (Math.abs((to.y ?? from.y) - from.y) / sizeY);
-        if (manhattan < RUN_DISTANCE) {
-          return WALK_SPEED;
+        if (manhattan < (game.settings.get(MODULENAME, "runDistance") ?? 5)) {
+          return game.settings.get(MODULENAME, "walkSpeed") ?? 4;
         }
-        return RUN_SPEED;
+        return game.settings.get(MODULENAME, "runSpeed") ?? 8;
       })();
       // Get the animation duration and create the animation context
       duration ??= this._getAnimationDuration(from, to, {movementSpeed, ...options});

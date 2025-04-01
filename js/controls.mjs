@@ -423,7 +423,6 @@ function TilesLayer_onClickLeft2(wrapper, event) {
                     } else {
                       return null;
                     }
-                    console.log(uuid, r);
                     item = await fromUuid(uuid);
                   }
                 }
