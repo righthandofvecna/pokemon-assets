@@ -10,55 +10,58 @@ function isActorPokemon(actor, data={}) {
   return (data.type ?? actor.type) == "pokemon" && dexNum > 0;
 }
 
+function _getPokemonSprite(actor, data={}) {
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
+
+  const dexNum = data?.system?.pokedexId ?? actor?.system?.pokedexId ?? 0;
+  const name = data.name ?? actor.name;
+  const regionalVariant = (()=>{
+    if (name.includes("Alolan ")) return "_alolan";
+    if (name.includes("Galarian ")) return "_galarian";
+    if (name.includes("Hisuian ")) return "_hisuian";
+    if (name.includes("Paldean ")) return "_paldean";
+    return "";
+  })();
+  const mega = (()=>{
+    if (name.includes("Mega X ")) return "MEGA_X";
+    if (name.includes("Mega Y ")) return "_MEGA_Y";
+    if (name.includes("Mega ")) return "_MEGA";
+    return "";
+  })();
+  // const shiny = config.shiny ? "s" : "";
+  // const gender = (()=>{
+  //   if (config.gender == "male") return "m";
+  //   if (config.gender == "female") return "f";
+  //   return "";
+  // })();
+  const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
+  const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
+  const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
+  const dexString = `${dexNum}`.padStart(4, "0");
+
+  // check if everything is populated!
+  for (const testSrc of [
+    // `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
+    // `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
+    // `${pmdPath}${dexString}${gender}${regionalVariant}.png`,
+    `${pmdPath}${dexString}${mega}${regionalVariant}.png`,
+    `${pmdPath}${dexString}${mega}.png`,
+    `${pmdPath}${dexString}${regionalVariant}.png`,
+    `${pmdPath}${dexString}.png`,
+  ]) {
+    if (SpritesheetGenerator.hasSheetSettings(testSrc)) {
+      return testSrc;
+    }
+  }
+  return null;
+}
 
 function OnPreCreateActor(actor, data) {
-  const dexNum = data?.system?.pokedexId ?? actor?.system?.pokedexId ?? 0;
-
   if (isActorPokemon(actor, data)) {
     if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
 
     const name = data.name ?? actor.name;
-    const img = (()=>{
-      const regionalVariant = (()=>{
-        if (name.includes("Alolan ")) return "_alolan";
-        if (name.includes("Galarian ")) return "_galarian";
-        if (name.includes("Hisuian ")) return "_hisuian";
-        if (name.includes("Paldean ")) return "_paldean";
-        return "";
-      })();
-      const mega = (()=>{
-        if (name.includes("Mega X ")) return "MEGA_X";
-        if (name.includes("Mega Y ")) return "_MEGA_Y";
-        if (name.includes("Mega ")) return "_MEGA";
-        return "";
-      })();
-      // const shiny = config.shiny ? "s" : "";
-      // const gender = (()=>{
-      //   if (config.gender == "male") return "m";
-      //   if (config.gender == "female") return "f";
-      //   return "";
-      // })();
-      const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
-      const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
-      const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
-      const dexString = `${dexNum}`.padStart(4, "0");
-    
-      // check if everything is populated!
-      for (const testSrc of [
-        // `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
-        // `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
-        // `${pmdPath}${dexString}${gender}${regionalVariant}.png`,
-        `${pmdPath}${dexString}${mega}${regionalVariant}.png`,
-        `${pmdPath}${dexString}${mega}.png`,
-        `${pmdPath}${dexString}${regionalVariant}.png`,
-        `${pmdPath}${dexString}.png`,
-      ]) {
-        if (SpritesheetGenerator.hasSheetSettings(testSrc)) {
-          return testSrc;
-        }
-      }
-      return null;
-    })();
+    const img = _getPokemonSprite(actor, data);
     if (img) {
       const updates = {
         flags: {
@@ -105,6 +108,10 @@ function OnPreCreateActor(actor, data) {
 
 function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
+  if ((!src || !SpritesheetGenerator.hasSheetSettings(src)) && isActorPokemon(token.actor) && token.actor?.prototypeToken?.flags?.[MODULENAME]?.spritesheet === undefined) {
+    src = _getPokemonSprite(token.actor, {}) ?? src;
+  }
+
   if (!src || !SpritesheetGenerator.hasSheetSettings(src)) return;
 
   const updates = _getTokenChangesForSpritesheet(src);
