@@ -50,6 +50,12 @@
                     "label": "Field Move: Cut",
                     "hint": "The sounds made a token uses Cut to destroy a breakable plant."
                 }
+            },
+            "Trainer": {
+                "label": "Trainer",
+                "hint": "The trainer of this Pokémon. This is the trainer that will throw the Pokéball when the Pokémon is summoned.",
+                "none": "No Trainer (Drop Trainer Actor Here)",
+                "dropWarning": "You can only drop a Trainer Actor here."
             }
         },
         "FieldMoves": {
