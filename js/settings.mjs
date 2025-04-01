@@ -42,6 +42,36 @@ export function register() {
 		hint: "Allows players to mark tokens as to automatically follow when they move."
 	});
 
+	game.settings.register(MODULENAME, "walkSpeed", {
+		name: "Token Walk Speed",
+		default: 4,
+		type: new foundry.data.fields.NumberField({min: 1, step: 1}),
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "The number of grid spaces per second that a token moves when walking."
+	});
+
+	game.settings.register(MODULENAME, "runSpeed", {
+		name: "Token Run Speed",
+		default: 8,
+		type: new foundry.data.fields.NumberField({min: 1, step: 1}),
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "The number of grid spaces per second that a token moves when running."
+	});
+
+	game.settings.register(MODULENAME, "runDistance", {
+		name: "Token Run Distance",
+		default: 5,
+		type: new foundry.data.fields.NumberField({min: 1, step: 1}),
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "How many grid spaces a token can move before it is considered to be running."
+	});
+
   game.settings.register(MODULENAME, "autoPlayAudio", {
 		name: "Auto Play Audio",
 		default: true,
