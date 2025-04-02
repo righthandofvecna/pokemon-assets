@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
+import { MODULENAME, tokenScene } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
@@ -118,6 +118,26 @@ function OnPreCreateToken(token, tokenData) {
   token.updateSource(updates);
 }
 
+function OnPreUpdateActor(actor, updates, options) {
+  options.oldhp ??= actor?.system?.hp?.value;
+}
+
+function OnUpdateActor(actor, updates, options) {
+  const hp = updates?.system?.hp?.value ?? actor?.system?.hp?.value ?? 0;
+  if (hp && hp < (options.oldhp ?? 0)) {
+    if (!game.settings.get(MODULENAME, "playDamageAnimation")) return;
+    // check if the target fainted
+    if (hp <= 0) return;
+
+    // check if 1/5 hp or less
+    const lowHp = hp <= (actor?.system?.hp?.max ?? 0) / 5;
+
+    const token = game.scenes.active.tokens.find(t=>t.actor.uuid === actor.uuid);
+    game.modules.get("pokemon-assets").api.scripts.IndicateDamage(actor, token, lowHp);
+    return;
+  }
+}
+
 /**
  * Get the cry for a given actor
  * @param {*} actor 
@@ -183,7 +203,7 @@ async function OnCreateToken(token, options) {
   
   const actor = token.actor;
   if (!isActorPokemon(actor)) return;
-  const scene = token.scene ?? game.scenes.active;
+  const scene = tokenScene(token);
   const trainerId = actor.getFlag(MODULENAME, "trainerId");
   const source = trainerId ? scene?.tokens?.find(t=>t.actor?.uuid === trainerId || t.baseActor?.uuid === trainerId) : null;
   const isTrained = !!trainerId;
@@ -241,6 +261,8 @@ export function register() {
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateActor", OnPreCreateActor);
   Hooks.on("createToken", OnCreateToken);
+  Hooks.on("preUpdateActor", OnPreUpdateActor);
+  Hooks.on("updateActor", OnUpdateActor);
   Hooks.on("renderPokeroleActorSheet", OnRenderPokeroleActorSheet);
 
   const module = game.modules.get(MODULENAME);

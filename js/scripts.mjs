@@ -1,5 +1,5 @@
 
-import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing } from "./utils.mjs";
+import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing, tokenScene } from "./utils.mjs";
 import { VolumeSettings } from "./settings.mjs";
 import * as socket from "./socket.mjs";
 import { getAllFollowing } from "./module-compatibility/follow-me.mjs";
@@ -445,14 +445,15 @@ function ThrowPokeball(source, target, img, hit) {
     "modules/pokemon-assets/audio/bgs/pokeball-drop.mp3",
   ]);
 
+  const scene = tokenScene(target);
   const targetCenter = target.center ?? {
-    x: target.x + (target.width * (target?.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
-    y: target.y + (target.height * (target?.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeY ?? 100) / 2)
+    x: target.x + (target.width * (scene?.grid?.sizeX ?? 100) / 2),
+    y: target.y + (target.height * (scene?.grid?.sizeY ?? 100) / 2)
   };
 
   const sourceCenter = source.center ?? {
-    x: source.x + (source.width * (source?.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
-    y: source.y + (source.height * (source?.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeY ?? 100) / 2)
+    x: source.x + (source.width * (scene?.grid?.sizeX ?? 100) / 2),
+    y: source.y + (source.height * (scene?.grid?.sizeY ?? 100) / 2)
   };
 
   const volume = VolumeSettings.getVolume("catch");
@@ -499,9 +500,10 @@ function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
   const volume = VolumeSettings.getVolume("catch");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
+  const scene = tokenScene(target);
   const targetCenter = target.center ?? {
-    x: target.x + (target.width * (target?.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
-    y: target.y + (target.height * (target?.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeY ?? 100) / 2)
+    x: target.x + (target.width * (scene?.grid?.sizeX ?? 100) / 2),
+    y: target.y + (target.height * (scene?.grid?.sizeY ?? 100) / 2)
   };
 
   sequence.localAnimation()
@@ -571,9 +573,10 @@ function SummonPokemon(target, shiny, extendSequence=null) {
   const cryVolume = VolumeSettings.getVolume("cry");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
+  const scene = tokenScene(target);
   const targetCenter = target.center ?? {
-    x: target.x + (target.width * (target.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
-    y: target.y + (target.height * (target.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeX ?? 100) / 2)
+    x: target.x + (target.width * (scene?.grid?.sizeX ?? 100) / 2),
+    y: target.y + (target.height * (scene?.grid?.sizeX ?? 100) / 2)
   };
 
   sequence.sound()
@@ -634,9 +637,10 @@ function SummonWildPokemon(target, shiny, extendSequence=null) {
   const cryVolume = VolumeSettings.getVolume("cry");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
+  const scene = tokenScene(target);
   const targetCenter = target.center ?? {
-    x: target.x + (target.width * (target.scene?.grid?.sizeX ?? game.scenes.active?.grid?.sizeX ?? 100) / 2),
-    y: target.y + (target.height * (target.scene?.grid?.sizeY ?? game.scenes.active?.grid?.sizeX ?? 100) / 2)
+    x: target.x + (target.width * (scene?.grid?.sizeX ?? 100) / 2),
+    y: target.y + (target.height * (scene?.grid?.sizeX ?? 100) / 2)
   };
 
   sequence.sound()
@@ -813,7 +817,8 @@ async function TriggerClimb(climbType, to, ...args) {
     return;
   }
 
-  const grid = token?.scene?.grid;
+  const tScene = tokenScene(token);
+  const grid = tScene?.grid;
 
   // check if we can do this
   const logic = game.modules.get(MODULENAME).api.logic;

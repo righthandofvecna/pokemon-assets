@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME, tokenScene } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 
@@ -412,7 +412,7 @@ export function register() {
     }
 
     get isometric() {
-      return game.modules.get("isometric-perspective")?.active && this.document.scene?.flags?.["isometric-perspective"]?.isometricEnabled;
+      return game.modules.get("isometric-perspective")?.active && tokenScene(this.document)?.flags?.["isometric-perspective"]?.isometricEnabled;
     }
 
     get direction() {

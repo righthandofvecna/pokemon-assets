@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, sleep, MODULENAME } from "../utils.mjs";
+import { early_isGM, isTheGM, sleep, tokenScene, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
@@ -175,7 +175,7 @@ async function OnCreateToken(token, options) {
   const actor = token.actor;
   if (!actor || actor.type !== "pokemon") return;
   const isTrained = actor.party?.party?.includes(actor) && actor.party.owner;
-  const source = isTrained ? token.scene.tokens.find(t=>t.actor?.id === actor.party.owner.id) : null;
+  const source = isTrained ? tokenScene(token)?.tokens.find(t=>t.actor?.id === actor.party.owner.id) : null;
 
   let sequence = null;
   if (isTrained) {

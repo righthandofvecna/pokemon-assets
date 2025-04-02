@@ -7,7 +7,7 @@ export function register() {
   module.api ??= {};
   const api = module.api;
   api.logic ??= {};
-  api.logic.FieldMoveParty ??= (token)=>token.actor;
+  api.logic.FieldMoveParty ??= (token)=>[token.actor];
   api.logic.CanUseRockSmash ??= (actor)=>true;
   api.logic.CanUseCut ??= (actor)=>true;
   api.logic.CanUseStrength ??= (actor)=>true;

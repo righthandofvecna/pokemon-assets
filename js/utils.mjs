@@ -49,6 +49,10 @@ export function isFacing(a, b) {
   return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(a.r + 22.5) / 8);
 }
 
+export function tokenScene(token) {
+	return token?.scene ?? token?.parent ?? game.scenes.active;
+}
+
 
 export function getUuidFromTableResult(result) {
 	if (result.type === "pack") {
