@@ -1,4 +1,4 @@
-import { MODULENAME, isTheGM, isGMOnline, early_isGM } from "../utils.mjs";
+import { MODULENAME, isTheGM, isGMOnline, early_isGM, tokenScene } from "../utils.mjs";
 import * as socket from "../socket.mjs";
 
 const FLAG_FOLLOWING = "following";
@@ -18,8 +18,9 @@ function getFollowMap(scene) {
 }
 
 export function getAllFollowing(token) {
-  const allSceneTokens = token?.scene?.tokens;
-  const followMap = getFollowMap(token?.scene);
+  const scene = tokenScene(token);
+  const allSceneTokens = scene?.tokens;
+  const followMap = getFollowMap(scene);
   const followerIds = [];
   const addFollower = function (fid) {
     followMap[fid]?.forEach(sfid=>{
@@ -37,6 +38,7 @@ export function getAllFollowing(token) {
 
 export function getAllInFollowChain(token) {
   const followers = getAllFollowing(token);
+  const scene = tokenScene(token);
   
   const followChain = new Set();
   const addToChain = (doc) => {
@@ -44,7 +46,7 @@ export function getAllInFollowChain(token) {
     followChain.add(doc);
     const following = doc.getFlag(MODULENAME, FLAG_FOLLOWING)?.who;
     if (following) {
-      addToChain(doc?.scene?.tokens?.get(following));
+      addToChain(scene?.tokens?.get(following));
     }
   };
 
@@ -81,7 +83,7 @@ function getFollowerUpdates(tPos, followers) {
     // don't need to reorient, this module already does it
 
     // check for collisions
-    const grid = follower.scene?.grid;
+    const grid = tokenScene(follower)?.grid;
     const width = (follower.width ?? 1) * (grid?.sizeX ?? grid?.size ?? 100);
     const height = (follower.height ?? 1) * (grid?.sizeY ?? grid?.size ?? 100);
     if (!follower.object || follower.object.checkCollision(
@@ -127,8 +129,8 @@ async function TeleportTokenRegionBehaviorType_tokenMoveIn(wrapped, event) {
   const selected = canvas.tokens.controlled.find(t=>t.document.id === token.id) !== null;
 
   // figure out if we're about to switch scenes
-  const newScene = (await fromUuid(this.destination))?.parent ?? token.scene;
-  const switchScene = newScene?.id !== token.scene.id;
+  const newScene = (await fromUuid(this.destination))?.parent ?? tokenScene(token);
+  const switchScene = newScene?.id !== tokenScene(token)?.id;
   if (switchScene) {
     await token.update({[`flags.${MODULENAME}.${FLAG_FOLLOWING}.originalid`]: token.id});
   };
@@ -180,7 +182,8 @@ async function TeleportFollowers(followerIds, destination, sceneId) {
   const crossSceneDeletes = {};
 
   for (const follower of followers) {
-    if (follower.scene.id === sceneId) {
+    const followerScene = tokenScene(follower);
+    if (followerScene.id === sceneId) {
       sameSceneUpdates.push({
         _id: follower.id,
         x: destination.x,
@@ -195,8 +198,8 @@ async function TeleportFollowers(followerIds, destination, sceneId) {
         [`flags.${MODULENAME}.${FLAG_FOLLOWING}.positions`]: [{x: destination.x, y: destination.y}],
         [`flags.${MODULENAME}.${FLAG_FOLLOWING}.originalid`]: follower.id,
       });
-      crossSceneDeletes[follower.scene.id] ??= [];
-      crossSceneDeletes[follower.scene.id].push(follower.id);
+      crossSceneDeletes[followerScene.id] ??= [];
+      crossSceneDeletes[followerScene.id].push(follower.id);
     }
   }
   await scene.updateEmbeddedDocuments("Token", sameSceneUpdates, { follower_updates: [], forced: true, teleport: true });
@@ -382,7 +385,7 @@ function OnFollowKey() {
 }
 
 function OnManualMove(token, update, follower_updates) {
-  if (game.combats.find(c=>c.active && c.scene.uuid === token?.scene?.uuid)) return;
+  if (game.combats.find(c=>c.active && c.scene.uuid === tokenScene(token)?.uuid)) return;
   const followers = getAllFollowing(token);
 
   // check if the token is a follower that just moved
@@ -405,7 +408,7 @@ function OnManualMove(token, update, follower_updates) {
 function OnUpdateToken(token, change, options, userId) {
   if (!options?.follower_updates || options.follower_updates.length == 0) return;
   if (!isTheGM() && isGMOnline()) return;
-  const scene = token.scene;
+  const scene = tokenScene(token);
   if (!scene) return;
   scene.updateEmbeddedDocuments("Token", options.follower_updates, { follower_updates: [], forced: true });
 }

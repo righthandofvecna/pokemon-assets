@@ -1,12 +1,12 @@
 
-import { MODULENAME } from "../utils.mjs";
+import { MODULENAME, tokenScene } from "../utils.mjs";
 
 function isIsometricScene(scene) {
   return scene?.flags?.["isometric-perspective"]?.isometricEnabled;
 }
 
 function OnPreCreateToken(token) {
-  const scene = token?.scene;
+  const scene = tokenScene(token);
   if (!isIsometricScene(scene)) return;
   if (token?.flags?.["isometric-perspective"]?.offsetX !== undefined) return;
 

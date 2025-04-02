@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, MODULENAME } from "../utils.mjs";
+import { early_isGM, isTheGM, tokenScene, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
@@ -234,7 +234,7 @@ function OnCreateToken(token, options) {
       // infer a trainer from the folder structure
       return actor?.folder?.folder?.contents?.[0] ?? null;
     })();
-    const source = trainer !== null ? token.scene.tokens.find(t=>t.actor?.id === trainer.id) : null;
+    const source = trainer !== null ? tokenScene(token)?.tokens.find(t=>t.actor?.id === trainer.id) : null;
 
     let sequence = null;
     if (trainer !== null) {
