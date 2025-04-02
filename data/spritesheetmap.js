@@ -6295,6 +6295,9 @@ export default
       "08XX/082X/0823s.png": {
         "animationframes": 6
       },
+      "08XX/082X/0824.png": {
+        "animationframes": 6
+      },
       "08XX/082X/0825.png": {
         "animationframes": 4
       },
