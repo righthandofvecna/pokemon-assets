@@ -30,6 +30,10 @@ def getAnimFileFromFilesystem(*nests):
         path = os.path.join(FOLDER_LOCATION, *nests, anim)
         if os.path.exists(path):
             return path
+        # test for the "unfinished" versions
+        path = os.path.join(FOLDER_LOCATION, "sprite-" + "-".join(nests), anim)
+        if os.path.exists(path):
+            return path
     return None
 
 registeredVariants = {}

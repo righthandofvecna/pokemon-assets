@@ -144,9 +144,8 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
  * @returns 
  */
 function OnPreCreateActor(actor, data) {
-  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
-
   if (actor.type === "pokemon") {
+    if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
     const species = actor.items.find(i=>i.type === "species");
     if (!species) return;
   
