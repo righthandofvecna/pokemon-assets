@@ -391,6 +391,9 @@ function ExtendTokenImageRuleElement() {
         if (this.animationframes !== undefined) {
           this.actor.synthetics.tokenOverrides.flags[MODULENAME].animationframes = this.animationframes;
         }
+        if (this.separateidle !== undefined) {
+          this.actor.synthetics.tokenOverrides.flags[MODULENAME].separateidle = this.separateidle;
+        }
         return;
       }
 
@@ -459,13 +462,10 @@ function PTUTokenDocument_prepareDerivedData(wrapped, ...args) {
 
   const tobj = this._destroyed ? null : this._object;
   if (needsRedraw && this.rendered && !tobj?.isPreview) {
-    console.log(`PTU | Token ${this.name} (${this.id}) has been updated, forcing redraw`, this, tobj);
     tobj.renderFlags?.set({
       redraw: true
     });
     tobj.applyRenderFlags();
-  } else {
-    console.log(`PTU | Token ${this.name} (${this.id}) has been updated, but no redraw is needed`, this, tobj);
   }
 }
 

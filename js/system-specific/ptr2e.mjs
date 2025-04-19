@@ -463,6 +463,36 @@ function TokenDocument_prepareDerivedData(wrapped, ...args) {
   if (tokenOverrides.rotation !== undefined) {
     this.rotation = tokenOverrides.rotation;
   }
+
+  // check if we need a redraw
+  let needsRedraw = false;
+  needsRedraw ||= this.width !== this._cachedSettings?.width ?? this.width;
+  needsRedraw ||= this.height !== this._cachedSettings?.height ?? this.height;
+  needsRedraw ||= this.texture.src !== this._cachedSettings?.src ?? this.texture.src;
+  const moduleFlags = this.flags?.[MODULENAME] ?? {};
+
+  needsRedraw ||= moduleFlags.spritesheet !== this._cachedSettings?.spritesheet ?? moduleFlags.spritesheet;
+  needsRedraw ||= moduleFlags.sheetstyle !== this._cachedSettings?.sheetstyle ?? moduleFlags.sheetstyle;
+  needsRedraw ||= moduleFlags.animationframes !== this._cachedSettings?.animationframes ?? moduleFlags.animationframes;
+  needsRedraw ||= moduleFlags.separateidle !== this._cachedSettings?.separateidle ?? moduleFlags.separateidle;
+
+  this._cachedSettings = {
+    width: this.width,
+    height: this.height,
+    src: this.texture.src,
+    spritesheet: moduleFlags.spritesheet,
+    sheetstyle: moduleFlags.sheetstyle,
+    animationframes: moduleFlags.animationframes,
+    separateidle: moduleFlags.separateidle,
+  };
+
+  const tobj = this._destroyed ? null : this._object;
+  if (needsRedraw && this.rendered && !tobj?.isPreview) {
+    tobj.renderFlags?.set({
+      redraw: true
+    });
+    tobj.applyRenderFlags();
+  }
 }
 
 
