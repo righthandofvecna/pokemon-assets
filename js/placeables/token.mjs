@@ -337,6 +337,10 @@ export function register() {
       return this.document.getFlag("pokemon-assets", "separateidle") ?? false;
     }
 
+    get alwaysIdle() {
+      return !this.separateIdle; // TODO
+    }
+
     get allAnimationsPromise() {
       return Promise.allSettled(this.animationContexts.values().map(c=>c.promise))
     }
@@ -553,6 +557,7 @@ export function register() {
       if ( name === undefined ) name = this.animationName;
       else name ||= Symbol(this.animationName);
       const from = this.#animationData;
+      this.#animationData.frame = 0
       if (to.rotation != undefined) {
         from.rotation = to.rotation ?? from.rotation;
         delete to.rotation;
@@ -607,9 +612,21 @@ export function register() {
         }
       });
       await context.promise.finally(() => {
-        if ( this.animationContexts.get(name) === context ) this.animationContexts.delete(name);
+        if ( this.animationContexts.get(name) === context ) {
+          this.animationContexts.delete(name);
+          // start the idle animation
+          this.startIdleAnimation();
+        }
         for ( const fn of context.postAnimate ) fn(context);
       });
+    }
+
+
+    startIdleAnimation() {
+      if (this.alwaysIdle) {
+        const fia = this.framesInAnimation;
+        this.animate({ frame: fia}, { duration: fia * 600 });
+      }
     }
 
     /**
@@ -653,6 +670,11 @@ export function register() {
       this._onAnimationUpdate(changes, context);
     }
 
+    get framesInAnimation() {
+      const idxOffset = this.seperateIdle ? 1 : 0;
+      return this.#textures[this.#facing].length - idxOffset;
+    }
+
     _onAnimationUpdate(changed, context) {
       const irrelevant = !["x", "y", "rotation", "frame"].some(p=>foundry.utils.hasProperty(changed, p));
       if (irrelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
@@ -663,19 +685,19 @@ export function register() {
       const FRAMES_PER_SQUARE = 2;
       const gdx = Math.abs((changed.x ?? context.origin?.x ?? 0) - context.origin?.x ?? 0) * FRAMES_PER_SQUARE / sizeX;
       const gdy = Math.abs((changed.y ?? context.origin?.y ?? 0) - context.origin?.y ?? 0) * FRAMES_PER_SQUARE / sizeY;
-      const frame = changed.frame ?? ~~(gdx + gdy - (Math.min(gdx,gdy) / 2));
+      const frame = changed.frame !== undefined ? ~~changed.frame : ~~(gdx + gdy - (Math.min(gdx, gdy) / 2));
 
       // set the direction
       const dx = (context?.to?.x ?? changed.x ?? 0) - (changed.x ?? context?.to?.x ?? 0);
       const dy = (context?.to?.y ?? changed.y ?? 0) - (changed.y ?? context?.to?.y ?? 0);
-      if (dx != 0 || dy != 0) {
+      if (dx != 0 || dy != 0 || changed.frame != undefined) {
         if (this.document._spinning) { // spinning
           this.#index = 0;
           this.#direction = ["down", "right", "up", "left"][frame % 4];
         } else { // normal animation
-          this.#direction = getDirection(dx, dy);
+          if (dx != 0 || dy != 0) this.#direction = getDirection(dx, dy);
           const idxOffset = this.seperateIdle ? 1 : 0;
-          this.#index = idxOffset + ~~( frame % (this.#textures[this.#facing].length - idxOffset));
+          this.#index = idxOffset + ( frame % this.framesInAnimation );
         }
 
         // don't animate rotation while moving
