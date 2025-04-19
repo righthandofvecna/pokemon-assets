@@ -72,6 +72,16 @@ export function register() {
 		hint: "How many grid spaces a token can move before it is considered to be running."
 	});
 
+	game.settings.register(MODULENAME, "playIdleAnimations", {
+		name: "Play Idle Animations",
+		default: false,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Whether or not to play idle animations for tokens. (currently plays the walking animation slowly)"
+	});
+
   game.settings.register(MODULENAME, "autoPlayAudio", {
 		name: "Auto Play Audio",
 		default: true,

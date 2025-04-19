@@ -10,6 +10,7 @@ import * as spritesheets from "./spritesheets.mjs";
 import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
 import * as regionEvents from "./region-events.mjs";
+import * as canvas from "./canvas.mjs";
 import * as moduleCompatibility from "./module-compatibility/index.mjs";
 import * as system from "./system-specific/index.mjs";
 import * as socket from "./socket.mjs";
@@ -26,6 +27,7 @@ Hooks.on("init", ()=>{
     scripts,
     pixelate,
     regionEvents,
+    canvas,
     moduleCompatibility,
     system,
     socket]) {

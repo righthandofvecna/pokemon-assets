@@ -32,6 +32,7 @@ async function OnRenderTokenConfig(config, html, context) {
       sheetstyle: form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer",
       animationframes: (parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || token.getFlag("pokemon-assets", "animationframes")) ?? 4,
       separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? token.getFlag("pokemon-assets", "separateidle") ?? false,
+      noidle: form.querySelector("input[name='flags.pokemon-assets.noidle']")?.checked ?? token.getFlag("pokemon-assets", "noidle") ?? false,
       unlockedanchor: token.getFlag("pokemon-assets", "unlockedanchor") ?? false,
       unlockedfit: token.getFlag("pokemon-assets", "unlockedfit") ?? false,
       ...(predefinedSheetSettings ?? {}),
@@ -73,7 +74,9 @@ async function OnRenderTokenConfig(config, html, context) {
 
     // additional spritesheet-specific configurations
     data.showframes = (form.querySelector("[name='flags.pokemon-assets.sheetstyle']")?.value ?? data.sheetstyle) != "trainer3";
+    data.showidle = game.settings.get(MODULENAME, "playIdleAnimations") && !data.separateidle;
     data.hide = !data.spritesheet || isPredefined;
+    data.hideaux = !data.spritesheet;
     const rendered = $(await renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
     if (!form.querySelector(".spritesheet-config")) {
       $(form).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
@@ -338,7 +341,7 @@ export function register() {
     }
 
     get alwaysIdle() {
-      return !this.separateIdle; // TODO
+      return !this.separateIdle && game.settings.get(MODULENAME, "playIdleAnimations") && !this.document.getFlag(MODULENAME, "noidle");
     }
 
     get allAnimationsPromise() {
@@ -623,8 +626,8 @@ export function register() {
 
 
     startIdleAnimation() {
-      if (this.alwaysIdle) {
-        const fia = this.framesInAnimation;
+      const fia = this.framesInAnimation;
+      if (this.alwaysIdle && fia > 1) {
         this.animate({ frame: fia}, { duration: fia * 600 });
       }
     }
@@ -671,6 +674,7 @@ export function register() {
     }
 
     get framesInAnimation() {
+      if (!this.isTileset || this.#textures == null) return 1;
       const idxOffset = this.seperateIdle ? 1 : 0;
       return this.#textures[this.#facing].length - idxOffset;
     }
