@@ -576,7 +576,8 @@ export function register() {
       })();
       // Get the animation duration and create the animation context
       duration ??= this._getAnimationDuration(from, to, {movementSpeed, ...options});
-      context = {name, to, duration, time: 0, preAnimate: [], postAnimate: [], onAnimate: []};
+      const origin = { x: this.x, y: this.y };
+      context = {name, to, origin, duration, time: 0, preAnimate: [], postAnimate: [], onAnimate: []};
 
       // Animate the first frame
       this._animateFrame(context);
@@ -653,11 +654,16 @@ export function register() {
     }
 
     _onAnimationUpdate(changed, context) {
-      const irrelevant = !["x", "y", "rotation"].some(p=>foundry.utils.hasProperty(changed, p));
+      const irrelevant = !["x", "y", "rotation", "frame"].some(p=>foundry.utils.hasProperty(changed, p));
       if (irrelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
 
       // get tile size
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
+
+      const FRAMES_PER_SQUARE = 2;
+      const gdx = Math.abs((changed.x ?? context.origin?.x ?? 0) - context.origin?.x ?? 0) * FRAMES_PER_SQUARE / sizeX;
+      const gdy = Math.abs((changed.y ?? context.origin?.y ?? 0) - context.origin?.y ?? 0) * FRAMES_PER_SQUARE / sizeY;
+      const frame = changed.frame ?? ~~(gdx + gdy - (Math.min(gdx,gdy) / 2));
 
       // set the direction
       const dx = (context?.to?.x ?? changed.x ?? 0) - (changed.x ?? context?.to?.x ?? 0);
@@ -665,20 +671,11 @@ export function register() {
       if (dx != 0 || dy != 0) {
         if (this.document._spinning) { // spinning
           this.#index = 0;
-          this.#direction = ["down", "right", "up", "left"][(~~((((changed.x ?? 0) / sizeX) + ((changed.y ?? 0) / sizeY)))) % 4];
+          this.#direction = ["down", "right", "up", "left"][frame % 4];
         } else { // normal animation
           this.#direction = getDirection(dx, dy);
-          // set the index
-          const framesPerSquare = 2;
-          const [ animStepX, animStepY ] = [ sizeX / framesPerSquare, sizeY / framesPerSquare ];
-          const { x: ox, y: oy } = this.#animationData;
-          const rdx = (changed.x ?? ox ?? 0) - (ox ?? 0);
-          const rdy = (changed.y ?? oy ?? 0) - (oy ?? 0);
-          const absDx = Math.abs(rdx / animStepX);
-          const absDy = Math.abs(rdy / animStepY);
-          const distDiagApprox = Math.max(absDx, absDy) + ( Math.min(absDx, absDy) / 2 ) + ( ox / animStepX) + ( oy / animStepY );
           const idxOffset = this.seperateIdle ? 1 : 0;
-          this.#index = idxOffset + ~~( distDiagApprox % (this.#textures[this.#facing].length - idxOffset));
+          this.#index = idxOffset + ~~( frame % (this.#textures[this.#facing].length - idxOffset));
         }
 
         // don't animate rotation while moving
