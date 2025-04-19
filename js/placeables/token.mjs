@@ -32,6 +32,7 @@ async function OnRenderTokenConfig(config, html, context) {
       sheetstyle: form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer",
       animationframes: (parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || token.getFlag("pokemon-assets", "animationframes")) ?? 4,
       separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? token.getFlag("pokemon-assets", "separateidle") ?? false,
+      noidle: form.querySelector("input[name='flags.pokemon-assets.noidle']")?.checked ?? token.getFlag("pokemon-assets", "noidle") ?? false,
       unlockedanchor: token.getFlag("pokemon-assets", "unlockedanchor") ?? false,
       unlockedfit: token.getFlag("pokemon-assets", "unlockedfit") ?? false,
       ...(predefinedSheetSettings ?? {}),
@@ -73,7 +74,9 @@ async function OnRenderTokenConfig(config, html, context) {
 
     // additional spritesheet-specific configurations
     data.showframes = (form.querySelector("[name='flags.pokemon-assets.sheetstyle']")?.value ?? data.sheetstyle) != "trainer3";
+    data.showidle = game.settings.get(MODULENAME, "playIdleAnimations") && !data.separateidle;
     data.hide = !data.spritesheet || isPredefined;
+    data.hideaux = !data.spritesheet;
     const rendered = $(await renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
     if (!form.querySelector(".spritesheet-config")) {
       $(form).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
@@ -337,6 +340,10 @@ export function register() {
       return this.document.getFlag("pokemon-assets", "separateidle") ?? false;
     }
 
+    get alwaysIdle() {
+      return !this.separateIdle && game.settings.get(MODULENAME, "playIdleAnimations") && !this.document.getFlag(MODULENAME, "noidle");
+    }
+
     get allAnimationsPromise() {
       return Promise.allSettled(this.animationContexts.values().map(c=>c.promise))
     }
@@ -553,6 +560,7 @@ export function register() {
       if ( name === undefined ) name = this.animationName;
       else name ||= Symbol(this.animationName);
       const from = this.#animationData;
+      this.#animationData.frame = 0
       if (to.rotation != undefined) {
         from.rotation = to.rotation ?? from.rotation;
         delete to.rotation;
@@ -576,7 +584,8 @@ export function register() {
       })();
       // Get the animation duration and create the animation context
       duration ??= this._getAnimationDuration(from, to, {movementSpeed, ...options});
-      context = {name, to, duration, time: 0, preAnimate: [], postAnimate: [], onAnimate: []};
+      const origin = { x: this.x, y: this.y };
+      context = {name, to, origin, duration, time: 0, preAnimate: [], postAnimate: [], onAnimate: []};
 
       // Animate the first frame
       this._animateFrame(context);
@@ -606,9 +615,21 @@ export function register() {
         }
       });
       await context.promise.finally(() => {
-        if ( this.animationContexts.get(name) === context ) this.animationContexts.delete(name);
+        if ( this.animationContexts.get(name) === context ) {
+          this.animationContexts.delete(name);
+          // start the idle animation
+          this.startIdleAnimation();
+        }
         for ( const fn of context.postAnimate ) fn(context);
       });
+    }
+
+
+    startIdleAnimation() {
+      const fia = this.framesInAnimation;
+      if (this.alwaysIdle && fia > 1) {
+        this.animate({ frame: fia}, { duration: fia * 600 });
+      }
     }
 
     /**
@@ -652,33 +673,35 @@ export function register() {
       this._onAnimationUpdate(changes, context);
     }
 
+    get framesInAnimation() {
+      if (!this.isTileset || this.#textures == null) return 1;
+      const idxOffset = this.seperateIdle ? 1 : 0;
+      return this.#textures[this.#facing].length - idxOffset;
+    }
+
     _onAnimationUpdate(changed, context) {
-      const irrelevant = !["x", "y", "rotation"].some(p=>foundry.utils.hasProperty(changed, p));
+      const irrelevant = !["x", "y", "rotation", "frame"].some(p=>foundry.utils.hasProperty(changed, p));
       if (irrelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
 
       // get tile size
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
 
+      const FRAMES_PER_SQUARE = 2;
+      const gdx = Math.abs((changed.x ?? context.origin?.x ?? 0) - context.origin?.x ?? 0) * FRAMES_PER_SQUARE / sizeX;
+      const gdy = Math.abs((changed.y ?? context.origin?.y ?? 0) - context.origin?.y ?? 0) * FRAMES_PER_SQUARE / sizeY;
+      const frame = changed.frame !== undefined ? ~~changed.frame : ~~(gdx + gdy - (Math.min(gdx, gdy) / 2));
+
       // set the direction
       const dx = (context?.to?.x ?? changed.x ?? 0) - (changed.x ?? context?.to?.x ?? 0);
       const dy = (context?.to?.y ?? changed.y ?? 0) - (changed.y ?? context?.to?.y ?? 0);
-      if (dx != 0 || dy != 0) {
+      if (dx != 0 || dy != 0 || changed.frame != undefined) {
         if (this.document._spinning) { // spinning
           this.#index = 0;
-          this.#direction = ["down", "right", "up", "left"][(~~((((changed.x ?? 0) / sizeX) + ((changed.y ?? 0) / sizeY)))) % 4];
+          this.#direction = ["down", "right", "up", "left"][frame % 4];
         } else { // normal animation
-          this.#direction = getDirection(dx, dy);
-          // set the index
-          const framesPerSquare = 2;
-          const [ animStepX, animStepY ] = [ sizeX / framesPerSquare, sizeY / framesPerSquare ];
-          const { x: ox, y: oy } = this.#animationData;
-          const rdx = (changed.x ?? ox ?? 0) - (ox ?? 0);
-          const rdy = (changed.y ?? oy ?? 0) - (oy ?? 0);
-          const absDx = Math.abs(rdx / animStepX);
-          const absDy = Math.abs(rdy / animStepY);
-          const distDiagApprox = Math.max(absDx, absDy) + ( Math.min(absDx, absDy) / 2 ) + ( ox / animStepX) + ( oy / animStepY );
+          if (dx != 0 || dy != 0) this.#direction = getDirection(dx, dy);
           const idxOffset = this.seperateIdle ? 1 : 0;
-          this.#index = idxOffset + ~~( distDiagApprox % (this.#textures[this.#facing].length - idxOffset));
+          this.#index = idxOffset + ( frame % this.framesInAnimation );
         }
 
         // don't animate rotation while moving

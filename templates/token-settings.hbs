@@ -1,3 +1,4 @@
+<div>
 <div class="spritesheet-config" {{#if hide}}style="display: none"{{/if}}>
     <div class="form-group sheet-style">
         <label>Sheet Style</label>
@@ -20,4 +21,16 @@
         </div>
         <p class="hint">Whether or not the first frame of each direction on the sheet should be included when playing the walking animation.</p>
     </div>
+</div>
+<div class="spritesheet-config-aux" {{#if hideaux}}style="display: none"{{/if}}>
+    {{#if showidle}}
+    <div class="form-group sheet-no-idle">
+        <label for="flags.pokemon-assets.noidle">No Idle Animation</label>
+        <div class="form-fields">
+            <input type="checkbox" name="flags.pokemon-assets.noidle" {{#if noidle}}checked{{/if}}>
+        </div>
+        <p class="hint">If checked, this token will not play a constant idle animation.</p>
+    </div>
+    {{/if}}
+</div>
 </div>
