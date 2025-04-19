@@ -348,40 +348,83 @@ function ActorCry(actor) {
 }
 
 
-/**
- * Overridden for the purposes of mega evolutions
- */
-function TokenImageRuleElement_afterPrepareData(wrapped, ...args) {
-  wrapped(...args);
-  if (!this.test()) return;
+function ExtendTokenImageRuleElement() {
+  const TokenImageRuleElement = CONFIG.PTU.rule.elements.builtin.TokenImage;
+  if (!TokenImageRuleElement) return;
 
-  if (game.settings.get(MODULENAME, "autoOverrideMegaEvolutionSprite")) {
-    // check if this is a mega evolution that we have a sprite for
-    const foundMegaEvo = (()=>{
-      const basename = this.value.substring(this.value.lastIndexOf("/")+1, this.value.lastIndexOf("."));
-      if (!basename) return false;
+  /**
+   * Extends the TokenImageRuleElement to add support for spritesheets and mega evolutions
+   */
+  class TokenImageRuleElementPA extends TokenImageRuleElement {
+    constructor(data, item, options = {}) {
+      const { spritesheet, sheetstyle, animationframes, separateidle } = data;
+      super(data, item, options);
 
-      const alternateForm = basename.substring(basename.indexOf("_"));
-      if (!alternateForm) return false;
+      if (typeof spritesheet === "boolean") {
+        this.spritesheet = spritesheet;
 
-      const species = this.actor.itemTypes.species?.at(0);
-      if (!species) return false;
+        if (typeof animationframes === "number" && animationframes > 0) {
+          this.animationframes = animationframes;
+        }
 
-      const actorUpdates = _getPrototypeTokenUpdates(this.actor, species, alternateForm);
-      const updates = foundry.utils.expandObject(actorUpdates)?.prototypeToken ?? {};
-      if (!updates.texture) return false;
+        if (typeof sheetstyle === "string") {
+          this.sheetstyle = sheetstyle;
+        }
 
-      this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, updates);
-      return true;
-    })();
-    if (foundMegaEvo) return;
+        if (typeof separateidle === "boolean") {
+          this.separateidle = separateidle;
+        }
+      }
+    }
+
+    afterPrepareData(...args) {
+      super.afterPrepareData(...args);
+      if (!this.test()) return;
+
+      if (this.spritesheet === true) {
+        this.actor.synthetics.tokenOverrides.flags ??= {};
+        this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= {};
+        this.actor.synthetics.tokenOverrides.flags[MODULENAME].spritesheet = true;
+        if (this.sheetstyle !== undefined) {
+          this.actor.synthetics.tokenOverrides.flags[MODULENAME].sheetstyle = this.sheetstyle;
+        }
+        if (this.animationframes !== undefined) {
+          this.actor.synthetics.tokenOverrides.flags[MODULENAME].animationframes = this.animationframes;
+        }
+        return;
+      }
+
+      if (game.settings.get(MODULENAME, "autoOverrideMegaEvolutionSprite")) {
+        // check if this is a mega evolution that we have a sprite for
+        const foundMegaEvo = (()=>{
+          const basename = this.value.substring(this.value.lastIndexOf("/")+1, this.value.lastIndexOf("."));
+          if (!basename) return false;
+
+          const alternateForm = basename.substring(basename.indexOf("_"));
+          if (!alternateForm) return false;
+
+          const species = this.actor.itemTypes.species?.at(0);
+          if (!species) return false;
+
+          const actorUpdates = _getPrototypeTokenUpdates(this.actor, species, alternateForm);
+          const updates = foundry.utils.expandObject(actorUpdates)?.prototypeToken ?? {};
+          if (!updates.texture) return false;
+
+          this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, updates);
+          return true;
+        })();
+        if (foundMegaEvo) return;
+      }
+
+      // if not, disable spritesheet processing
+      this.actor.synthetics.tokenOverrides.flags ??= {};
+      this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= { spritesheet: false };
+      this.actor.synthetics.tokenOverrides.rotation ??= 0; // force rotation to be 0
+    }
   }
 
-  // if not, disable spritesheet processing
-  this.actor.synthetics.tokenOverrides.flags ??= {};
-  this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= { spritesheet: false };
-  this.actor.synthetics.tokenOverrides.rotation ??= 0; // force rotation to be 0
-}
+  CONFIG.PTU.rule.elements.builtin.TokenImage = TokenImageRuleElementPA;
+};
 
 /**
  * Overridden for the purposes of mega evolutions, setting flags
@@ -390,13 +433,39 @@ function PTUTokenDocument_prepareDerivedData(wrapped, ...args) {
   wrapped(...args);
   if (!(this.actor && this.scene)) return;
   const { tokenOverrides } = this.actor.synthetics;
+  let needsRedraw = false;
 
   if (tokenOverrides.flags) {
+    // if the token overrides for animation/spritesheet are set, we need to trigger a re-render of the token
     this.flags = foundry.utils.mergeObject(this.flags, tokenOverrides.flags);
+
+    // if the sheetstyle is trainer3, animationframes needs to be 3
+    if (this.flags[MODULENAME]?.sheetstyle === "trainer3") {
+      this.flags[MODULENAME].animationframes = 3;
+    };
+
+    // check against the current flags to see if we need to redraw
+    if (this._cachedFlags) {
+      for (const key of ["spritesheet", "sheetstyle", "animationframes", "idleframe"]) {
+        needsRedraw ||= this.flags?.[MODULENAME]?.[key] != this._cachedFlags?.[MODULENAME]?.[key];
+      }
+    }
+    this._cachedFlags = foundry.utils.deepClone(this.flags);
   }
 
   if (tokenOverrides.rotation !== undefined) {
     this.rotation = tokenOverrides.rotation;
+  }
+
+  const tobj = this._destroyed ? null : this._object;
+  if (needsRedraw && this.rendered && !tobj?.isPreview) {
+    console.log(`PTU | Token ${this.name} (${this.id}) has been updated, forcing redraw`, this, tobj);
+    tobj.renderFlags?.set({
+      redraw: true
+    });
+    tobj.applyRenderFlags();
+  } else {
+    console.log(`PTU | Token ${this.name} (${this.id}) has been updated, but no redraw is needed`, this, tobj);
   }
 }
 
@@ -577,8 +646,10 @@ export function register() {
   Hooks.on("createToken", OnCreateToken);
   Hooks.on("createItem", OnCreateItem);
 
-  libWrapper.register("pokemon-assets", "CONFIG.PTU.rule.elements.builtin.TokenImage.prototype.afterPrepareData", TokenImageRuleElement_afterPrepareData, "WRAPPER");
+  ExtendTokenImageRuleElement();
   libWrapper.register("pokemon-assets", "CONFIG.PTU.Token.documentClass.prototype.prepareDerivedData", PTUTokenDocument_prepareDerivedData, "WRAPPER");
+
+  // extend
 
   const module = game.modules.get(MODULENAME);
   module.api ??= {};
