@@ -184,7 +184,7 @@ async function OnCreateToken(token, options) {
     if (source) {
       const ballImg = await (async ()=>{
         const img = `systems/ptr2e/img/item-icons/${actor.system.details.device.toLowerCase()}.webp`;
-        if (actor.system.details.device && testFilePath(img)) return img;
+        if (actor.system.details.device && await testFilePath(img)) return img;
         return game.settings.get(MODULENAME, "defaultBallImage");
       })();
       sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
