@@ -362,7 +362,8 @@ function OnFollowKey() {
         continue;
       }
       const dist = (Math.max(leaderToken.w, leaderToken.h) + Math.max(followerToken.w, followerToken.h)) / 2;
-      canvas.interface.createScrollingText(followerToken, `Following ${leaderToken?.document?.name ?? "someone"}!`, {
+      const hasCombat = game.combats.find(c=>c.active && c.scene.uuid === tokenScene(followerToken)?.uuid);
+      canvas.interface.createScrollingText(followerToken, game.i18n.format(`POKEMON-ASSETS.FollowMe.OnFollow${hasCombat?"Combat":""}`, { name: leaderToken?.document?.name ?? "someone"}), {
         anchor: CONST.TEXT_ANCHOR_POINTS.TOP, 
         fill:   "#FFFFFF", 
         stroke: "#FFFFFF"
