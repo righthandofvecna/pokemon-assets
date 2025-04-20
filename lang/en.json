@@ -110,6 +110,10 @@
             "Thank1": "Thank you for waiting.",
             "Thank2": "We've restored your Pokémon to full health.",
             "Goodbye": "We hope to see you again!"
+        },
+        "FollowMe": {
+            "OnFollow": "Following {name}!",
+            "OnFollowCombat": "Will follow {name} when combat complete!"
         }
     }
 }
