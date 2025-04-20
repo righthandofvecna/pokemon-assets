@@ -208,3 +208,13 @@
     transform: translateY(0px);
   }
 }
+.pokerole.actor .pokeball-field {
+  display: flex;
+  align-items: center;
+}
+.pokerole.actor .pokeball-field img {
+  width: 1.5em;
+  height: 1.5em;
+  margin-right: 0.5em;
+  border: none;
+}

@@ -114,6 +114,12 @@
         "FollowMe": {
             "OnFollow": "Following {name}!",
             "OnFollowCombat": "Will follow {name} when combat complete!"
+        },
+        "Fields": {
+            "Pokeball": {
+                "label": "Pokéball",
+                "hint": "The image used for this actor's Pokéball."
+            }
         }
     }
 }

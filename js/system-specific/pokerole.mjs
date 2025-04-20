@@ -216,9 +216,7 @@ async function OnCreateToken(token, options) {
 
     if (source) {
       const ballImg = await (async ()=>{
-        // const img = `systems/ptr2e/img/item-icons/${actor.system.details.device.toLowerCase()}.webp`;
-        // if (actor.system.details.device && testFilePath(img)) return img;
-        return game.settings.get(MODULENAME, "defaultBallImage");
+        return actor.getFlag(MODULENAME, "pokeballImage") ?? game.settings.get(MODULENAME, "defaultBallImage");
       })();
       sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
     }
@@ -232,6 +230,22 @@ async function OnCreateToken(token, options) {
 function OnRenderPokeroleActorSheet(sheet, html, context) {
   if (!isActorPokemon(sheet.object)) return;
 
+  // add a pokeball field to the sheet
+  const ball = sheet.actor.getFlag(MODULENAME, "pokeballImage") ?? game.settings.get(MODULENAME, "defaultBallImage");
+  const pbf = $(`<div class="pokeball-field" data-tooltip="POKEMON-ASSETS.Fields.Pokeball.hint">${game.i18n.localize("POKEMON-ASSETS.Fields.Pokeball.label")}: <img src="${ball}"></div>`);
+  $(html).find(".pokedex-number-name").after(pbf);
+  $(pbf).on("click", (event) => {
+    event.preventDefault();
+    new FilePicker({
+      type: "image",
+      callback: (path) => {
+        if (!path) return;
+        sheet.actor.setFlag(MODULENAME, "pokeballImage", path)
+      },
+    }).browse(ball);
+  });
+
+  // Add a trainer field to the sheet
   const trainer = sheet.actor.getFlag(MODULENAME, "trainerId") ?? null;
   fromUuid(trainer).then(trainer=>{
     const name = trainer?.name ?? game.i18n.localize("POKEMON-ASSETS.Settings.Trainer.none");
@@ -254,6 +268,7 @@ function OnRenderPokeroleActorSheet(sheet, html, context) {
       sheet.actor.setFlag(MODULENAME, "trainerId", actor.uuid);
     });
   });
+
 }
 
 
