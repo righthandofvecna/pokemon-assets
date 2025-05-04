@@ -325,19 +325,19 @@ export function register() {
     }
 
     get isTileset() {
-      return this.document.getFlag("pokemon-assets", "spritesheet");
+      return this.document.getFlag(MODULENAME, "spritesheet");
     }
 
     get sheetStyle() {
-      return this.document.getFlag("pokemon-assets", "sheetstyle") ?? "trainer";
+      return this.document.getFlag(MODULENAME, "sheetstyle") ?? "trainer";
     }
 
     get animationFrames() {
-      return this.document.getFlag("pokemon-assets", "animationframes") ?? 4;
+      return this.document.getFlag(MODULENAME, "animationframes") ?? 4;
     }
 
-    get seperateIdle() {
-      return this.document.getFlag("pokemon-assets", "separateidle") ?? false;
+    get separateIdle() {
+      return this.document.getFlag(MODULENAME, "separateidle") ?? false;
     }
 
     get alwaysIdle() {
@@ -624,11 +624,22 @@ export function register() {
       });
     }
 
+    get isPokemon() {
+      const module = game.modules.get(MODULENAME);
+      return module?.api?.logic?.isPokemon?.(this.document) ?? false;
+    }
+
+    get idleAnimationDuration() {
+      return game.settings.get(MODULENAME, this.isPokemon ? "idleAnimTimePokemon" : "idleAnimTimeTrainer") ?? 600;
+    }
 
     startIdleAnimation() {
       const fia = this.framesInAnimation;
-      if (this.alwaysIdle && fia > 1) {
-        this.animate({ frame: fia}, { duration: fia * 600 });
+      if (fia <= 1) return;
+      const iad = this.idleAnimationDuration;
+      if (iad <= 0) return;
+      if (this.alwaysIdle) {
+        this.animate({ frame: fia }, { duration: fia * iad });
       }
     }
 
@@ -675,7 +686,7 @@ export function register() {
 
     get framesInAnimation() {
       if (!this.isTileset || this.#textures == null) return 1;
-      const idxOffset = this.seperateIdle ? 1 : 0;
+      const idxOffset = this.separateIdle ? 1 : 0;
       return this.#textures[this.#facing].length - idxOffset;
     }
 
@@ -700,7 +711,7 @@ export function register() {
           this.#direction = ["down", "right", "up", "left"][frame % 4];
         } else { // normal animation
           if (dx != 0 || dy != 0) this.#direction = getDirection(dx, dy);
-          const idxOffset = this.seperateIdle ? 1 : 0;
+          const idxOffset = this.separateIdle ? 1 : 0;
           this.#index = idxOffset + ( frame % this.framesInAnimation );
         }
 

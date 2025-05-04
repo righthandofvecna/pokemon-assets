@@ -676,6 +676,8 @@ export function register() {
 
   module.api.logic.ActorCry ??= ActorCry;
 
+  module.api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
+
   module.api.scripts ??= {};
   module.api.scripts.HasMoveFunction ??= HasMoveFunction;
 
