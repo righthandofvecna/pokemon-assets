@@ -540,6 +540,8 @@ export function register() {
 
   api.logic.ActorCry ??= ActorCry;
 
+  api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
+
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
 }

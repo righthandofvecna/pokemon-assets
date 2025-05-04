@@ -624,11 +624,22 @@ export function register() {
       });
     }
 
+    get isPokemon() {
+      const module = game.modules.get(MODULENAME);
+      return module?.api?.logic?.isPokemon?.(this.document) ?? false;
+    }
+
+    get idleAnimationDuration() {
+      return game.settings.get(MODULENAME, this.isPokemon ? "idleAnimTimePokemon" : "idleAnimTimeTrainer") ?? 600;
+    }
 
     startIdleAnimation() {
       const fia = this.framesInAnimation;
-      if (this.alwaysIdle && fia > 1) {
-        this.animate({ frame: fia}, { duration: fia * 600 });
+      if (fia <= 1) return;
+      const iad = this.idleAnimationDuration;
+      if (iad <= 0) return;
+      if (this.alwaysIdle) {
+        this.animate({ frame: fia }, { duration: fia * iad });
       }
     }
 

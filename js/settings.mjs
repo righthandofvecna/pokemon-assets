@@ -82,6 +82,26 @@ export function register() {
 		hint: "Whether or not to play idle animations for tokens. (currently plays the walking animation slowly)"
 	});
 
+	game.settings.register(MODULENAME, "idleAnimTimePokemon", {
+		name: "Idle Animation Time (Pokemon)",
+		default: 600,
+		type: new foundry.data.fields.NumberField({min: 0, step: 1}),
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "How many miliseconds it takes to wrap through a Pokemon's idle animation (0 is disabled)."
+	});
+
+	game.settings.register(MODULENAME, "idleAnimTimeTrainer", {
+		name: "Idle Animation Time (Trainer)",
+		default: 600,
+		type: new foundry.data.fields.NumberField({min: 0, step: 1}),
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "How many miliseconds it takes to wrap through a non-Pokemon's idle animation (0 is disabled)."
+	});
+
   game.settings.register(MODULENAME, "autoPlayAudio", {
 		name: "Auto Play Audio",
 		default: true,
