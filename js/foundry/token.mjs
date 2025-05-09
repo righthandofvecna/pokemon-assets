@@ -1,14 +1,19 @@
 
 /**
  * Replace Token._PRIVATE_* with NonPrivateToken._PRIVATE_* to avoid missing functions.
- * Replace PointMovementSource with foundry.canvas.sources.PointMovementSource
  */
 
 
 const { TOKEN_DISPLAY_MODES } = CONST;
 
+const { PointMovementSource } = foundry.canvas.sources;
+const { TokenTurnMarker } = foundry.applications.elements;
+const { PreciseText } = foundry.canvas.containers;
+const { PrimarySpriteMesh } = foundry.canvas.primary;
+const { Ray } = foundry.canvas.geometry;
 
-export default class NonPrivateToken extends Token {
+
+export default class NonPrivateToken extends CONFIG.Token.objectClass {
   /**
    *
    * @param {TokenDocument} document   The TokenDocument that this Token represents
@@ -2491,7 +2496,7 @@ export default class NonPrivateToken extends Token {
    * @returns {PointMovementSource}
    */
   _PRIVATE_getMovementSource(origin) {
-    const movement = new foundry.canvas.sources.PointMovementSource({object: this});
+    const movement = new PointMovementSource({object: this});
     movement.initialize(origin);
     return movement;
   }
