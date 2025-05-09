@@ -94,13 +94,13 @@ async function OnRenderRegionConfig(regionConfig, html) {
 
 
 function OnGetSceneControlButtons(controls) {
-  const tiles = controls.find(c=>c.name === "tiles");
-  const regions = controls.find(c=>c.name === "regions");
+  const tiles = controls["tiles"];//.find(c=>c.name === "tiles");
+  const regions = controls["regions"];//.find(c=>c.name === "regions");
 
   //
   // Tile tools
   //
-  tiles.tools.push({
+  tiles.tools["breakable-rock"] = {
     icon: "fa-solid fa-pickaxe",
     name: "breakable-rock",
     title: "Place Breakable Rock",
@@ -113,8 +113,8 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
-  tiles.tools.push({
+  };
+  tiles.tools["cuttable-plant"] = {
     icon: "fa-solid fa-tree-palm",
     name: "cuttable-plant",
     title: "Place Cuttable Plant",
@@ -127,8 +127,8 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
-  tiles.tools.push({
+  };
+  tiles.tools["movable-boulder"] ={
     icon: "fa-solid fa-curling-stone",
     name: "movable-boulder",
     title: "Place Movable Boulder",
@@ -141,8 +141,8 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
-  tiles.tools.push({
+  };
+  tiles.tools["whirlpool"] = {
     icon: "fa-solid fa-tornado",
     name: "whirlpool",
     title: "Place Whirlpool",
@@ -155,8 +155,8 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
-  tiles.tools.push({
+  };
+  tiles.tools["sign"] = {
     icon: "fa-solid fa-sign-post",
     name: "sign",
     title: "Place Sign",
@@ -169,8 +169,8 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
-  tiles.tools.push({
+  };
+  tiles.tools["item"] = {
     icon: "fa-solid fa-box",
     name: "item",
     title: "Place Item",
@@ -183,8 +183,8 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
-  tiles.tools.push({
+  };
+  tiles.tools["headbutt-tree"] = {
     icon: "fa-solid fa-tree",
     name: "headbutt-tree",
     title: "Place Headbutt Tree",
@@ -197,12 +197,12 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
+  };
 
   //
   // Region Tools
   //
-  regions.tools.push({
+  regions.tools["rocky-wall"] = {
     icon: "fa-solid fa-hill-rockslide",
     name: "rocky-wall",
     title: "Place Climbable Rocks",
@@ -215,8 +215,8 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
-  regions.tools.push({
+  };
+  regions.tools["waterfall"] = {
     icon: "fa-solid fa-water-arrow-up",
     name: "waterfall",
     title: "Place Waterfall",
@@ -229,7 +229,7 @@ function OnGetSceneControlButtons(controls) {
         }
       ],
     },
-  });
+  };
 }
 
 function TilesLayer_onClickLeft2(wrapper, event) {

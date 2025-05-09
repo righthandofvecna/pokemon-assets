@@ -110,62 +110,6 @@ function Scene_updateEmbeddedDocuments(wrapped, embeddedName, updates=[], operat
   });
 }
 
-async function Ruler_animateSegment(wrapped, token, segment, destination, updateOptions={}) {
-  let follower_updates = [];
-  Hooks.call("pokemon-assets.manualMove", token, destination, follower_updates);
-  const scene = token?.document?.scene;
-  if (!scene || !follower_updates?.length) return wrapped(token, segment, destination, updateOptions);
-
-  const updates = [
-    {
-      _id: token.id,
-      ...destination,
-    },
-    ...follower_updates.filter(u=>scene.tokens.get(u._id)?.isOwner),
-  ];
-  follower_updates = follower_updates.filter(u=>!scene.tokens.get(u._id)?.isOwner);
-
-  const tokenInfo = {};
-  [...updates, ...follower_updates].forEach((update)=>{
-    const utoken = scene.tokens.get(update._id)?.object;
-    let name;
-    if ( segment.animation?.name === undefined ) name = utoken.animationName;
-    else name ||= Symbol(utoken.animationName);
-
-    tokenInfo[update._id] = {
-      token: utoken,
-      animName: name,
-    };
-  });
-  
-  // teleport all the tokens to their start positions, even if we can't actually update them
-  await Promise.all([...updates, ...follower_updates].map(async (update)=>{
-    const utoken = tokenInfo[update._id].token;
-    const name = tokenInfo[update._id].animName;
-    const {x, y} = utoken.document._source;
-    await utoken.animate({x, y}, {name, duration: 0});
-  }));
-
-  // do the actual update, including passing "follower_updates" into the first update call
-  await Promise.all(updates.map(async (update, index)=>{
-    const utoken = tokenInfo[update._id].token;
-    const name = tokenInfo[update._id].animName;
-    const uUpdateOptions = foundry.utils.mergeObject(
-      updateOptions,
-      {teleport: segment.teleport, animation: {...segment.animation, name}},
-      {overwrite: false, inplace: false}
-    );
-    if (index === 0) {
-      uUpdateOptions.follower_updates = follower_updates;
-    };
-    await utoken.document.update(update, uUpdateOptions);
-  }));
-
-  // wait on all the animations
-  await Promise.allSettled(updates.map(async (update)=>{
-    await CanvasAnimation.getAnimation(tokenInfo[update._id].animName)?.promise;
-  }));
-}
 
 
 function TilesetToken_tryPush(dx, dy) {
@@ -202,7 +146,6 @@ export function register() {
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype.moveMany", PlaceablesLayer_moveMany, "OVERRIDE");
   libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
   libWrapper.register("pokemon-assets", "Scene.prototype.updateEmbeddedDocuments", Scene_updateEmbeddedDocuments, "WRAPPER");
-  libWrapper.register("pokemon-assets", "Ruler.prototype._animateSegment", Ruler_animateSegment, "MIXED");
   
   CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
   CONFIG.Token.objectClass.prototype._tryPush = TilesetToken_tryPush;

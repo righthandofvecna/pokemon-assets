@@ -1,6 +1,7 @@
 import { early_isGM, isTheGM, MODULENAME, tokenScene } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
+import { default as NonPrivateToken } from "../foundry/token.mjs";
 
 /**
  * Add the spritesheet settings to the token config page
@@ -294,14 +295,12 @@ function OnInitializeEdges() {
 }
 
 export function register() {
-  class TilesetToken extends CONFIG.Token.objectClass {
+  class TilesetToken extends NonPrivateToken {
     #index;
     #textures;
     #textureSrc;
     #textureKey;
     #direction;
-    #animationData;
-    #priorAnimationData;
     #localOpacity;
 
     constructor(document) {
@@ -310,8 +309,6 @@ export function register() {
     }
 
     #initialize() {
-      this.#animationData = this._getAnimationData();
-      this.#priorAnimationData = foundry.utils.deepClone(this.#animationData);
       this.#localOpacity = 1;
     }
 
@@ -353,29 +350,33 @@ export function register() {
       // check if this token has a tileset configured
       if (!this.isTileset) return super._draw(options);
       
-      this.#cleanData();
+      this._PRIVATE_cleanData();
 
       // Load token texture
       await this.playFromSpritesheet();
   
-      // Draw the TokenMesh in the PrimaryCanvasGroup
+      // Cache token ring subject texture if needed
+      // const ring = this.document.ring;
+      // if ( ring.enabled && ring.subject.texture ) await loadTexture(ring.subject.texture);
+  
+  
+      // Draw the token's PrimarySpriteMesh in the PrimaryCanvasGroup
       this.mesh = canvas.primary.addToken(this);
   
       // Initialize token ring
       // this.#initializeRing();
-      // Can't do this...
   
       // Draw the border
       this.border ||= this.addChild(new PIXI.Graphics());
   
-      // Draw the void of the TokenMesh
+      // Draw the void of the token's PrimarySpriteMesh
       if ( !this.voidMesh ) {
         this.voidMesh = this.addChild(new PIXI.Container());
         this.voidMesh.updateTransform = () => {};
         this.voidMesh.render = renderer => this.mesh?._renderVoid(renderer);
       }
   
-      // Draw the detection filter of the TokenMesh
+      // Draw the detection filter of the token's PrimarySpriteMesh
       if ( !this.detectionFilterMesh ) {
         this.detectionFilterMesh = this.addChild(new PIXI.Container());
         this.detectionFilterMesh.updateTransform = () => {};
@@ -385,12 +386,17 @@ export function register() {
       }
   
       // Draw Token interface components
-      this.bars ||= this.addChild(this.#drawAttributeBars());
-      this.tooltip ||= this.addChild(this.#drawTooltip());
+      this.bars ||= this.addChild(this._PRIVATE_drawAttributeBars());
+      this.tooltip ||= this.addChild(this._PRIVATE_drawTooltip());
       this.effects ||= this.addChild(new PIXI.Container());
+      this.targetArrows ||= this.addChild(new PIXI.Graphics());
+      this.targetPips ||= this.addChild(new PIXI.Graphics());
+      this.nameplate ||= this.addChild(this._PRIVATE_drawNameplate());
+      this.sortableChildren = true;
   
-      this.target ||= this.addChild(new PIXI.Graphics());
-      this.nameplate ||= this.addChild(this.#drawNameplate());
+      // Initialize and draw the ruler
+      if ( this.ruler === undefined ) this.ruler = this._initializeRuler();
+      if ( this.ruler ) await this.ruler.draw();
   
       // Add filter effects
       this._updateSpecialStatusFilterEffects();
@@ -400,7 +406,6 @@ export function register() {
   
       // Initialize sources
       if ( !this.isPreview ) this.initializeSources();
-
     }
 
     async playFromSpritesheet() {
@@ -481,54 +486,6 @@ export function register() {
       return super._canDrag();
     }
 
-    /**
-     * Apply initial sanitizations to the provided input data to ensure that a Token has valid required attributes.
-     * Constrain the Token position to remain within the Canvas rectangle.
-     */
-    #cleanData() {
-      const d = this.scene.dimensions;
-      const {x: cx, y: cy} = this.getCenterPoint({x: 0, y: 0});
-      this.document.x = Math.clamp(this.document.x, -cx, d.width - cx);
-      this.document.y = Math.clamp(this.document.y, -cy, d.height - cy);
-    }
-
-    /* -------------------------------------------- */
-
-    /**
-     * Draw resource bars for the Token
-     * @returns {PIXI.Container}
-     */
-    #drawAttributeBars() {
-      const bars = new PIXI.Container();
-      bars.bar1 = bars.addChild(new PIXI.Graphics());
-      bars.bar2 = bars.addChild(new PIXI.Graphics());
-      return bars;
-    }
-
-    /* -------------------------------------------- */
-
-    /**
-     * Draw the token's nameplate as a text object
-     * @returns {PreciseText}    The Text object for the Token nameplate
-     */
-    #drawNameplate() {
-      const nameplate = new PreciseText(this.document.name, this._getTextStyle());
-      nameplate.anchor.set(0.5, 0);
-      return nameplate;
-    }
-
-    /* -------------------------------------------- */
-
-    /**
-     * Draw a text tooltip for the token which can be used to display Elevation or a resource value
-     * @returns {PreciseText}     The text object used to render the tooltip
-     */
-    #drawTooltip() {
-      const tooltip = new PreciseText(this._getTooltipText(), this._getTextStyle());
-      tooltip.anchor.set(0.5, 1);
-      return tooltip;
-    }
-
     #updateDirection() {
       this.#direction = getDirectionFromAngle(this.document.rotation);
     }
@@ -554,26 +511,17 @@ export function register() {
       }
     }
 
-    /** @override */
-    async animate(to, {duration, easing, movementSpeed, name, ontick, ...options}={}) {
-      // Get the name and the from and to animation data
-      if ( name === undefined ) name = this.animationName;
-      else name ||= Symbol(this.animationName);
-      const from = this.#animationData;
-      this.#animationData.frame = 0
-      if (to.rotation != undefined) {
-        from.rotation = to.rotation ?? from.rotation;
-        delete to.rotation;
-      }
-      to = foundry.utils.filterObject(to, from);
-      let context = this.animationContexts.get(name);
-      if ( context ) to = foundry.utils.mergeObject(context.to, to, {inplace: false});
-
-      // Conclude the current animation
-      CanvasAnimation.terminateAnimation(name);
-      if ( context ) this.animationContexts.delete(name);
-
-      movementSpeed ??= (()=>{
+    /**
+     * Animate from the old to the new state of this Token.
+     * @param {Partial<TokenAnimationData>} to    The animation data to animate to
+     * @param {TokenAnimationOptions} options     The options that configure the animation behavior
+     * @param {boolean} chained                   Is this animation being chained to the current context?
+     * @returns {Promise<void>}                   A promise which resolves once the animation has finished or stopped
+     */
+    _PRIVATE_animate(to, options, chained) {
+      let from = this._PRIVATE_animationData;
+      from.frame = 0;
+      options.movementSpeed ??= (()=>{
         if (this.document._sliding) return game.settings.get(MODULENAME, "walkSpeed") ?? 4;
         const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
         const manhattan = (Math.abs((to.x ?? from.x) - from.x) / sizeX) + (Math.abs((to.y ?? from.y) - from.y) / sizeY);
@@ -582,45 +530,17 @@ export function register() {
         }
         return game.settings.get(MODULENAME, "runSpeed") ?? 8;
       })();
-      // Get the animation duration and create the animation context
-      duration ??= this._getAnimationDuration(from, to, {movementSpeed, ...options});
-      const origin = { x: this.x, y: this.y };
-      context = {name, to, origin, duration, time: 0, preAnimate: [], postAnimate: [], onAnimate: []};
 
-      // Animate the first frame
-      this._animateFrame(context);
+      if (to.rotation != undefined) {
+        from.rotation = to.rotation ?? from.rotation;
+        delete to.rotation;
+      }
 
-      // If the duration of animation is not positive, we can immediately conclude the animation
-      if ( duration <= 0 ) return;
-
-      // Set the animation context
-      this.animationContexts.set(name, context);
-
-      // Prepare the animation data changes
-      const changes = foundry.utils.diffObject(from, to);
-      const attributes = this._prepareAnimation(from, changes, context, options);
-
-      // Dispatch the animation
-      context.promise = CanvasAnimation.animate(attributes, {
-        name,
-        context: this,
-        duration,
-        easing,
-        priority: PIXI.UPDATE_PRIORITY.OBJECTS + 1, // Before perception updates and Token render flags
-        wait: Promise.allSettled(context.preAnimate.map(fn => fn(context))),
-        ontick: (dt, anim) => {
-          context.time = anim.time;
-          if ( ontick ) ontick(dt, anim, this.#animationData);
-          this._animateFrame(context);
-        }
-      });
-      await context.promise.finally(() => {
-        if ( this.animationContexts.get(name) === context ) {
-          this.animationContexts.delete(name);
-          // start the idle animation
-          this.startIdleAnimation();
-        }
-        for ( const fn of context.postAnimate ) fn(context);
+      this._origin = { x: this.x, y: this.y };
+      
+      return super._PRIVATE_animate(to, options, chained).finally(()=>{
+        // start the idle animation
+        if (this.animationContexts.size == 0) this.startIdleAnimation();
       });
     }
 
@@ -630,7 +550,7 @@ export function register() {
     }
 
     get idleAnimationDuration() {
-      return game.settings.get(MODULENAME, this.isPokemon ? "idleAnimTimePokemon" : "idleAnimTimeTrainer") ?? 600;
+      return game.settings.get(MODULENAME, "idleAnimTime") ?? 600;
     }
 
     startIdleAnimation() {
@@ -644,20 +564,20 @@ export function register() {
     }
 
     /**
-     * Prepare the animation data changes: performs special handling required for animating rotation (none).
-     * @param {TokenAnimationData} from                         The animation data to animate from
-     * @param {Partial<TokenAnimationData>} changes             The animation data changes
-     * @param {Omit<TokenAnimationContext, "promise">} context  The animation context
-     * @param {object} [options]                                The options that configure the animation behavior
-     * @param {string} [options.transition="fade"]              The desired texture transition type
-     * @returns {CanvasAnimationAttribute[]}                    The animation attributes
+     * Prepare the animation data changes: performs special handling required for animating rotation.
+     * @param {DeepReadonly<TokenAnimationData>} from             The animation data to animate from
+     * @param {Partial<TokenAnimationData>} changes               The animation data changes
+     * @param {Omit<TokenAnimationContext, "promise">} context    The animation context
+     * @param {TokenAnimationOptions} options                     The options that configure the animation behavior
+     * @returns {CanvasAnimationAttribute[]}                      The animation attributes
      * @protected
      */
-    _prepareAnimation(from, changes, context, options = {}) {
+    _prepareAnimation(from, changes, context, options) {
       const attributes = [];
 
-      // Token.#handleRotationChanges(from, changes);
-      // this.#handleTransitionChanges(changes, context, options, attributes);
+      // TODO: handle teleportation
+      // NonPrivateToken._PRIVATE_handleRotationChanges(from, changes);
+      // this._PRIVATE_handleTransitionChanges(changes, context, options, attributes);
 
       // Create animation attributes from the changes
       const recur = (changes, parent) => {
@@ -667,27 +587,21 @@ export function register() {
           else if ( type === "number" || type === "Color" ) attributes.push({attribute, parent, to});
         }
       };
-      recur(changes, this.#animationData);
+      recur(changes, this._PRIVATE_animationData);
       return attributes;
-    }
-
-    /**
-     * Handle a single frame of a token animation.
-     * @param {TokenAnimationContext} context    The animation context
-     */
-    _animateFrame(context) {
-      if ( context.time >= context.duration ) foundry.utils.mergeObject(this.#animationData, context.to);
-      const changes = foundry.utils.diffObject(this.#priorAnimationData, this.#animationData);
-      foundry.utils.mergeObject(this.#priorAnimationData, this.#animationData);
-      foundry.utils.mergeObject(this.document, this.#animationData, {insertKeys: false});
-      for ( const fn of context.onAnimate ) fn(context);
-      this._onAnimationUpdate(changes, context);
     }
 
     get framesInAnimation() {
       if (!this.isTileset || this.#textures == null) return 1;
       const idxOffset = this.separateIdle ? 1 : 0;
       return this.#textures[this.#facing].length - idxOffset;
+    }
+
+    _getAnimationData() {
+      return {
+        ...super._getAnimationData(),
+        frame: 0,
+      }
     }
 
     _onAnimationUpdate(changed, context) {
@@ -698,8 +612,8 @@ export function register() {
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
 
       const FRAMES_PER_SQUARE = 2;
-      const gdx = Math.abs((changed.x ?? context.origin?.x ?? 0) - context.origin?.x ?? 0) * FRAMES_PER_SQUARE / sizeX;
-      const gdy = Math.abs((changed.y ?? context.origin?.y ?? 0) - context.origin?.y ?? 0) * FRAMES_PER_SQUARE / sizeY;
+      const gdx = Math.abs((changed.x ?? this._origin?.x ?? 0) - this._origin?.x ?? 0) * FRAMES_PER_SQUARE / sizeX;
+      const gdy = Math.abs((changed.y ?? this._origin?.y ?? 0) - this._origin?.y ?? 0) * FRAMES_PER_SQUARE / sizeY;
       const frame = changed.frame !== undefined ? ~~changed.frame : ~~(gdx + gdy - (Math.min(gdx, gdy) / 2));
 
       // set the direction
@@ -744,9 +658,9 @@ export function register() {
      */
     _handleTeleportAnimation(to) {
       const changes = {};
-      if ( "x" in to ) this.#animationData.x = changes.x = to.x;
-      if ( "y" in to ) this.#animationData.y = changes.y = to.y;
-      if ( "elevation" in to ) this.#animationData.elevation = changes.elevation = to.elevation;
+      if ( "x" in to ) this._PRIVATE_animationData.x = changes.x = to.x;
+      if ( "y" in to ) this._PRIVATE_animationData.y = changes.y = to.y;
+      if ( "elevation" in to ) this._PRIVATE_animationData.elevation = changes.elevation = to.elevation;
       if ( !foundry.utils.isEmpty(changes) ) {
         const context = {name: Symbol(this.animationName), to: changes, duration: 0, time: 0,
           preAnimate: [], postAnimate: [], onAnimate: []};
@@ -891,7 +805,7 @@ export function register() {
     }
 
     _setEdge(id, c) {
-      canvas.edges.set(id, new foundry.canvas.edges.Edge({x: c[0], y: c[1]}, {x: c[2], y: c[3]}, {
+      canvas.edges.set(id, new foundry.canvas.geometry.edges.Edge({x: c[0], y: c[1]}, {x: c[2], y: c[3]}, {
         id,
         object: this,
         type: "wall",
