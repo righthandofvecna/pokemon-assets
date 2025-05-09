@@ -4,7 +4,7 @@
  */
 
 
-const { TOKEN_DISPLAY_MODES } = CONST;
+const { TOKEN_DISPLAY_MODES, CLIPPER_SCALING_FACTOR } = CONST;
 
 const { PointMovementSource } = foundry.canvas.sources;
 const { TokenTurnMarker } = foundry.applications.elements;
