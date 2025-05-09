@@ -433,10 +433,10 @@ export function register() {
 
   game.keybindings.register(MODULENAME, "follow", {
     name: "Follow Token",
-    hint: "The key to join or leave the chain of tokens being followed.",
+    hint: "The key to join or leave the line of tokens being followed.",
     editable: [
       {
-        key: "KeyF"
+        key: "KeyL"
       }
     ],
     onDown: OnFollowKey,

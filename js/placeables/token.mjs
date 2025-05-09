@@ -1,7 +1,7 @@
 import { early_isGM, isTheGM, MODULENAME, tokenScene } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
-import { default as NonPrivateToken } from "../foundry/token.mjs";
+import { NonPrivateTokenMixin } from "../foundry/token.mjs";
 
 /**
  * Add the spritesheet settings to the token config page
@@ -295,7 +295,7 @@ function OnInitializeEdges() {
 }
 
 export function register() {
-  class TilesetToken extends NonPrivateToken {
+  class TilesetToken extends NonPrivateTokenMixin(CONFIG.Token.objectClass) {
     #index;
     #textures;
     #textureSrc;

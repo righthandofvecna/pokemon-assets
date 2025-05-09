@@ -18,7 +18,6 @@ async function doPreloadScenePlaylist(scene) {
 
   const playlist = scene.playlist;
   if (!playlist) {
-    console.log("no playlist for", scene);
     return;
   }
 
@@ -68,7 +67,6 @@ function OnDeleteCombat(tracker, info, id) {
 
 function OnUpdateCombat(tracker, delta) {
   if (!game.settings.get(MODULENAME, "playPokemonCryOnTurn") || delta.turn === undefined) return;
-  console.log("OnUpdateCombat", tracker, delta);
 
   const cry = game.modules.get("pokemon-assets").api.logic.ActorCry(tracker.combatant?.actor);
   if (!cry) return;

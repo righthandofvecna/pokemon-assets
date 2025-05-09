@@ -28,7 +28,7 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 
 ### Token Following
 
-1. **Follow Target**: Hover over the target token and press `F`.
+1. **Follow Target**: Hover over the target token and press `L` (for join **L**ine).
 2. **Move Target**: Move the leader token to see the following token move accordingly. Moving a token manually that's following another token will break the follow.
 3. **Combat Mode**: Tokens **do not** follow if there is an active combat on the current scene.
 

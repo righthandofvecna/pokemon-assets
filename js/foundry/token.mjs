@@ -1,19 +1,10 @@
-
-/**
- * Replace Token._PRIVATE_* with NonPrivateToken._PRIVATE_* to avoid missing functions.
- */
-
-
-const { TOKEN_DISPLAY_MODES, CLIPPER_SCALING_FACTOR } = CONST;
-
 const { PointMovementSource } = foundry.canvas.sources;
-const { TokenTurnMarker } = foundry.applications.elements;
 const { PreciseText } = foundry.canvas.containers;
 const { PrimarySpriteMesh } = foundry.canvas.primary;
 const { Ray } = foundry.canvas.geometry;
 
-
-export default class NonPrivateToken extends CONFIG.Token.objectClass {
+export function NonPrivateTokenMixin(TokenClass) {
+  return class NonPrivateToken extends TokenClass {
   /**
    *
    * @param {TokenDocument} document   The TokenDocument that this Token represents
@@ -21,38 +12,6 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
   constructor(document) {
     super(document);
     this._PRIVATE_initialize();
-  }
-
-  /** @inheritdoc */
-  static embeddedName = "Token";
-
-  /** @override */
-  static RENDER_FLAGS = {
-    redraw: {propagate: ["refresh"]},
-    redrawEffects: {},
-    refresh: {propagate: ["refreshState", "refreshTransform", "refreshMesh", "refreshNameplate", "refreshElevation",
-      "refreshRingVisuals", "refreshRuler", "refreshTurnMarker"], alias: true},
-    refreshState: {propagate: ["refreshVisibility", "refreshTarget"]},
-    refreshVisibility: {},
-    refreshTransform: {propagate: ["refreshPosition", "refreshRotation", "refreshSize"], alias: true},
-    refreshPosition: {},
-    refreshRotation: {},
-    refreshSize: {propagate: ["refreshPosition", "refreshShape", "refreshBars", "refreshEffects", "refreshNameplate", "refreshTarget", "refreshTooltip"]},
-    refreshElevation: {propagate: ["refreshTooltip"]},
-    refreshMesh: {propagate: ["refreshShader"]},
-    refreshShader: {},
-    refreshShape: {propagate: ["refreshVisibility", "refreshPosition", "refreshBorder", "refreshEffects"]},
-    refreshBorder: {},
-    refreshBars: {},
-    refreshEffects: {},
-    refreshNameplate: {},
-    refreshTarget: {},
-    refreshTooltip: {},
-    refreshRingVisuals: {},
-    refreshRuler: {},
-    refreshTurnMarker: {},
-    /** @deprecated since v12 Stable 4 */
-    recoverFromPreview: {deprecated: {since: 12, until: 14}}
   };
 
   /**
@@ -60,124 +19,6 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    * @type {[detectionFilter: PIXI.Filter|null]}
    */
   static _PRIVATE_DETECTION_FILTER_ARRAY = [null];
-
-  /**
-   * The shape of this token.
-   * @type {PIXI.Rectangle|PIXI.Polygon|PIXI.Circle}
-   */
-  shape;
-
-  /**
-   * Defines the filter to use for detection.
-   * @param {PIXI.Filter|null} filter
-   */
-  detectionFilter = null;
-
-  /**
-   * A Graphics instance which renders the border frame for this Token inside the GridLayer.
-   * @type {PIXI.Graphics}
-   */
-  border;
-
-  /**
-   * The effects icons of temporary ActiveEffects that are applied to the Actor of this Token.
-   * @type {PIXI.Container}
-   */
-  effects;
-
-  /**
-   * The attribute bars of this Token.
-   * @type {PIXI.Container}
-   */
-  bars;
-
-  /**
-   * The tooltip text of this Token, which contains its elevation.
-   * @type {PreciseText}
-   */
-  tooltip;
-
-  /**
-   * The target arrows marker, which indicates that this Token is targeted by this User.
-   * @type {PIXI.Graphics}
-   */
-  targetArrows;
-
-  /**
-   * The target pips marker, which indicates that this Token is targeted by other User(s).
-   * @type {PIXI.Graphics}
-   */
-  targetPips;
-
-  /**
-   * The nameplate of this Token, which displays its name.
-   * @type {PreciseText}
-   */
-  nameplate;
-
-  /**
-   * The ruler of this Token.
-   * @type {BaseTokenRuler|null}
-   */
-  ruler;
-
-  /**
-   * The ruler data.
-   * @type {{[userId: string]: TokenPlannedMovement}}
-   * @protected
-   */
-  _plannedMovement = {};
-
-  /**
-   * Track the set of User documents which are currently targeting this Token
-   * @type {Set<User>}
-   */
-  targeted = new Set([]);
-
-  /**
-   * A reference to the SpriteMesh which displays this Token in the PrimaryCanvasGroup.
-   * @type {PrimarySpriteMesh}
-   */
-  mesh;
-
-  /**
-   * Renders the mesh of this Token with ERASE blending in the Token.
-   * @type {PIXI.DisplayObject}
-   */
-  voidMesh;
-
-  /**
-   * Renders the mesh of with the detection filter.
-   * @type {PIXI.DisplayObject}
-   */
-  detectionFilterMesh;
-
-  /**
-   * The texture of this Token, which is used by its mesh.
-   * @type {PIXI.Texture}
-   */
-  texture;
-
-  /**
-   * A reference to the VisionSource object which defines this vision source area of effect.
-   * This is undefined if the Token does not provide an active source of vision.
-   * @type {PointVisionSource}
-   */
-  vision;
-
-  /**
-   * A reference to the LightSource object which defines this light source area of effect.
-   * This is undefined if the Token does not provide an active source of light.
-   * @type {PointLightSource}
-   */
-  light;
-
-  /**
-   * The Turn Marker of this Token.
-   * Only a subset of Token objects have a turn marker at any given time.
-   * @type {TokenTurnMarker|null}
-   */
-  turnMarker = null;
 
   /**
    * The center point adjustment. See {@link Token_PRIVATE_getMovementAdjustedPoint}.
@@ -221,7 +62,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   get animationContexts() {
     return this._PRIVATE_animationContexts;
-  }
+  };
 
   _PRIVATE_animationContexts = new Map();
 
@@ -231,7 +72,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   get animationName() {
     return this._PRIVATE_animationName ??= `${this.objectId}.animate`;
-  }
+  };
 
   _PRIVATE_animationName;
 
@@ -241,7 +82,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   get movementAnimationName() {
     return this._PRIVATE_movementAnimationName ??= `${this.objectId}.animateMovement`;
-  }
+  };
 
   _PRIVATE_movementAnimationName;
 
@@ -254,7 +95,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const context = this._PRIVATE_animationContexts.get(this.movementAnimationName);
     if ( !context ) return null;
     return context.chain.at(-1)?.promise ?? context.promise;
-  }
+  };
 
   /**
    * Should the ruler of this Token be visible?
@@ -266,16 +107,9 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       if ( !hidden || (userId === game.user.id) ) return true;
     }
     return false;
-  }
+  };
 
   _PRIVATE_showRuler;
-
-  /**
-   * Prevent keyboard movement of this Token?
-   * @type {boolean}
-   * @internal
-   */
-  _preventKeyboardMovement = false;
 
   /**
    * A TokenRing instance which is used if this Token applies a dynamic ring.
@@ -284,17 +118,9 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   get ring() {
     return this._PRIVATE_ring;
-  }
+  };
 
   _PRIVATE_ring;
-
-  /**
-   * A convenience boolean to test whether the Token is using a dynamic ring.
-   * @type {boolean}
-   */
-  get hasDynamicRing() {
-    return this.ring instanceof TokenRing;
-  }
 
   /* -------------------------------------------- */
   /*  Initialization                              */
@@ -317,7 +143,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     // Initialize animation data
     this._PRIVATE_animationData = foundry.utils.deepSeal(this._getAnimationData());
     this._PRIVATE_priorAnimationData = foundry.utils.deepSeal(foundry.utils.deepClone(this._PRIVATE_animationData));
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -342,78 +168,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     // Deactivate a prior TokenRing instance
     if ( this.hasDynamicRing ) this._PRIVATE_ring.clear();
     this._PRIVATE_ring = null;
-  }
-
-  /* -------------------------------------------- */
-  /*  Permission Attributes
-  /* -------------------------------------------- */
-
-  /**
-   * A convenient reference to the Actor object associated with the Token embedded document.
-   * @returns {Actor|null}
-   */
-  get actor() {
-    return this.document.actor;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * A boolean flag for whether the current game User has observer permission for the Token
-   * @type {boolean}
-   */
-  get observer() {
-    return game.user.isGM || !!this.actor?.testUserPermission(game.user, "OBSERVER");
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Convenience access to the token's nameplate string
-   * @type {string}
-   */
-  get name() {
-    return this.document.name;
-  }
-
-  /* -------------------------------------------- */
-  /*  Rendering Attributes
-  /* -------------------------------------------- */
-
-  /** @override */
-  get bounds() {
-    const {x, y} = this.document;
-    const {width, height} = this.document.getSize();
-    return new PIXI.Rectangle(x, y, width, height);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Translate the token's grid width into a pixel width based on the canvas size
-   * @type {number}
-   */
-  get w() {
-    return this.document.getSize().width;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Translate the token's grid height into a pixel height based on the canvas size
-   * @type {number}
-   */
-  get h() {
-    return this.document.getSize().height;
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  get center() {
-    const {x, y} = this.document.getCenterPoint();
-    return new PIXI.Point(x, y);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -439,8 +194,8 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const y = Math.round(point.y);
     const elevation = point.elevation;
     point = elevation !== undefined ? {x, y, elevation} : {x, y};
-    offsetX ??= this._PRIVATE_centerOffset?.x || 0;
-    offsetY ??= this._PRIVATE_centerOffset?.y || 0;
+    offsetX ??= this._PRIVATE_centerOffset.x;
+    offsetY ??= this._PRIVATE_centerOffset.y;
     if ( (offsetX === 0) && (offsetY === 0) ) return point;
 
     // Define a bounding box around the point to query relevant edges using the Quadtree
@@ -462,69 +217,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       point.y -= offsetY;
     }
     return point;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * The HTML source element for the primary Tile texture
-   * @type {HTMLImageElement|HTMLVideoElement}
-   */
-  get sourceElement() {
-    return this.texture?.baseTexture.resource.source;
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  get sourceId() {
-    let id = `${this.document.documentName}.${this.document.id}`;
-    if ( this.isPreview ) id += ".preview";
-    return id;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Does this Tile depict an animated video texture?
-   * @type {boolean}
-   */
-  get isVideo() {
-    const source = this.sourceElement;
-    return source?.tagName === "VIDEO";
-  }
-
-  /* -------------------------------------------- */
-  /*  State Attributes
-  /* -------------------------------------------- */
-
-  /**
-   * An indicator for whether or not this token is currently involved in the active combat encounter.
-   * @type {boolean}
-   */
-  get inCombat() {
-    return this.document.inCombat;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Return a reference to a Combatant that represents this Token, if one is present in the current encounter.
-   * @type {Combatant|null}
-   */
-  get combatant() {
-    return this.document.combatant;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * An indicator for whether the Token is currently targeted by the active game User
-   * @type {boolean}
-   */
-  get isTargeted() {
-    return this.targeted.has(game.user);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -534,17 +227,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   get isDragged() {
     return !!this._PRIVATE_getDragContext();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Return a reference to the detection modes array.
-   * @type {TokenDetectionMode[]}
-   */
-  get detectionModes() {
-    return this.document.detectionModes;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -575,133 +258,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const {width, height} = this.document.getSize();
     const tolerance = Math.min(width, height) / 4;
     return canvas.visibility.testVisibility(this.center, {tolerance, object: this});
-  }
-
-  /* -------------------------------------------- */
-  /*  Lighting and Vision Attributes
-  /* -------------------------------------------- */
-
-  /**
-   * Test whether the Token has sight (or blindness) at any radius
-   * @type {boolean}
-   */
-  get hasSight() {
-    return this.document.sight.enabled;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Does this Token actively emit light given its properties and the current darkness level of the Scene?
-   * @returns {boolean}
-   * @protected
-   */
-  _isLightSource() {
-    const {hidden, light} = this.document;
-    if ( hidden ) return false;
-    if ( !(light.dim || light.bright) ) return false;
-    const darkness = canvas.darknessLevel;
-    if ( !darkness.between(light.darkness.min, light.darkness.max)) return false;
-    return !this.document.hasStatusEffect(CONFIG.specialStatusEffects.BURROW);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Does this token actively emit darkness given its properties and the current darkness level of the Scene?
-   * @type {boolean}
-   */
-  get emitsDarkness() {
-    return this.document.light.negative && this._isLightSource();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Does this token actively emit light given its properties and the current darkness level of the Scene?
-   * @type {boolean}
-   */
-  get emitsLight() {
-    return !this.document.light.negative && this._isLightSource();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Test whether the Token uses a limited angle of vision or light emission.
-   * @type {boolean}
-   */
-  get hasLimitedSourceAngle() {
-    const doc = this.document;
-    return (this.hasSight && (doc.sight.angle !== 360)) || (this._isLightSource() && (doc.light.angle !== 360));
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Translate the token's dim light distance in units into a radius in pixels.
-   * @type {number}
-   */
-  get dimRadius() {
-    return this.getLightRadius(this.document.light.dim);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Translate the token's bright light distance in units into a radius in pixels.
-   * @type {number}
-   */
-  get brightRadius() {
-    return this.getLightRadius(this.document.light.bright);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * The maximum radius in pixels of the light field
-   * @type {number}
-   */
-  get radius() {
-    return Math.max(Math.abs(this.dimRadius), Math.abs(this.brightRadius));
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * The range of this token's light perception in pixels.
-   * @type {number}
-   */
-  get lightPerceptionRange() {
-    const mode = this.document.detectionModes.find(m => m.id === "lightPerception");
-    return mode?.enabled ? this.getLightRadius(mode.range) : 0;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Translate the token's vision range in units into a radius in pixels.
-   * @type {number}
-   */
-  get sightRange() {
-    return this.getLightRadius(this.document.sight.range);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Translate the token's maximum vision range that takes into account lights.
-   * @type {number}
-   */
-  get optimalSightRange() {
-    let lightRadius = 0;
-    const mode = this.document.detectionModes.find(m => m.id === "lightPerception");
-    if ( mode?.enabled ) {
-      lightRadius = Math.max(this.document.light.bright, this.document.light.dim);
-      lightRadius = Math.min(lightRadius, mode.range);
-    }
-    return this.getLightRadius(Math.max(this.document.sight.range, lightRadius));
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -714,7 +271,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this._PRIVATE_adjustedCenter = this.getMovementAdjustedPoint(this.document.getCenterPoint());
     this.initializeLightSource({deleted});
     this.initializeVisionSource({deleted});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -777,7 +334,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     // Update perception and rendering
     canvas.perception.update(perceptionFlags);
     if ( canvas.lighting.active ) this.renderFlags.set({refreshField: true});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -799,7 +356,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       preview: this.isPreview,
       disabled: !this._isLightSource()
     });
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -840,21 +397,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       refreshVision: true,
       refreshLighting: true
     });
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Returns a record of blinding state.
-   * @returns {Record<string, boolean>}
-   * @protected
-   */
-  _getVisionBlindedStates() {
-    return {
-      blind: this.document.hasStatusEffect(CONFIG.specialStatusEffects.BLIND),
-      burrow: this.document.hasStatusEffect(CONFIG.specialStatusEffects.BURROW)
-    };
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -882,33 +425,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       preview: this.isPreview,
       disabled: false
     };
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Test whether this Token is a viable vision source for the current User.
-   * @returns {boolean}
-   * @protected
-   */
-  _isVisionSource() {
-    if ( !canvas.visibility.tokenVision || !this.hasSight ) return false;
-
-    // Only display hidden tokens for the GM
-    const isGM = game.user.isGM;
-    if ( this.document.hidden && !isGM ) return false;
-
-    // Always display controlled tokens which have vision
-    if ( this.controlled ) return true;
-
-    // Otherwise, vision is ignored for GM users
-    if ( isGM ) return false;
-
-    // If a non-GM user controls no other tokens with sight, display sight
-    const canObserve = this.actor?.testUserPermission(game.user, "OBSERVER") ?? false;
-    if ( !canObserve ) return false;
-    return !this.layer.controlled.some(t => !t.document.hidden && t.hasSight);
-  }
+  };
 
   /* -------------------------------------------- */
   /*  Rendering                                   */
@@ -939,8 +456,8 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this.mesh.worldAlpha = originalAlpha;
     this.mesh.pluginName = null;
 
-    Token._PRIVATE_DETECTION_FILTER_ARRAY[0] = null;
-  }
+    NonPrivateToken._PRIVATE_DETECTION_FILTER_ARRAY[0] = null;
+  };
 
   /* -------------------------------------------- */
 
@@ -954,7 +471,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     if ( this._PRIVATE_unlinkedVideo ) this.texture?.baseTexture?.destroy(); // Destroy base texture if the token has an unlinked video
     this._PRIVATE_unlinkedVideo = false;
     if ( this.hasActiveHUD ) this.layer.hud.close();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -972,7 +489,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this.removeChildren().forEach(c => c.destroy({children: true}));
     this.texture = undefined;
     this._PRIVATE_unlinkedVideo = false;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1049,21 +566,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
     // Initialize sources
     if ( !this.isPreview ) this.initializeSources();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Create the BaseTokenRuler instance for this Token, if any.
-   * This function is called when the Token is drawn for the first time.
-   * @returns {BaseTokenRuler|null}
-   * @protected
-   */
-  _initializeRuler() {
-    const rulerClass = CONFIG.Token.rulerClass;
-    if ( !rulerClass ) return null;
-    return new rulerClass(this);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1075,7 +578,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const lightSourceClass = this.document.light.negative
       ? CONFIG.Canvas.darknessSourceClass : CONFIG.Canvas.lightSourceClass;
     return new lightSourceClass({sourceId: this.sourceId, object: this});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1085,7 +588,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
   _PRIVATE_destroyLightSource() {
     this.light?.destroy();
     this.light = undefined;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1095,7 +598,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   _PRIVATE_createVisionSource() {
     return new CONFIG.Canvas.visionSourceClass({sourceId: this.sourceId, object: this});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1106,7 +609,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this.vision?.visionMode?.deactivate(this.vision);
     this.vision?.destroy();
     this.vision = undefined;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1119,7 +622,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const {x: cx, y: cy} = this.document.getCenterPoint({x: 0, y: 0});
     this.document.x = Math.clamp(this.document.x, -cx, d.width - cx);
     this.document.y = Math.clamp(this.document.y, -cy, d.height - cy);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1132,61 +635,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     bars.bar1 = bars.addChild(new PIXI.Graphics());
     bars.bar2 = bars.addChild(new PIXI.Graphics());
     return bars;
-  }
-
-  /* -------------------------------------------- */
-  /*  Incremental Refresh                         */
-  /* -------------------------------------------- */
-
-  /** @override */
-  _applyRenderFlags(flags) {
-    if ( flags.refreshState ) this._refreshState();
-    if ( flags.refreshVisibility ) this._refreshVisibility();
-    if ( flags.refreshPosition ) this._refreshPosition();
-    if ( flags.refreshRotation ) this._refreshRotation();
-    if ( flags.refreshSize ) this._refreshSize();
-    if ( flags.refreshElevation ) this._refreshElevation();
-    if ( flags.refreshMesh ) this._refreshMesh();
-    if ( flags.refreshShader ) this._refreshShader();
-    if ( flags.refreshShape ) this._refreshShape();
-    if ( flags.refreshBorder ) this._refreshBorder();
-    if ( flags.refreshBars ) this.drawBars();
-    if ( flags.refreshNameplate ) this._refreshNameplate();
-    if ( flags.refreshTarget ) this._refreshTarget();
-    if ( flags.refreshTooltip ) this._refreshTooltip();
-    if ( flags.recoverFromPreview ) this._recoverFromPreview();
-    if ( flags.refreshRingVisuals ) this._refreshRingVisuals();
-    if ( flags.redrawEffects ) this.drawEffects();
-    if ( flags.refreshEffects ) this._refreshEffects();
-    if ( flags.refreshTurnMarker ) this._refreshTurnMarker();
-    if ( flags.refreshRuler ) this._refreshRuler();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the token ring visuals if necessary.
-   * @protected
-   */
-  _refreshRingVisuals() {
-    if ( this.hasDynamicRing ) this.ring.configureVisuals();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the visibility.
-   * @protected
-   */
-  _refreshVisibility() {
-    const wasVisible = this.visible;
-    this.visible = this.isVisible;
-    if ( this.visible !== wasVisible ) MouseInteractionManager.emulateMoveEvent();
-    this.mesh.visible = this.visible && this.renderable;
-    if ( this.layer.occlusionMode === CONST.TOKEN_OCCLUSION_MODES.VISIBLE ) {
-      canvas.perception.update({refreshOcclusion: true});
-    }
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1214,192 +663,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this.mesh.alpha = this.alpha * this.document.alpha;
     this.mesh.hidden = this.document.hidden;
     if ( this.ruler ) this.ruler.visible = this.ruler.isVisible;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Resize mesh and handle scale adjustment.
-   * @protected
-   */
-  _refreshMeshSizeAndScale() {
-    const {width, height} = this.document.getSize();
-    const fit = this.document.texture.fit;
-    let {scaleX, scaleY} = this.document.texture;
-
-    // Configure ring size
-    if ( this.hasDynamicRing ) {
-      this.ring.configureSize({fit});
-
-      // Handle dynamic ring scale adjustments
-      if ( CONFIG.Token.ring.isGridFitMode ) {
-        scaleX *= this.ring.subjectScaleAdjustment;
-        scaleY *= this.ring.subjectScaleAdjustment;
-      }
-    }
-
-    // Resize the mesh based on the computed fit and scale
-    this.mesh.resize(width, height, {fit, scaleX, scaleY});
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the size.
-   * @protected
-   */
-  _refreshSize() {
-    this._refreshMeshSizeAndScale();
-
-    // Adjust nameplate and tooltip positioning
-    const {width, height} = this.document.getSize();
-
-    this.nameplate.position.set(width / 2, height + 2);
-    this.tooltip.position.set(width / 2, -2);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the token mesh.
-   * @protected
-   */
-  _refreshMesh() {
-    this._refreshMeshSizeAndScale();
-
-    // Set additional properties specific to the token mesh
-    const {alpha, texture: {anchorX, anchorY, tint, alphaThreshold}} = this.document;
-
-    this.mesh.anchor.set(anchorX, anchorY);
-    this.mesh.alpha = this.alpha * alpha;
-    this.mesh.tint = tint;
-    this.mesh.textureAlphaThreshold = alphaThreshold;
-    this.mesh.occludedAlpha = 0.5;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the shape.
-   * @protected
-   */
-  _refreshShape() {
-    this.shape = this.getShape();
-    this.hitArea = this.shape;
-    MouseInteractionManager.emulateMoveEvent();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the rotation.
-   * @protected
-   */
-  _refreshRotation() {
-    this.mesh.angle = this.document.lockRotation ? 0 : this.document.rotation;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the position.
-   * @protected
-   */
-  _refreshPosition() {
-    const {x, y} = this.document;
-    if ( (this.position.x !== x) || (this.position.y !== y) ) MouseInteractionManager.emulateMoveEvent();
-    this.position.set(x, y);
-    this.mesh.position = this.center;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the elevation
-   * @protected
-   */
-  _refreshElevation() {
-    this.mesh.elevation = this.document.elevation;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the tooltip.
-   * @protected
-   */
-  _refreshTooltip() {
-    this.tooltip.text = this._getTooltipText();
-    this.tooltip.style = this._getTextStyle();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the text content, position, and visibility of the Token nameplate.
-   * @protected
-   */
-  _refreshNameplate() {
-    this.nameplate.text = this.document.name;
-    this.nameplate.style = this._getTextStyle();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the token mesh shader.
-   * @protected
-   */
-  _refreshShader() {
-    if ( this.hasDynamicRing ) this.mesh.setShaderClass(CONFIG.Token.ring.shaderClass);
-    else this.mesh.setShaderClass(PrimaryBaseSamplerShader);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the border.
-   * @protected
-   */
-  _refreshBorder() {
-    const thickness = CONFIG.Canvas.objectBorderThickness * canvas.dimensions.uiScale;
-    this.border.clear();
-    this.border.lineStyle({width: thickness, color: 0x000000, alignment: 0.75, join: PIXI.LINE_JOIN.ROUND});
-    this.border.drawShape(this.shape);
-    this.border.lineStyle({width: thickness / 2, color: 0xFFFFFF, alignment: 1, join: PIXI.LINE_JOIN.ROUND});
-    this.border.drawShape(this.shape);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the hex color that should be used to render the Token border
-   * @returns {number}          The hex color used to depict the border color
-   * @protected
-   */
-  _getBorderColor() {
-    const colors = CONFIG.Canvas.dispositionColors;
-    if ( this.controlled || (this.isOwner && !game.user.isGM) ) return colors.CONTROLLED;
-    return this.getDispositionColor();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the Color used to represent the disposition of this Token.
-   * @returns {number}
-   */
-  getDispositionColor() {
-    const colors = CONFIG.Canvas.dispositionColors;
-    const D = CONST.TOKEN_DISPOSITIONS;
-    switch ( this.document.disposition ) {
-      case D.SECRET: return colors.SECRET;
-      case D.HOSTILE: return colors.HOSTILE;
-      case D.NEUTRAL: return colors.NEUTRAL;
-      case D.FRIENDLY: return this.actor?.hasPlayerOwner ? colors.PARTY : colors.FRIENDLY;
-      default: return colors.INACTIVE;
-    }
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1416,19 +680,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       foundry.utils.logCompatibilityWarning(msg, {since: 12, until: 14, once: true});
     }
     return color;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the target indicators for the Token.
-   * Draw both target arrows for the primary User and indicator pips for other Users targeting the same Token.
-   * @protected
-   */
-  _refreshTarget() {
-    this._drawTargetArrows({border: {width: 2 * canvas.dimensions.uiScale}});
-    this._drawTargetPips();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1454,87 +706,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       .drawPolygon([w+m, -m, w+m+l, -m, w+m, -m-l]) // Top right
       .drawPolygon([-m, h+m, -m-l, h+m, -m, h+m+l]) // Bottom left
       .drawPolygon([w+m, h+m, w+m+l, h+m, w+m, h+m+l]); // Bottom right
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Draw the targeting pips around this token.
-   * @protected
-   */
-  _drawTargetPips() {
-    this.targetPips.clear();
-
-    // We don't show the target arrows for a secret token disposition and non-GM users
-    if ( !this.targeted.size ) return;
-
-    // Get other users targeting this token
-    const otherUsers = Array.from(this.targeted).filter(u => u !== game.user);
-    if ( !otherUsers.length ) return;
-
-    // For other users, draw offset pips
-    const s = canvas.dimensions.uiScale;
-    const hw = (this.w / 2) + (otherUsers.length % 2 === 0 ? 8 : 0);
-    for ( const [i, u] of otherUsers.entries() ) {
-      const offset = Math.floor((i+1) / 2) * 16;
-      const sign = i % 2 === 0 ? 1 : -1;
-      const x = hw + (sign * offset);
-      this.targetPips.beginFill(u.color, 1.0).lineStyle(2 * s, 0x0000000).drawCircle(x, 0, 6 * s);
-    }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the display of Token attribute bars, rendering its latest resource data.
-   * If the bar attribute is valid (has a value and max), draw the bar. Otherwise hide it.
-   */
-  drawBars() {
-    if ( !this.actor || (this.document.displayBars === TOKEN_DISPLAY_MODES.NONE) ) return;
-    ["bar1", "bar2"].forEach((b, i) => {
-      const bar = this.bars[b];
-      const attr = this.document.getBarAttribute(b);
-      if ( !attr || (attr.type !== "bar") || (attr.max === 0) ) return bar.visible = false;
-      this._drawBar(i, bar, attr);
-      bar.visible = true;
-    });
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Draw a single resource bar, given provided data
-   * @param {number} number       The Bar number
-   * @param {PIXI.Graphics} bar   The Bar container
-   * @param {Object} data         Resource data for this bar
-   * @protected
-   */
-  _drawBar(number, bar, data) {
-    const val = Number(data.value);
-    const pct = Math.clamp(val, 0, data.max) / data.max;
-
-    // Determine sizing
-    const {width, height} = this.document.getSize();
-    const s = canvas.dimensions.uiScale;
-    const bw = width;
-    const bh = 8 * (this.document.height >= 2 ? 1.5 : 1) * s;
-
-    // Determine the color to use
-    let color;
-    if ( number === 0 ) color = Color.fromRGB([1 - (pct / 2), pct, 0]);
-    else color = Color.fromRGB([0.5 * pct, 0.7 * pct, 0.5 + (pct / 2)]);
-
-    // Draw the bar
-    bar.clear();
-    bar.lineStyle(s, 0x000000, 1.0);
-    bar.beginFill(0x000000, 0.5).drawRoundedRect(0, 0, bw, bh, 3 * s);
-    bar.beginFill(color, 1.0).drawRoundedRect(0, 0, pct * bw, bh, 2 * s);
-
-    // Set position
-    const posY = number === 0 ? height - bh : 0;
-    bar.position.set(0, posY);
-    return true;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1548,7 +720,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     nameplate.anchor.set(0.5, 0);
     nameplate.scale.set(s, s);
     return nameplate;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1562,43 +734,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     tooltip.anchor.set(0.5, 1);
     tooltip.scale.set(s, s);
     return tooltip;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Return the text which should be displayed in a token's tooltip field
-   * @returns {string}
-   * @protected
-   */
-  _getTooltipText() {
-    const elevation = this.document.elevation.toNearest(0.01);
-    if ( !Number.isFinite(elevation) || (elevation === 0) ) return "";
-    return `${elevation.signedString()} ${canvas.grid.units}`.trim();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the text style that should be used for this Token's tooltip.
-   * @returns {string}
-   * @protected
-   */
-  _getTextStyle() {
-    const style = CONFIG.canvasTextStyle.clone();
-    style.fontSize = 24;
-    style.wordWrapWidth = this.w * 2.5;
-    return style;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Draw the effect icons for ActiveEffect documents which apply to the Token's Actor.
-   */
-  async drawEffects() {
-    return this._partialDraw(() => this._drawEffects());
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1636,200 +772,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this.effects.sortChildren();
     this.effects.renderable = true;
     this.renderFlags.set({refreshEffects: true});
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Draw a status effect icon
-   * @param {string} src
-   * @param {PIXI.ColorSource|null} tint
-   * @returns {Promise<PIXI.Sprite|undefined>}
-   * @protected
-   */
-  async _drawEffect(src, tint) {
-    if ( !src ) return;
-    const tex = await loadTexture(src, {fallback: "icons/svg/hazard.svg"});
-    const icon = new PIXI.Sprite(tex);
-    icon.tint = tint ?? 0xFFFFFF;
-    return this.effects.addChild(icon);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Draw the overlay effect icon
-   * @param {string} src
-   * @param {number|null} tint
-   * @returns {Promise<PIXI.Sprite>}
-   * @protected
-   */
-  async _drawOverlay(src, tint) {
-    const icon = await this._drawEffect(src, tint);
-    if ( icon ) icon.alpha = 0.8;
-    this.effects.overlay = icon ?? null;
-    return icon;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the display of status effects, adjusting their position for the token width and height.
-   * @protected
-   */
-  _refreshEffects() {
-    const s = canvas.dimensions.uiScale;
-    let i = 0;
-    const size = 20 * s;
-    const rows = Math.floor((this.document.getSize().height / size) + 1e-6);
-    const bg = this.effects.bg.clear().beginFill(0x000000, 0.40).lineStyle(s, 0x000000);
-    for ( const effect of this.effects.children ) {
-      if ( effect === bg ) continue;
-
-      // Overlay effect
-      if ( effect === this.effects.overlay ) {
-        const {width, height} = this.document.getSize();
-        const size = Math.min(width * 0.6, height * 0.6);
-        effect.width = effect.height = size;
-        effect.position = this.document.getCenterPoint({x: 0, y: 0});
-        effect.anchor.set(0.5, 0.5);
-      }
-
-      // Status effect
-      else {
-        effect.width = effect.height = size;
-        effect.x = Math.floor(i / rows) * size;
-        effect.y = (i % rows) * size;
-        bg.drawRoundedRect(effect.x + s, effect.y + s, size - (2 * s), size - (2 * s), 2 * s);
-        i++;
-      }
-    }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh presentation of the Token's combat turn marker, if any.
-   * @protected
-   */
-  _refreshTurnMarker() {
-
-    // Should a Turn Marker be active?
-    const {turnMarker} = this.document;
-    const markersEnabled = CONFIG.Combat.settings.turnMarker.enabled
-      && (turnMarker.mode !== CONST.TOKEN_TURN_MARKER_MODES.DISABLED);
-    const c = game.combat?.active ? game.combat.combatant : null;
-    const isTurn = c && (c.tokenId === this.id);
-    const markerActive = markersEnabled && isTurn;
-
-    // Activate a Turn Marker
-    if ( markerActive ) {
-      if ( !this.turnMarker ) this.turnMarker = this.addChildAt(new TokenTurnMarker(this), 0);
-      canvas.tokens.turnMarkers.add(this);
-      this.turnMarker.draw();
-    }
-
-    // Remove a Turn Marker
-    else if ( this.turnMarker ) {
-      canvas.tokens.turnMarkers.delete(this);
-      this.turnMarker.destroy();
-      this.turnMarker = null;
-    }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Refresh the display of the ruler.
-   * @protected
-   */
-  _refreshRuler() {
-    if ( !this.ruler ) return;
-    const movement = this.document.movement;
-    let passedWaypoints;
-    let pendingWaypoints;
-    if ( movement.showRuler && ((movement.state === "paused") || this.animationContexts.has(this.movementAnimationName)) ) {
-      passedWaypoints = [
-        ...movement.history.recorded.waypoints,
-        ...movement.history.unrecorded.waypoints,
-        ...movement.passed.waypoints
-      ];
-      if ( (movement.state === "pending") || (movement.state === "paused") ) pendingWaypoints = movement.pending.waypoints;
-      else pendingWaypoints = [];
-    } else {
-      passedWaypoints = this.document.movementHistory;
-      pendingWaypoints = [];
-    }
-    const plannedMovement = {};
-    for ( const [userId, movement] of Object.entries(this._plannedMovement) ) {
-      if ( movement.hidden && (userId !== game.user.id) ) continue;
-      plannedMovement[userId] = movement;
-    }
-    this.ruler.refresh({passedWaypoints, pendingWaypoints, plannedMovement});
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Helper method to determine whether a token attribute is viewable under a certain mode
-   * @param {TokenDisplayMode} mode   The mode from {@link CONST.TOKEN_DISPLAY_MODES}
-   * @returns {boolean}                  Is the attribute viewable?
-   * @protected
-   */
-  _canViewMode(mode) {
-    if ( mode === TOKEN_DISPLAY_MODES.NONE ) return false;
-    else if ( mode === TOKEN_DISPLAY_MODES.ALWAYS ) return true;
-    else if ( mode === TOKEN_DISPLAY_MODES.CONTROL ) return this.controlled;
-    else if ( mode === TOKEN_DISPLAY_MODES.HOVER ) return this.hover || this.layer.highlightObjects;
-    else if ( mode === TOKEN_DISPLAY_MODES.OWNER_HOVER ) return this.isOwner
-      && (this.hover || this.layer.highlightObjects);
-    else if ( mode === TOKEN_DISPLAY_MODES.OWNER ) return this.isOwner;
-    return false;
-  }
-
-  /* -------------------------------------------- */
-  /*  Token Ring                                  */
-  /* -------------------------------------------- */
-
-  /**
-   * Override ring colors for this particular Token instance.
-   * @returns {{[ring]: Color, [background]: Color}}
-   */
-  getRingColors() {
-    return {};
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Apply additional ring effects for this particular Token instance.
-   * Effects are returned as an array of integers in {@link foundry.canvas.placeables.tokens.TokenRing.effects}.
-   * @returns {number[]}
-   */
-  getRingEffects() {
-    return [];
-  }
-
-  /* -------------------------------------------- */
-  /*  Token Animation                             */
-  /* -------------------------------------------- */
-
-  /**
-   * Get the animation data for the current state of the document.
-   * @returns {TokenAnimationData}         The target animation data object
-   * @protected
-   */
-  _getAnimationData() {
-    const doc = this.document;
-    const {x, y, elevation, width, height, rotation, alpha} = doc;
-    const {src, anchorX, anchorY, scaleX, scaleY, tint} = doc.texture;
-    const texture = {src, anchorX, anchorY, scaleX, scaleY, tint};
-    const subject = {
-      texture: doc.ring.subject.texture,
-      scale: doc.ring.subject.scale
-    };
-    return {x, y, elevation, width, height, rotation, alpha, texture, ring: {subject}};
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1841,7 +784,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   animate(to, options={}) {
     return this._PRIVATE_animate(to, options, false);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1968,7 +911,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       resolve();
     });
     return context.promise;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -1996,35 +939,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       }
     }
     return duration ?? 1000; // The default animation duration is 1 second
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the base movement speed for the animation in grid size per second.
-   * The default implementation returns `CONFIG.Token.movement.defaultSpeed`.
-   * @param {TokenAnimationOptions} options                   The options that configure the animation behavior
-   * @returns {number}                                        The base movement speed in grid size per second
-   * @protected
-   */
-  _getAnimationMovementSpeed(options) {
-    return CONFIG.Token.movement.defaultSpeed;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Modify the base movement speed of the animation.
-   * Divides by the terrain difficulty, if present, by default.
-   * @param {number} speed                                    The base movement speed in grid size per second
-   * @param {TokenAnimationOptions} options                   The options that configure the animation behavior
-   * @returns {number}                                        The modified movement speed in grid size per second
-   * @protected
-   */
-  _modifyAnimationMovementSpeed(speed, options) {
-    if ( options.terrain instanceof foundry.data.TerrainData ) speed /= options.terrain.difficulty;
-    return speed;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2041,7 +956,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const dw = from.width - (to.width ?? from.width);
     const dh = from.height - (to.height ?? from.height);
     return Math.max(Math.hypot(dx, dy) / canvas.dimensions.size, Math.hypot(dw, dh) * 0.5) / movementSpeed * 1000;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2069,32 +984,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
         operation.animation.movementSpeed = Math.min(normalizedDuration / animationDuration, Number.MAX_VALUE);
       }
     }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the rotation speed for the animation in 60 degrees per second.
-   * Returns the movement speed by default.
-   * @param {TokenAnimationOptions} options                   The options that configure the animation behavior
-   * @returns {number}                                        The rotation speed in 60 degrees per second
-   * @protected
-   */
-  _getAnimationRotationSpeed(options) {
-    return options.movementSpeed ?? this._getAnimationMovementSpeed(options);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Does this Token require rotation changes to be animated?
-   * If false is returned, the rotation speed is set to infinity.
-   * @returns {boolean}
-   * @protected
-   */
-  _requiresRotationAnimation() {
-    return !this.document.lockRotation || this.hasLimitedSourceAngle;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2111,7 +1001,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     for ( const fn of context.onAnimate ) fn(context);
     this._onAnimationUpdate(changed, context);
     if ( completed ) this._PRIVATE_completeAnimation(context);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2128,51 +1018,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       // noinspection ES6MissingAwait
       this._PRIVATE_animate(to, options, true).finally(resolve);
     }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Called each animation frame.
-   * @param {Partial<TokenAnimationData>} changed    The animation data that changed
-   * @param {TokenAnimationContext} context          The animation context
-   * @protected
-   */
-  _onAnimationUpdate(changed, context) {
-    const positionChanged = ("x" in changed) || ("y" in changed);
-    const elevationChanged = "elevation" in changed;
-    const rotationChanged = "rotation" in changed;
-    const sizeChanged = ("width" in changed) || ("height" in changed);
-    const textureChanged = "texture" in changed;
-    const ringEnabled = this.document.ring.enabled;
-    const ringChanged = "ring" in changed;
-    const ringSubjectChanged = ringEnabled && ringChanged && ("subject" in changed.ring);
-    const ringSubjectTextureChanged = ringSubjectChanged && ("texture" in changed.ring.subject);
-    const ringSubjectScaleChanged = ringSubjectChanged && ("scale" in changed.ring.subject);
-    this.renderFlags.set({
-      redraw: (textureChanged && ("src" in changed.texture)) || ringSubjectTextureChanged,
-      refreshVisibility: positionChanged || sizeChanged,
-      refreshPosition: positionChanged,
-      refreshElevation: elevationChanged,
-      refreshRotation: rotationChanged && !this.document.lockRotation,
-      refreshSize: sizeChanged || ringSubjectScaleChanged,
-      refreshMesh: textureChanged || ("alpha" in changed)
-    });
-
-    // Update occlusion and/or sounds and the HUD if necessary
-    if ( positionChanged || elevationChanged || sizeChanged ) {
-      canvas.perception.update({refreshSounds: true, refreshOcclusionMask: true, refreshOcclusionStates: true});
-      if ( this.hasActiveHUD ) this.layer.hud.setPosition();
-    }
-
-    // Update light and sight sources unless Vision Animation is disabled
-    if ( !game.settings.get("core", "visionAnimation") ) return;
-    const perspectiveChanged = positionChanged || elevationChanged || sizeChanged
-      || (rotationChanged && this.hasLimitedSourceAngle);
-    const visionChanged = perspectiveChanged && this.hasSight;
-    const lightChanged = perspectiveChanged && this._isLightSource();
-    if ( visionChanged || lightChanged ) this.initializeSources();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2199,7 +1045,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this._PRIVATE_animationContexts.set(context.name, context);
     this._onAnimationUpdate(changes, context);
     this._PRIVATE_animationContexts.clear();
-  }
+  };
 
   /* -------------------------------------------- */
   /*  Animation Preparation Methods               */
@@ -2217,7 +1063,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       while ( dr < -180 ) dr += 360;
       changes.rotation = from.rotation + dr;
     }
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2239,7 +1085,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const paddingTarget = calculatePadding(targetMesh.texture);
     targetMesh.paddingX = paddingTarget.x;
     targetMesh.paddingY = paddingTarget.y;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2253,20 +1099,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     filter.enabled = false;
     filter.type = options.transition ?? this._getAnimationTransition(options);
     return filter;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the texture transition type.
-   * Returns `"fade"` by default.
-   * @param {TokenAnimationOptions} options    The options that configure the animation behavior
-   * @returns {TokenAnimationTransition}       The transition type
-   * @protected
-   */
-  _getAnimationTransition(options) {
-    return "fade";
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2296,7 +1129,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     };
     recur(changes, this._PRIVATE_animationData);
     return attributes;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2338,8 +1171,8 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
       // Prepare source and target meshes and shader class
       if ( ringEnabled ) {
-        targetToken._PRIVATE_ring = new CONFIG.Token.ring.ringClass(targetToken);
-        targetToken._PRIVATE_ring.configure(targetMesh);
+        targetNonPrivateToken._PRIVATE_ring = new CONFIG.Token.ring.ringClass(targetToken);
+        targetNonPrivateToken._PRIVATE_ring.configure(targetMesh);
         targetMesh.setShaderClass(CONFIG.Token.ring.shaderClass);
       }
       else {
@@ -2378,7 +1211,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     });
 
     attributes.push({attribute: "progress", parent: filter.uniforms, to: 1});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2392,7 +1225,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const clone = cloneDoc.object;
     clone.texture = targetTexture;
     return clone;
-  }
+  };
 
   /* -------------------------------------------- */
   /*  Methods
@@ -2424,7 +1257,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     position.height = height;
     position.shape = shape;
     return position;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2486,7 +1319,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
     // Create a movement source passed to the polygon backend
     return CONFIG.Canvas.polygonBackends[type].testCollision(origin, destination, {type, mode, source});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2499,73 +1332,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const movement = new PointMovementSource({object: this});
     movement.initialize(origin);
     return movement;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the shape of this Token.
-   * @returns {PIXI.Rectangle|PIXI.Polygon|PIXI.Circle|PIXI.Ellipse}
-   */
-  getShape() {
-    if ( this.scene.grid.isGridless ) {
-      const {width, height} = this.document.getSize();
-      const shape = this.document.shape;
-      if ( (shape === TOKEN_SHAPES.ELLIPSE_1) || (shape === TOKEN_SHAPES.ELLIPSE_2) ) {
-        if ( width === height ) {
-          const radius = width / 2;
-          return new PIXI.Circle(radius, radius, radius);
-        }
-        const radiusX = width / 2;
-        const radiusY = height / 2;
-        return new PIXI.Ellipse(radiusX, radiusY, radiusX, radiusY);
-      }
-      return new PIXI.Rectangle(0, 0, width, height);
-    }
-    return new PIXI.Polygon(this.document.getGridSpacePolygon());
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the center point of the Token.
-   * @param {Point} [position]  The position in pixels
-   * @returns {Point}           The center point
-   */
-  getCenterPoint(position) {
-    const {x, y} = this.document.getCenterPoint(position ? {x: position.x, y: position.y} : undefined);
-    return {x, y};
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  getSnappedPosition(position) {
-    const {x, y} = this.document.getSnappedPosition(position ? {x: position.x, y: position.y} : undefined);
-    return {x, y};
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _pasteObject(offset, {hidden=false, snap=true}={}) {
-    const {x, y} = this.document;
-    let position = {x: x + offset.x, y: y + offset.y};
-    const data = this.document.toObject();
-    delete data._id;
-    data.hidden ||= hidden;
-    const document = this.scene === canvas.scene ? this.document
-      : foundry.utils.getDocumentClass("Token").fromSource(data, {parent: canvas.scene});
-    const {elevation, width, height, shape} = data;
-    if ( snap ) position = document.getSnappedPosition({x: position.x, y: position.y, elevation, width, height, shape});
-    position.x = Math.round(position.x);
-    position.y = Math.round(position.y);
-    const d = canvas.dimensions;
-    const {x: cx, y: cy} = document.getCenterPoint({x: 0, y: 0, elevation, width, height, shape});
-    data.x = Math.clamp(position.x, -Math.floor(cx), d.width - Math.ceil(cx));
-    data.y = Math.clamp(position.y, -Math.floor(cy), d.height - Math.ceil(cy));
-    return data;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2579,31 +1346,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
   measureMovementPath(waypoints, options) {
     const cost = this._getMovementCostFunction(options);
     return this.document.measureMovementPath(waypoints, {cost});
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Create the movement cost function for this Token.
-   * In square and hexagonal grids it calculates the cost for single grid space move between two grid space offsets.
-   * For tokens that occupy more than one grid space the cost of movement is calculated as the median of all individual
-   * grid space moves unless the cost of any of these is infinite, in which case total cost is always infinite.
-   * In gridless grids the `from` and `to` parameters of the cost function are top-left offsets.
-   * If the movement cost function is undefined, the cost equals the distance moved.
-   * @param {TokenMeasureMovementPathOptions} [options]    Additional options that affect cost calculations
-   * @returns {TokenMovementCostFunction|void}
-   * @protected
-   */
-  _getMovementCostFunction(options) {
-    const calculateTerrainCost = CONFIG.Token.movement.TerrainData.getMovementCostFunction(this.document, options);
-    const actionCostFunctions = {};
-    return (from, to, distance, segment) => {
-      const terrainCost = calculateTerrainCost(from, to, distance, segment);
-      const calculateActionCost = actionCostFunctions[segment.action]
-        ??= segment.actionConfig.getCostFunction(this.document, options);
-      return calculateActionCost(terrainCost, from, to, distance, segment);
-    };
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2712,7 +1455,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     if ( !ignoreCost ) this._PRIVATE_constrainMovementPathCost(result, {preview, history});
 
     return [result.path, result.constrained];
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2771,7 +1514,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
         return p;
       }
     }
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2801,7 +1544,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     }
     else collision = polygonBackend.testCollision(origin, destination, {type, mode: "closest", source});
     return collision;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -2834,25 +1577,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     if ( result.path.length === n ) return;
     result.path.length = n;
     result.constrained = true;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Find a movement path through the waypoints.
-   * The path may not necessarily be one with the least cost.
-   * The path returned may be partial, i.e. it doesn't go through all waypoints, but must always start with the first
-   * waypoints unless the waypoints are empty, in which case an empty path is returned.
-   *
-   * The result of this function must not be affected by the animation of this Token.
-   * @param {TokenFindMovementPathWaypoint[]} waypoints    The waypoints of movement
-   * @param {TokenFindMovementPathOptions} [options]       Additional options
-   * @returns {TokenFindMovementPathJob}                   The job of the movement pathfinder
-   */
-  findMovementPath(waypoints, options) {
-    const [path] = this.constrainMovementPath(waypoints, options);
-    return {result: path, promise: Promise.resolve(path), cancel: () => {}};
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3084,7 +1809,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     }
 
     return path;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3247,104 +1972,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     }
 
     return [path, initialRegions];
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Set this Token as an active target for the current game User.
-   * @param {boolean} targeted                        Is the Token now targeted?
-   * @param {object} [options={}]                     Additional option which modify how targets are acquired
-   * @param {boolean} [options.releaseOthers=true]    Release other active targets?
-   */
-  setTarget(targeted=true, {releaseOthers=true}={}) {
-    if ( this.isPreview ) return;
-    const mode = targeted ? (releaseOthers ? "replace" : "acquire") : "release";
-    canvas.tokens.setTargets([this.id], {mode});
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Handle updating the targeting state of this Token for a particular User.
-   * @param {boolean} targeted    Is the token now targeted?
-   * @param {User} user           The user whose targeting state has changed
-   * @internal
-   */
-  _updateTarget(targeted, user) {
-    const wasTargeted = this.targeted.has(user);
-    if ( targeted ) {
-      this.targeted.add(user);
-      user.targets.add(this);
-    }
-
-    // Release target
-    else {
-      this.targeted.delete(user);
-      user.targets.delete(this);
-    }
-
-    // If target status changed
-    if ( wasTargeted !== targeted ) {
-      this.renderFlags.set({refreshTarget: true});
-      if ( this.hasActiveHUD ) this.layer.hud.render();
-    }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * The external radius of the token in pixels.
-   * @type {number}
-   */
-  get externalRadius() {
-    const {width, height} = this.document.getSize();
-    return Math.min(width, height) / 2;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * A generic transformation to turn a certain number of grid units into a radius in canvas pixels.
-   * This function adds additional padding to the light radius equal to the external radius of the token.
-   * This causes light to be measured from the outer token edge, rather than from the center-point.
-   * @param {number} units  The radius in grid units
-   * @returns {number}      The radius in pixels
-   */
-  getLightRadius(units) {
-    if ( units === 0 ) return 0;
-    return ((Math.abs(units) * canvas.dimensions.distancePixels) + this.externalRadius) * Math.sign(units);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Obtain a shifted waypoint for the Token. The returned waypoint must move the Token to a snapped position.
-   * @param {-1|0|1} dx                   The number of grid units to shift along the X-axis
-   * @param {-1|0|1} dy                   The number of grid units to shift along the Y-axis
-   * @param {-1|0|1} dz                   The number of grid units to shift along the Z-axis
-   * @returns {Partial<TokenPosition>}    The shifted target waypoint (snapped if square/hexagonal grid)
-   * @override
-   * @internal
-   */
-  _getShiftedPosition(dx, dy, dz) {
-    const {x, y, elevation, width, height, shape} = this.document._source;
-    const snapped = this.document.getSnappedPosition({x, y, elevation, width, height, shape});
-    return PlaceableObject._getShiftedPosition(dx, dy, dz, {x, y, elevation}, snapped, this.scene.grid);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the movement action in {@link CONFIG.Token.movement | CONFIG.Token.movement.actions} to be used for keyboard
-   * movement.
-   * The default implementation returns `this.document.movementAction`.
-   * @returns {string}
-   * @protected
-   */
-  _getKeyboardMovementAction() {
-    return this.document.movementAction;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3357,7 +1985,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   _getHUDMovementPosition(elevation) {
     return {elevation};
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3371,7 +1999,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   _getHUDMovementAction() {
     return this.document.movementAction;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3384,33 +2012,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   _getConfigMovementPosition(changes) {
     return {...changes};
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _updateRotation({angle, delta=0, snap=0}={}) {
-    let degrees = Number.isNumeric(angle) ? angle : this.document.rotation + delta;
-    const isHexRow = [CONST.GRID_TYPES.HEXODDR, CONST.GRID_TYPES.HEXEVENR].includes(canvas.grid.type);
-    if ( isHexRow ) degrees -= 30;
-    if ( snap > 0 ) degrees = degrees.toNearest(snap);
-    if ( isHexRow ) degrees += 30;
-    return Math.normalizeDegrees(degrees);
-  }
-
-  /* -------------------------------------------- */
-  /*  Event Listeners and Handlers                */
-  /* -------------------------------------------- */
-
-  /** @inheritDoc */
-  _onCreate(data, options, userId) {
-    super._onCreate(data, options, userId);
-    this.initializeSources(); // Update vision and lighting sources
-    if ( !game.user.isGM && this.isOwner && !this.document.hidden && !canvas.tokens.controlled.length ) {
-      this.control({pan: true}); // Assume control
-    }
-    canvas.perception.update({refreshOcclusion: true});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3481,7 +2083,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       refreshTurnMarker: ("turnMarker" in changed) || ("disposition" in changed),
       refreshRuler: "_movementHistory" in changed
     });
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3506,7 +2108,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
         c0 = c1;
       }
     }
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3588,7 +2190,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
     // Update the ruler path
     this.recalculatePlannedMovementPath();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3802,7 +2404,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     // Dispatch the animation
     // noinspection ES6MissingAwait
     this.animate(to, animationOptions);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3871,17 +2473,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       from = to;
       activeRegions = to.regions;
     }
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritDoc */
-  _onDelete(options, userId) {
-    game.user.targets.delete(this);
-    this.initializeSources({deleted: true});
-    canvas.perception.update({refreshOcclusion: true});
-    return super._onDelete(options, userId);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3901,37 +2493,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
     // Pan the canvas if the target center-point falls outside the screen rect
     if ( !rect.contains(sx, sy) ) canvas.animatePan(this.center);
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Handle changes to Token behavior when a significant status effect is applied
-   * @param {string} statusId       The status effect ID being applied, from {@link CONFIG.specialStatusEffects}
-   * @param {boolean} active        Is the special status effect now active?
-   * @protected
-   */
-  _onApplyStatusEffect(statusId, active) {
-    switch ( statusId ) {
-      case CONFIG.specialStatusEffects.BURROW:
-        this.initializeSources();
-        break;
-      case CONFIG.specialStatusEffects.FLY:
-      case CONFIG.specialStatusEffects.HOVER:
-        canvas.perception.update({refreshVision: true});
-        break;
-      case CONFIG.specialStatusEffects.INVISIBLE:
-        canvas.perception.update({refreshVision: true});
-        this._configureFilterEffect(statusId, active);
-        break;
-      case CONFIG.specialStatusEffects.BLIND:
-        this.initializeVisionSource();
-        break;
-    }
-
-    // Call hooks
-    Hooks$1.callAll("applyTokenStatusEffect", this, statusId, active);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -3974,19 +2536,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       });
       if ( active && !target.filters.find(f => f === filter) ) target.filters.push(filter);
     }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Update the filter effects depending on special status effects
-   * TODO: replace this method by something more convenient.
-   * @internal
-   */
-  _updateSpecialStatusFilterEffects() {
-    const invisible = CONFIG.specialStatusEffects.INVISIBLE;
-    this._configureFilterEffect(invisible, this.document.hasStatusEffect(invisible));
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4002,194 +2552,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       }
     }
     this._PRIVATE_filterEffects.clear();
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritdoc */
-  _onControl({releaseOthers=true, pan=false, ...options}={}) {
-    super._onControl(options);
-    for ( const token of this.layer.placeables ) {
-      if ( !token.vision === token._isVisionSource() ) token.initializeVisionSource();
-    }
-    _token = this; // Debugging global window variable
-    canvas.perception.update({
-      refreshVision: true,
-      refreshSounds: true,
-      refreshOcclusion: this.layer.occlusionMode & CONST.TOKEN_OCCLUSION_MODES.CONTROLLED
-    });
-
-    // Pan to the controlled Token
-    if ( pan ) canvas.animatePan(this.center);
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritdoc */
-  _onRelease(options) {
-    super._onRelease(options);
-    for ( const token of this.layer.placeables ) {
-      if ( !token.vision === token._isVisionSource() ) token.initializeVisionSource();
-    }
-    canvas.perception.update({
-      refreshVision: true,
-      refreshSounds: true,
-      refreshOcclusion: this.layer.occlusionMode & CONST.TOKEN_OCCLUSION_MODES.CONTROLLED
-    });
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _overlapsSelection(rectangle) {
-    if ( !this.shape ) return false;
-    const {x, y} = this.position;
-    const shape = this.shape;
-    const isRectangle = shape instanceof PIXI.Rectangle;
-    if ( !isRectangle ) {
-      const {width, height} = this.document.getSize();
-      const bounds = new PIXI.Rectangle(x, y, width, height);
-      if ( !rectangle.intersects(bounds) ) return false;
-    }
-    const localRectangle = new PIXI.Rectangle(
-      rectangle.x - x,
-      rectangle.y - y,
-      rectangle.width,
-      rectangle.height
-    );
-    if ( isRectangle ) return localRectangle.intersects(shape);
-    const shapePolygon = shape instanceof PIXI.Polygon ? shape : shape.toPolygon();
-    const intersection = localRectangle.intersectPolygon(shapePolygon, {scalingFactor: CLIPPER_SCALING_FACTOR});
-    return intersection.points.length !== 0;
-  }
-
-  /* -------------------------------------------- */
-  /*  Event Listeners and Handlers                */
-  /* -------------------------------------------- */
-
-  /** @override */
-  _canControl(user, event) {
-    if ( this.layer._draggedToken ) return false;
-    if ( !this.layer.active || this.isPreview ) return false;
-    if ( canvas.controls.ruler.active || (CONFIG.Canvas.rulerClass.canMeasure && (event?.type === "pointerdown")) ) return false;
-    if ( game.activeTool === "target" ) return true;
-    return super._canControl(user, event);
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _canHUD(user, event) {
-    if ( this.layer._draggedToken ) return false;
-    if ( !this.layer.active || this.isPreview ) return false;
-    if ( canvas.controls.ruler.active || (CONFIG.Canvas.rulerClass.canMeasure && (event?.type === "pointerdown")) ) return false;
-    return user.isGM || (this.actor?.testUserPermission(user, "OWNER") ?? false);
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _canConfigure(user, event) {
-    if ( this.layer._draggedToken ) return false;
-    if ( !this.layer.active || this.isPreview ) return false;
-    if ( canvas.controls.ruler.active || (CONFIG.Canvas.rulerClass.canMeasure && (event?.type === "pointerdown")) ) return false;
-    return true;
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _canHover(user, event) {
-    return !this.isPreview;
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _canView(user, event) {
-    if ( this.layer._draggedToken ) return false;
-    if ( !this.layer.active || this.isPreview ) return false;
-    if ( canvas.controls.ruler.active || (CONFIG.Canvas.rulerClass.canMeasure && (event?.type === "pointerdown")) ) return false;
-    if ( !this.actor ) ui.notifications.warn("TOKEN.WarningNoActor", {localize: true});
-    return this.actor?.testUserPermission(user, "LIMITED");
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _canDrag(user, event) {
-    if ( this.layer._draggedToken ) return false;
-    if ( !this.layer.active || this.isPreview ) return false;
-    if ( !this.controlled ) return false;
-    return game.activeTool === "select";
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritDoc */
-  _onHoverIn(event, options) {
-    const combatant = this.combatant;
-    if ( combatant ) ui.combat.hoverCombatant(combatant, ui.combat._isTokenVisible(this));
-    if ( this.layer.occlusionMode & CONST.TOKEN_OCCLUSION_MODES.HOVERED ) {
-      canvas.perception.update({refreshOcclusion: true});
-    }
-    return super._onHoverIn(event, options);
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritDoc */
-  _onHoverOut(event) {
-    const combatant = this.combatant;
-    if ( combatant ) ui.combat.hoverCombatant(combatant, false);
-    if ( this.layer.occlusionMode & CONST.TOKEN_OCCLUSION_MODES.HOVERED ) {
-      canvas.perception.update({refreshOcclusion: true});
-    }
-    return super._onHoverOut(event);
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritDoc */
-  _onClickLeft(event) {
-    const tool = game.activeTool;
-    if ( tool === "target" ) {
-      event.stopPropagation();
-      if ( this.document.isSecret ) return;
-      return this.setTarget(!this.isTargeted, {releaseOthers: !event.shiftKey});
-    }
-    super._onClickLeft(event);
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _propagateLeftClick(event) {
-    return CONFIG.Canvas.rulerClass.canMeasure;
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _onClickLeft2(event) {
-    if ( !this._propagateLeftClick(event) ) event.stopPropagation();
-    const sheet = this.actor?.sheet;
-    if ( sheet?.rendered ) {
-      sheet.maximize();
-      sheet.bringToFront();
-    }
-    else sheet?.render(true, {token: this.document});
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _onClickRight2(event) {
-    if ( !this._propagateRightClick(event) ) event.stopPropagation();
-    if ( this.isOwner && game.user.can("TOKEN_CONFIGURE") ) return super._onClickRight2(event);
-    if ( this.document.isSecret ) return;
-    return this.setTarget(!this.targeted.has(game.user), {releaseOthers: !event.shiftKey});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4216,7 +2579,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     event.interactionData.dropped = false;
     event.interactionData.cancelled = false;
     event.interactionData.released = false;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4251,7 +2614,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       searching: false,
       searchId: 0
     };
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4263,55 +2626,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     if ( this.isPreview ) return;
     const context = this.layer._draggedToken?.mouseInteractionManager.interactionData.contexts[this.document.id];
     if ( context ) return context;
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the constrain options used during the drag operation.
-   * @returns {Omit<TokenConstrainMovementPathOptions, "preview"|"history">}    The constrain options
-   * @protected
-   */
-  _getDragConstrainOptions() {
-    const unconstrainedMovement = game.user.isGM
-      && ui.controls.controls.tokens.tools.unconstrainedMovement.active;
-    return {ignoreWalls: unconstrainedMovement, ignoreCost: unconstrainedMovement};
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the search options used during the drag operation to find the path of movement through the waypoints.
-   * @returns {TokenFindMovementPathOptions}    The search options
-   * @protected
-   */
-  _getDragPathfindingOptions() {
-    return {...this._getDragConstrainOptions(), preview: true, history: true, delay: 250};
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the movement action for the waypoints placed during a drag operation.
-   * @returns {string}    The movement action
-   * @protected
-   */
-  _getDragMovementAction() {
-    return this.layer._dragMovementAction ?? this.document.movementAction;
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritDoc */
-  _onDragLeftDrop(event) {
-    if ( !event.interactionData.dropped && this._shouldPreventDragLeftDrop(event) ) {
-      event.interactionData.released = true;
-      event.preventDefault(); // Prevent drop workflow
-      return;
-    }
-    event.interactionData.dropped = true;
-    return super._onDragLeftDrop(event);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4324,34 +2639,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
    */
   _shouldPreventDragLeftDrop(event) {
     return (event.ctrlKey || event.metaKey) && !!this.ruler;
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _prepareDragLeftDropUpdates(event) {
-    const updates = [];
-    const movement = {};
-    for ( const [id, context] of Object.entries(event.interactionData.contexts) ) {
-      if ( context.foundPath.length <= 1 ) continue;
-      updates.push({_id: id});
-      movement[id] = {waypoints: context.foundPath.slice(1), method: "dragging",
-        constrainOptions: this._getDragConstrainOptions()};
-    }
-    return [updates, {movement}];
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _onDragLeftMove(event) {
-
-    // Update the destinations of the drag previews and rulers
-    this._updateDragDestination(event.interactionData.destination, {snap: !event.shiftKey});
-
-    // Pan the canvas if the drag event approaches the edge
-    canvas._onDragCanvasPan(event);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4397,18 +2685,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
         canvas.perception.update({refreshLighting: true, refreshVision: true});
       }
     }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the origin of the drag operation.
-   * @returns {Point}
-   * @internal
-   */
-  _getDragOrigin() {
-    return this.document.getCenterPoint(this.document._source);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4428,7 +2705,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
     // Prevent left-click drag workflow on the canvas
     canvas.mouseInteractionManager.cancel();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4472,7 +2749,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     // If the waypoint is matching the last waypoint for all rulers,
     // remove that were waypoints that were just added
     if ( redundantWaypoint ) contexts.forEach(context => context.waypoints.pop());
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4492,7 +2769,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     } finally {
       rootBoundary.freeEvent(dropEvent);
     }
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4505,7 +2782,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
     // Prevent left-click drag workflow on the canvas
     canvas.mouseInteractionManager.cancel();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4524,7 +2801,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
     // Prevent right-click drag workflow on the canvas
     canvas.mouseInteractionManager.cancel();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4550,7 +2827,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
         NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
       }
     }
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4561,7 +2838,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
   _triggerDragLeftCancel() {
     this.mouseInteractionManager.interactionData.cancelled = true;
     this.mouseInteractionManager.cancel();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4574,20 +2851,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
 
     // Prevent right-click drag workflow on the canvas
     canvas.mouseInteractionManager.cancel();
-  }
-
-  /* -------------------------------------------- */
-
-  /** @inheritDoc */
-  _onDragLeftCancel(event) {
-    if ( event.interactionData.cancelled || event.interactionData.dropped ) return true;
-    if ( event.interactionData.released ) return false;
-    if ( event.interactionData.contexts[this.document.id].waypoints.length > 0 ) {
-      this._removeDragWaypoint();
-      return false;
-    }
-    return super._onDragLeftCancel(event);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4607,29 +2871,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     }
 
     super._finalizeDragLeft(event);
-  }
-
-  /* -------------------------------------------- */
-
-  /** @override */
-  _onDragEnd() {
-    this.initializeSources({deleted: true});
-    this._original?.initializeSources();
-    super._onDragEnd();
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Change the elevation of Token during dragging.
-   * @param {WheelEvent} event    The mousewheel event
-   * @protected
-   */
-  _onDragMouseWheel(event) {
-    const isCtrl = game.keyboard.isModifierActive("CONTROL"); // We cannot trust event.ctrlKey because of touchpads
-    if ( !isCtrl ) return;
-    this._changeDragElevation(-Math.sign(event.delta), {precise: event.shiftKey});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4661,31 +2903,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       // Update the destination of the preview token
       NonPrivateToken._PRIVATE_updateDragPreview(context.clonedToken, destination);
     }
-  }
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the drag waypoint position.
-   * @param {DeepReadonly<Pick<TokenPosition, "x"|"y"|"elevation">>} current
-   * @param {DeepReadonly<Partial<ElevatedPoint>>} changes
-   * @param {object} [options]
-   * @param {boolean} [options.snap=false]
-   * @returns {Pick<TokenPosition, "x"|"y"|"elevation"> & Partial<TokenDimensions>}
-   * @internal
-   */
-  _getDragWaypointPosition(current, changes, {snap=false}={}) {
-    const x = Math.round(changes.x ?? current.x);
-    const y = Math.round(changes.y ?? current.y);
-    const elevation = changes.elevation ?? current.elevation;
-    if ( !snap ) return {x, y, elevation};
-    const {width, height, shape} = this.document._source;
-    const position = this.document.getSnappedPosition({x, y, elevation, width, height, shape});
-    position.x = Math.round(position.x);
-    position.y = Math.round(position.y);
-    position.elevation = elevation;
-    return position;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4709,7 +2927,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     preview.document.height = height;
     preview.document.shape = shape;
     preview.renderFlags.set({refreshPosition, refreshElevation, refreshSize, refreshShape});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4738,7 +2956,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     interactionData.clones.findSplice(clone => clone === context.clonedToken);
     context.clonedToken._onDragEnd();
     context.clonedToken.destroy({children: true});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4754,7 +2972,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       context.updating = false;
       NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
     }, undefined, PIXI.UPDATE_PRIORITY.OBJECTS + 2);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4865,7 +3083,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
         if ( context.searching && (context.searchId === searchId) ) context.token._PRIVATE_updatePlannedMovement();
       }, undefined, PIXI.UPDATE_PRIORITY.OBJECTS + 1);
     }
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4914,7 +3132,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this._plannedMovement[game.user.id] = plannedMovement;
     this.renderFlags.set({refreshRuler: true, refreshState: !previousPlannedMovement});
     this._PRIVATE_throttleBroadcastPlannedMovement();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4932,7 +3150,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
   _PRIVATE_broadcastPlannedMovement() {
     game.user.broadcastActivity({plannedMovements: {[this.document.id]: game.user.hasPermission("SHOW_RULER")
       ? (this._plannedMovement[game.user.id] ?? null) : null}});
-  }
+  };
 
   /* -------------------------------------------- */
   /*  Deprecations and Compatibility              */
@@ -4946,7 +3164,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const msg = "Token_PRIVATE_updateSource has been deprecated in favor of Token_PRIVATE_initializeSources";
     foundry.utils.logCompatibilityWarning(msg, {since: 12, until: 14, once: true});
     this.initializeSources({deleted});
-  }
+  };
 
   /**
    * @deprecated since v12
@@ -4956,7 +3174,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const msg = "Token_PRIVATE_getCenter(x, y) has been deprecated in favor of Token_PRIVATE_getCenterPoint(Point).";
     foundry.utils.logCompatibilityWarning(msg, {since: 12, until: 14, once: true});
     return this.getCenterPoint(x !== undefined ? {x, y} : undefined);
-  }
+  };
 
   /**
    * @deprecated since v12
@@ -4966,7 +3184,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const msg = "Token_PRIVATE_owner has been deprecated. Use Token_PRIVATE_isOwner instead.";
     foundry.utils.logCompatibilityWarning(msg, {since: 12, until: 14});
     return this.isOwner;
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -4981,8 +3199,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     if ( !this.controlled ) tokens.push(this.document);
     if ( this.inCombat ) await TokenDocument.implementation.deleteCombatants(tokens);
     else await TokenDocument.implementation.createCombatants(tokens);
-  }
-
+  };
 
   /* -------------------------------------------- */
 
@@ -4995,7 +3212,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       {since: 12, until: 14});
     if ( !this.actor || !effect.id ) return false;
     return this.actor.toggleStatusEffect(effect.id, {active, overlay});
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -5010,7 +3227,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     const tokens = this.controlled ? canvas.tokens.controlled : [this];
     const updates = tokens.map(t => { return {_id: t.id, hidden: !isHidden};});
     return canvas.scene.updateEmbeddedDocuments("Token", updates);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -5024,7 +3241,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     this.renderable = true;
     this.initializeSources();
     this.control();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -5036,7 +3253,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     foundry.utils.logCompatibilityWarning("Token_PRIVATE_testInsideRegion is deprecated "
       + "in favor of TokenDocument_PRIVATE_testInsideRegion.", {since: 13, until: 15});
     return this.document.testInsideRegion(region.document, position);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -5055,7 +3272,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
       });
     }
     return this.document.segmentizeRegionMovementPath(region.document, waypoints);
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -5066,7 +3283,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
   getSize() {
     foundry.utils.logCompatibilityWarning("Token_PRIVATE_getSize is deprecated in favor of TokenDocument_PRIVATE_getSize.", {since: 13, until: 14, once: true});
     return this.document.getSize();
-  }
+  };
 
   /* -------------------------------------------- */
 
@@ -5078,6 +3295,7 @@ export default class NonPrivateToken extends CONFIG.Token.objectClass {
     foundry.utils.logCompatibilityWarning("Token_PRIVATE_target is deprecated and has been split into two new graphics "
       + "object: targetArrows and targetPips. targetArrows is returned by the deprecated target property.", {since: 13, until: 14, once: true});
     return this.targetArrows;
-  }
+  };
+}
 }
 

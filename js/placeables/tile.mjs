@@ -120,7 +120,7 @@ function Tile_initializeEdges({deleted=false}={}) {
   for (let e=0; e < 4; e++) {
     const eid = `${this.id}_${e}`;
     const pIdx = e * 2;
-    canvas.edges.set(eid, new foundry.canvas.edges.Edge({x: polygon[pIdx + 0], y: polygon[pIdx + 1]}, {x: polygon[pIdx + 2], y: polygon[pIdx + 3]}, {
+    canvas.edges.set(eid, new foundry.canvas.geometry.edges.Edge({x: polygon[pIdx + 0], y: polygon[pIdx + 1]}, {x: polygon[pIdx + 2], y: polygon[pIdx + 3]}, {
       id: eid,
       object: this,
       type: "wall",

@@ -466,8 +466,6 @@ function TokenDocument_prepareDerivedData(wrapped, ...args) {
 
   // check if we need a redraw
   let needsRedraw = false;
-  needsRedraw ||= this.width !== this._cachedSettings?.width ?? this.width;
-  needsRedraw ||= this.height !== this._cachedSettings?.height ?? this.height;
   needsRedraw ||= this.texture.src !== this._cachedSettings?.src ?? this.texture.src;
   const moduleFlags = this.flags?.[MODULENAME] ?? {};
 
@@ -477,8 +475,6 @@ function TokenDocument_prepareDerivedData(wrapped, ...args) {
   needsRedraw ||= moduleFlags.separateidle !== this._cachedSettings?.separateidle ?? moduleFlags.separateidle;
 
   this._cachedSettings = {
-    width: this.width,
-    height: this.height,
     src: this.texture.src,
     spritesheet: moduleFlags.spritesheet,
     sheetstyle: moduleFlags.sheetstyle,
@@ -487,7 +483,7 @@ function TokenDocument_prepareDerivedData(wrapped, ...args) {
   };
 
   const tobj = this._destroyed ? null : this._object;
-  if (needsRedraw && this.rendered && !tobj?.isPreview) {
+  if (tobj !== null && needsRedraw && this.rendered && !tobj?.isPreview) {
     tobj.renderFlags?.set({
       redraw: true
     });
