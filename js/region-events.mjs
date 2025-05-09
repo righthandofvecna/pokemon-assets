@@ -199,7 +199,7 @@ async function OnInteract() {
     // let's wait until we lift the enter key
     do {
       await sleep(100);
-    } while (keyboard.downKeys.has("Enter"));
+    } while (game.keyboard.downKeys.has("Enter"));
 
     const smashable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.smashable);
     const cuttable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.cuttable);
