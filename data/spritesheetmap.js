@@ -2516,6 +2516,9 @@ export default
       "03XX/030X/0308.png": {
         "animationframes": 8
       },
+      "03XX/030X/0308_MEGA.png": {
+        "animationframes": 8
+      },
       "03XX/030X/0308f.png": {
         "animationframes": 8
       },
@@ -7457,6 +7460,9 @@ export default
       },
       "10XX/100X/1002.png": {
         "animationframes": 7
+      },
+      "10XX/100X/1003.png": {
+        "animationframes": 1
       },
       "10XX/100X/1004.png": {
         "animationframes": 8
