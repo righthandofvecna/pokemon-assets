@@ -1,7 +1,7 @@
 import { early_isGM, isTheGM, MODULENAME, tokenScene } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
-import { default as NonPrivateToken } from "../foundry/token.mjs";
+import { NonPrivateTokenMixin } from "../foundry/token.mjs";
 
 /**
  * Add the spritesheet settings to the token config page
@@ -295,7 +295,7 @@ function OnInitializeEdges() {
 }
 
 export function register() {
-  class TilesetToken extends NonPrivateToken {
+  class TilesetToken extends NonPrivateTokenMixin(CONFIG.Token.objectClass) {
     #index;
     #textures;
     #textureSrc;
@@ -612,8 +612,8 @@ export function register() {
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
 
       const FRAMES_PER_SQUARE = 2;
-      const gdx = Math.abs((changed.x ?? this._origin?.x ?? 0) - this._origin?.x ?? 0) * FRAMES_PER_SQUARE / sizeX;
-      const gdy = Math.abs((changed.y ?? this._origin?.y ?? 0) - this._origin?.y ?? 0) * FRAMES_PER_SQUARE / sizeY;
+      const gdx = Math.abs((changed.x ?? this._origin?.x ?? 0) - (this._origin?.x ?? 0)) * FRAMES_PER_SQUARE / sizeX;
+      const gdy = Math.abs((changed.y ?? this._origin?.y ?? 0) - (this._origin?.y ?? 0)) * FRAMES_PER_SQUARE / sizeY;
       const frame = changed.frame !== undefined ? ~~changed.frame : ~~(gdx + gdy - (Math.min(gdx, gdy) / 2));
 
       // set the direction
@@ -672,21 +672,51 @@ export function register() {
       return game.settings.get(MODULENAME, "tokenCollision") && (!this.document.hidden || game.settings.get(MODULENAME, "tokenCollisionHidden"));
     }
 
+    filterCollisions(collisions, {follow=false}) {
+      const followChain = (()=>{
+        if (follow) return getAllInFollowChain(this.document);
+        return new Set(getAllFollowing(this.document));
+      })();
+      return collisions.filter(collision=>collision.edges?.some(edge=>!followChain.has(edge?.object?.document) && (edge?.object?.document?.disposition != this.document.disposition || game.settings.get(MODULENAME, "tokenCollisionAllied"))));
+    }
+
     /**
      * Check for collisions, but exclude tokens of the same disposition and tokens in your follow chain
      */
     checkCollision(destination, {origin, type="move", mode="any", follow=false}={}) {
       const collisions = super.checkCollision(destination, { origin, type, mode: "all" });
       if (!collisions) return collisions;
-
-      const followChain = (()=>{
-        if (follow) return getAllInFollowChain(this.document);
-        return new Set(getAllFollowing(this.document));
-      })();
-      const unignoredCollisions = collisions.filter(collision=>collision.edges?.some(edge=>!followChain.has(edge?.object?.document) && (edge?.object?.document?.disposition != this.document.disposition || game.settings.get(MODULENAME, "tokenCollisionAllied"))));
-
+      const unignoredCollisions = this.filterCollisions(collisions, { follow });
       if (mode == "all") return unignoredCollisions;
       return unignoredCollisions[0] || null;
+    }
+
+    /**
+     * Test for wall collision for a movement between two points.
+     * @param {ElevatedPoint} origin         The adjusted origin
+     * @param {ElevatedPoint} destination    The adjusted destination
+     * @param {string} type                  The wall type
+     * @param {boolean} preview              Is preview?
+     * @returns {PolygonVertex|null}         The collision point with a wall, if any
+     */
+    _PRIVATE_testWallCollision(origin, destination, type, preview) {
+      let collision = null;
+      const source = this._PRIVATE_getMovementSource(origin);
+      const polygonBackend = CONFIG.Canvas.polygonBackends[type];
+      if ( preview ) {
+        // TODO: open doors that are not visible should be considered closed
+        const collisions = this.filterCollisions(polygonBackend.testCollision(origin, destination, {type, mode: "all", source}), { follow: true });
+
+        // Only visible or explored collisions block preview movement
+        for ( const c of collisions ) {
+          if ( canvas.fog.isPointExplored(c) || canvas.visibility.testVisibility(c, {tolerance: 1})) {
+            collision = c;
+            break;
+          }
+        }
+      }
+      else collision = this.filterCollisions(polygonBackend.testCollision(origin, destination, {type, mode: "all", source}), { follow: true })[0] || null;
+      return collision;
     }
 
     initializeEdges({ changes, deleted=false}={}) {
