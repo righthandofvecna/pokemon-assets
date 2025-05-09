@@ -194,8 +194,8 @@ export function NonPrivateTokenMixin(TokenClass) {
     const y = Math.round(point.y);
     const elevation = point.elevation;
     point = elevation !== undefined ? {x, y, elevation} : {x, y};
-    offsetX ??= this._PRIVATE_centerOffset.x;
-    offsetY ??= this._PRIVATE_centerOffset.y;
+    offsetX ??= this._PRIVATE_centerOffset?.x || 0;
+    offsetY ??= this._PRIVATE_centerOffset?.y || 0;
     if ( (offsetX === 0) && (offsetY === 0) ) return point;
 
     // Define a bounding box around the point to query relevant edges using the Quadtree

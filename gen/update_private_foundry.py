@@ -155,13 +155,13 @@ def generate_token_class():
     transformed_members = transform_members(token_members, "Token", "NonPrivateToken")
 
     # do a couple of other misc changes
-    # for i, member in enumerate(transformed_members):
-    #     if "this._PRIVATE_centerOffset.x" in member:
-    #         member = member.replace("this._PRIVATE_centerOffset.x", "(this._PRIVATE_centerOffset.x ?? 0)")
-    #         transformed_members[i] = member
-    #     if "this._PRIVATE_centerOffset.y" in member:
-    #         member = member.replace("this._PRIVATE_centerOffset.y", "(this._PRIVATE_centerOffset.y ?? 0)")
-    #         transformed_members[i] = member
+    def replace_in_members(old, new):
+        for i, member in enumerate(transformed_members):
+            if old in member:
+                member = member.replace(old, new)
+                transformed_members[i] = member
+    replace_in_members("offsetX ??= this._PRIVATE_centerOffset.x", "offsetX ??= this._PRIVATE_centerOffset?.x || 0")
+    replace_in_members("offsetY ??= this._PRIVATE_centerOffset.y", "offsetY ??= this._PRIVATE_centerOffset?.y || 0")
 
     with open(TOKEN_MJS_PATH, "w", encoding="utf-8") as outfile:
         outfile.write("""const { PointMovementSource } = foundry.canvas.sources;
