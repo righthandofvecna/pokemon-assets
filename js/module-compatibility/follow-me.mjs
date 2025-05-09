@@ -427,7 +427,7 @@ export function register() {
   Hooks.on("pokemon-assets.manualMove", OnManualMove);
 
   libWrapper.register(MODULENAME, "foundry.data.regionBehaviors.TeleportTokenRegionBehaviorType.events.tokenMoveIn", TeleportTokenRegionBehaviorType_tokenMoveIn, "MIXED");
-  libWrapper.register(MODULENAME, "foundry.data.regionBehaviors.TeleportTokenRegionBehaviorType.events.tokenPreMove", TeleportTokenRegionBehaviorType_tokenPreMove, "MIXED");
+  // libWrapper.register(MODULENAME, "foundry.data.regionBehaviors.TeleportTokenRegionBehaviorType.events.tokenPreMove", TeleportTokenRegionBehaviorType_tokenPreMove, "MIXED");
 
   socket.registerSocket("TeleportFollowers", TeleportFollowers);
 

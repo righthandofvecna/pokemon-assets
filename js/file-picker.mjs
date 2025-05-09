@@ -21,5 +21,5 @@ function FilePicker_favorites(wrapped) {
 }
 
 export function register() {
-  libWrapper.register(MODULENAME, "FilePicker.favorites", FilePicker_favorites, "WRAPPER");
+  libWrapper.register(MODULENAME, "FilePicker.prototype.favorites", FilePicker_favorites, "WRAPPER");
 }
