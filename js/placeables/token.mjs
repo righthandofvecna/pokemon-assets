@@ -612,8 +612,8 @@ export function register() {
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
 
       const FRAMES_PER_SQUARE = 2;
-      const gdx = Math.abs((changed.x ?? this._origin?.x ?? 0) - this._origin?.x ?? 0) * FRAMES_PER_SQUARE / sizeX;
-      const gdy = Math.abs((changed.y ?? this._origin?.y ?? 0) - this._origin?.y ?? 0) * FRAMES_PER_SQUARE / sizeY;
+      const gdx = Math.abs((changed.x ?? this._origin?.x ?? 0) - (this._origin?.x ?? 0)) * FRAMES_PER_SQUARE / sizeX;
+      const gdy = Math.abs((changed.y ?? this._origin?.y ?? 0) - (this._origin?.y ?? 0)) * FRAMES_PER_SQUARE / sizeY;
       const frame = changed.frame !== undefined ? ~~changed.frame : ~~(gdx + gdy - (Math.min(gdx, gdy) / 2));
 
       // set the direction

@@ -466,13 +466,13 @@ function TokenDocument_prepareDerivedData(wrapped, ...args) {
 
   // check if we need a redraw
   let needsRedraw = false;
-  needsRedraw ||= this.texture.src !== this._cachedSettings?.src ?? this.texture.src;
+  needsRedraw ||= this.texture.src !== (this._cachedSettings?.src ?? this.texture.src);
   const moduleFlags = this.flags?.[MODULENAME] ?? {};
 
-  needsRedraw ||= moduleFlags.spritesheet !== this._cachedSettings?.spritesheet ?? moduleFlags.spritesheet;
-  needsRedraw ||= moduleFlags.sheetstyle !== this._cachedSettings?.sheetstyle ?? moduleFlags.sheetstyle;
-  needsRedraw ||= moduleFlags.animationframes !== this._cachedSettings?.animationframes ?? moduleFlags.animationframes;
-  needsRedraw ||= moduleFlags.separateidle !== this._cachedSettings?.separateidle ?? moduleFlags.separateidle;
+  needsRedraw ||= moduleFlags.spritesheet !== (this._cachedSettings?.spritesheet ?? moduleFlags.spritesheet);
+  needsRedraw ||= moduleFlags.sheetstyle !== (this._cachedSettings?.sheetstyle ?? moduleFlags.sheetstyle);
+  needsRedraw ||= moduleFlags.animationframes !== (this._cachedSettings?.animationframes ?? moduleFlags.animationframes);
+  needsRedraw ||= moduleFlags.separateidle !== (this._cachedSettings?.separateidle ?? moduleFlags.separateidle);
 
   this._cachedSettings = {
     src: this.texture.src,
