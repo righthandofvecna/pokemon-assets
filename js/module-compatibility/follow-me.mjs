@@ -1,4 +1,4 @@
-import { MODULENAME, isTheGM, isGMOnline, early_isGM, tokenScene } from "../utils.mjs";
+import { MODULENAME, isTheGM, isGMOnline, early_isGM, tokenScene, getCombatsForScene } from "../utils.mjs";
 import * as socket from "../socket.mjs";
 
 const FLAG_FOLLOWING = "following";
@@ -362,7 +362,7 @@ function OnFollowKey() {
         continue;
       }
       const dist = (Math.max(leaderToken.w, leaderToken.h) + Math.max(followerToken.w, followerToken.h)) / 2;
-      const hasCombat = game.combats.find(c=>c.active && c.scene.uuid === tokenScene(followerToken)?.uuid);
+      const hasCombat = getCombatsForScene(tokenScene(followerToken)?.uuid).length > 0;
       canvas.interface.createScrollingText(followerToken, game.i18n.format(`POKEMON-ASSETS.FollowMe.OnFollow${hasCombat?"Combat":""}`, { name: leaderToken?.document?.name ?? "someone"}), {
         anchor: CONST.TEXT_ANCHOR_POINTS.TOP, 
         fill:   "#FFFFFF", 
@@ -386,7 +386,7 @@ function OnFollowKey() {
 }
 
 function OnManualMove(token, update, follower_updates) {
-  if (game.combats.find(c=>c.active && c.scene.uuid === tokenScene(token)?.uuid)) return;
+  if (getCombatsForScene(tokenScene(token)?.uuid).length > 0) return;
   const followers = getAllFollowing(token);
 
   // check if the token is a follower that just moved
