@@ -10,7 +10,7 @@ import { UserPaintArea } from "./scripts.mjs";
  */
 function Scene_prepareBaseData(wrapped, ...args) {
   wrapped(...args);
-  const hasCombat = !!game.combats.find(c=>c.active && c.scene.uuid === this.uuid);
+  const hasCombat = !!game.combats.find(c=>c?.active && c?.scene?.uuid === this.uuid);
   if (this.getFlag(MODULENAME, "diagonals") && !(this.getFlag(MODULENAME, "outOfCombat") && hasCombat)) {
     this.grid.diagonals = CONST.GRID_DIAGONALS.ILLEGAL;
   }
