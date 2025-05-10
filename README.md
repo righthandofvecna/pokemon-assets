@@ -1,4 +1,4 @@
-# Pokemon Assets Module
+# Pokémon Assets Module
 
 ## Overview
 
