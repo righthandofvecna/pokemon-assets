@@ -3,108 +3,6 @@ import { SOUNDS } from "../audio.mjs";
 import { registerSocket } from "../socket.mjs";
 
 
-
-async function OnRenderTileConfig(sheet, html, context) {
-  const form = $(html).find("form").get(0) ?? sheet.form;
-  const tile = sheet.object;
-
-  // exit if the puzzle settings page already exists
-  if (form.querySelector(`.sheet-tabs .item[data-tab="puzzle"]`)) return;
-
-  $(form.querySelector(`.sheet-tabs`)).append(`<a class="item" data-tab="puzzle"><i class="fa-solid fa-puzzle-piece"></i> Puzzle</a>`);
-
-  const { solid, cuttable, smashable, whirlpool, pushable, interactionSound, scriptGm, script } = tile?.flags?.[MODULENAME] ?? {};
-
-  const isCustomSound = interactionSound && !Object.keys(SOUNDS).some(v=>v === interactionSound);
-
-  const tabs = form.getElementsByClassName("tab");
-  $(tabs[tabs.length-1]).after(`<div class="tab" data-tab="puzzle">
-    <p class="notes">Additional attributes for controlling how the tile can be interacted with.</p>
-    <div class="form-group">
-      <label>Acts as a Wall</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.${MODULENAME}.solid" ${solid ? "checked" : ""}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Destroyed by "Rock Smash"</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.${MODULENAME}.smashable" ${smashable ? "checked" : ""}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Destroyed by "Cut"</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.${MODULENAME}.cuttable" ${cuttable ? "checked" : ""}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Destroyed by "Whirlpool"</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.${MODULENAME}.whirlpool" ${whirlpool ? "checked" : ""}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Movable by "Strength"</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.${MODULENAME}.pushable" ${pushable ? "checked" : ""}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Interaction Sound</label>
-      <div class="form-fields">
-        <select name="flags.${MODULENAME}.interactionSound">
-          <option value="" default>None</option>
-          ${Object.entries(SOUNDS).map(([k, v])=>`<option value="${k}" ${interactionSound === k ? "selected" : ""}>${v}</option>`).join("")}
-          <option class="custom-interaction" value="${isCustomSound ? interactionSound : "custom"}" ${isCustomSound ? "selected" : ""}>Custom</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group custom-sound" ${isCustomSound ? "" : "style='display:none'"}>
-      <label>Custom Interaction Sound</label>
-      <div class="form-fields">
-        <file-picker class="custom-interaction" type="audio" value="${isCustomSound ? (interactionSound ?? "") : ""}"></file-picker>
-      </div>
-    </div>
-    <div class="form-group stacked">
-      <label>Interaction Script</label>
-      <label>Execute as GM? <input type="checkbox" name="flags.${MODULENAME}.scriptGm" ${scriptGm ? "checked" : ""}></label>
-      <div class="form-fields">
-        <textarea type="checkbox" name="flags.${MODULENAME}.script">${script ?? ""}</textarea>
-      </div>
-    </div>
-  </div>`);
-
-  const puzzleTab = $(form).find(".tab[data-tab=puzzle]");
-
-  $(puzzleTab).find(`select[name="flags.${MODULENAME}.interactionSound"]`).on("change", function() {
-    const custom = $(this).find("option.custom-interaction").get(0).value;
-    const customInput = $(puzzleTab).find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
-    if (this.value === custom) {
-      $(puzzleTab).find(`.custom-sound`).show();
-      if (this.value == "custom") {
-        customInput.value = "";
-      } else {
-        customInput.value = this.value;
-      }
-    } else {
-      $(puzzleTab).find(`.custom-sound`).hide();
-      customInput.value = "";
-    }
-  });
-
-  listenFilepickerChange($(puzzleTab).find(`.custom-interaction`), function(value) {
-    const custom = $(puzzleTab).find("option.custom-interaction").get(0);
-    const select = $(puzzleTab).find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
-    if (!value) {
-      select.value = "custom";
-    } else {
-      custom.value = value;
-    }
-  });
-}
-
-
 function Tile_initializeEdges({deleted=false}={}) {
   // the tile has been deleted
   if ( deleted ) {
@@ -234,6 +132,53 @@ async function Tile_animate(to, { duration, easing, name, ontick, ...options }={
 }
 
 
+async function TileConfig_preparePartContext(wrapped, partId, context, options) {
+  context = await wrapped(partId, context, options);
+  if (partId === "puzzle") {
+    const tile = context.document;
+    const pa = tile?.flags?.[MODULENAME] ?? {};
+    pa.isCustomSound = pa.interactionSound && !Object.keys(SOUNDS).some(v=>v === pa.interactionSound);
+    pa.sounds = SOUNDS;
+    context.pa = pa;
+    console.log("puzzle part context", context);
+  }
+  return context;
+}
+
+
+function TileConfig_attachPartListeners(wrapped, partId, htmlElement, options) {
+  wrapped(partId, htmlElement, options);
+
+  if (partId === "puzzle") {
+    $(htmlElement).find(`select[name="flags.${MODULENAME}.interactionSound"]`).on("change", function() {
+      const custom = $(htmlElement).find("option.custom-interaction").get(0).value;
+      const customInput = $(htmlElement).find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
+      if (this.value === custom) {
+        $(htmlElement).find(`.custom-sound`).show();
+        if (this.value == "custom") {
+          customInput.value = "";
+        } else {
+          customInput.value = this.value;
+        }
+      } else {
+        $(htmlElement).find(`.custom-sound`).hide();
+        customInput.value = "";
+      }
+    });
+
+    listenFilepickerChange($(htmlElement).find(`.custom-interaction`), function(value) {
+      const custom = $(htmlElement).find("option.custom-interaction").get(0);
+      const select = $(htmlElement).find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
+      if (!value) {
+        select.value = "custom";
+      } else {
+        custom.value = value;
+      }
+    });
+  }
+}
+
+
 export function register() {
   CONFIG.Tile.objectClass.prototype.initializeEdges = Tile_initializeEdges;
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onCreate", Tile_onCreate, "WRAPPER");
@@ -242,6 +187,22 @@ export function register() {
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._getShiftedPosition", Tile_getShiftedPosition, "WRAPPER");
   CONFIG.Tile.objectClass.prototype.animate = Tile_animate;
 
-  Hooks.on("renderTileConfig", OnRenderTileConfig);
+  // Tile Configuration Page
+  const TileConfig = foundry.applications.sheets.TileConfig;
+  TileConfig.PARTS.puzzle = {
+    template: "modules/pokemon-assets/templates/tile-settings.hbs"
+  }
+  const footer = TileConfig.PARTS.footer;
+  delete TileConfig.PARTS.footer;
+  TileConfig.PARTS.footer = footer;
+
+  TileConfig.TABS.sheet.tabs.push({
+    id: "puzzle",
+    icon: "fa-solid fa-puzzle-piece",
+  });
+  libWrapper.register(MODULENAME, "foundry.applications.sheets.TileConfig.prototype._preparePartContext", TileConfig_preparePartContext, "WRAPPER");
+  libWrapper.register(MODULENAME, "foundry.applications.sheets.TileConfig.prototype._attachPartListeners", TileConfig_attachPartListeners, "WRAPPER");
+
+  // register Push Tile socket
   registerSocket("pushTile", PushTile);
 }

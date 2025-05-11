@@ -122,5 +122,6 @@
             }
         }
     },
-    "SCENE.TABS.SHEET.puzzle": "Puzzle"
+    "SCENE.TABS.SHEET.puzzle": "Puzzle",
+    "TILE.TABS.puzzle": "Puzzle"
 }
