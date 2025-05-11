@@ -113,7 +113,7 @@ function getFollowerUpdates(tPos, followers) {
  * @param {*} event 
  */
 async function TeleportTokenRegionBehaviorType_tokenMoveIn(wrapped, event) {
-  if ( !this.destination || event.data.forced ) return;
+  if ( !this.destination || event.data.movement.passed.waypoints.at(-1).action === "displace" ) return;
   const destination = fromUuidSync(this.destination);
   if ( !(destination instanceof RegionDocument) ) {
     console.error(`${this.destination} does not exist`);

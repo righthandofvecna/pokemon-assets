@@ -2,6 +2,9 @@ const { PointMovementSource } = foundry.canvas.sources;
 const { PreciseText } = foundry.canvas.containers;
 const { PrimarySpriteMesh } = foundry.canvas.primary;
 const { Ray } = foundry.canvas.geometry;
+const { CanvasAnimation } = foundry.canvas.animation;
+const { PrimaryCanvasGroup } = foundry.canvas.groups;
+const { InvisibilityFilter } = foundry.canvas.rendering.filters;
 
 export function NonPrivateTokenMixin(TokenClass) {
   return class NonPrivateToken extends TokenClass {

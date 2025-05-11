@@ -167,7 +167,10 @@ def generate_token_class():
         outfile.write("""const { PointMovementSource } = foundry.canvas.sources;
 const { PreciseText } = foundry.canvas.containers;
 const { PrimarySpriteMesh } = foundry.canvas.primary;
-const { Ray } = foundry.canvas.geometry;\n\n""")
+const { Ray } = foundry.canvas.geometry;
+const { CanvasAnimation } = foundry.canvas.animation;
+const { PrimaryCanvasGroup } = foundry.canvas.groups;
+const { InvisibilityFilter } = foundry.canvas.rendering.filters;\n\n""")
         outfile.write("export function NonPrivateTokenMixin(TokenClass) {\n  return class NonPrivateToken extends TokenClass {")
         for member in transformed_members:
             outfile.write(f"\n  {member}\n")

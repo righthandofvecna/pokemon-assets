@@ -78,7 +78,7 @@ async function OnRenderTokenConfig(config, html, context) {
     data.showidle = game.settings.get(MODULENAME, "playIdleAnimations") && !data.separateidle;
     data.hide = !data.spritesheet || isPredefined;
     data.hideaux = !data.spritesheet;
-    const rendered = $(await renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
+    const rendered = $(await foundry.applications.handlebars.renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
     if (!form.querySelector(".spritesheet-config")) {
       $(form).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
     };
@@ -126,7 +126,7 @@ async function OnRenderTokenConfig(config, html, context) {
       }
     }
 
-    const texture = await loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
+    const texture = await foundry.canvas.loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
     const { width, height } = texture ?? {};
     if (!width || !height) return;
     const directions = (()=>{
@@ -357,7 +357,7 @@ export function register() {
   
       // Cache token ring subject texture if needed
       // const ring = this.document.ring;
-      // if ( ring.enabled && ring.subject.texture ) await loadTexture(ring.subject.texture);
+      // if ( ring.enabled && ring.subject.texture ) await foundry.canvas.loadTexture(ring.subject.texture);
   
   
       // Draw the token's PrimarySpriteMesh in the PrimaryCanvasGroup
@@ -413,7 +413,7 @@ export function register() {
       if (this.#textures == null || this.#textureSrc !== this.document.texture.src || this.#textureKey !== genSpritesheetKey) {
         let texture;
         if ( this._original ) texture = this._original.texture?.clone();
-        else texture = await loadTexture(this.document.texture.src, {fallback: CONST.DEFAULT_TOKEN});
+        else texture = await foundry.canvas.loadTexture(this.document.texture.src, {fallback: CONST.DEFAULT_TOKEN});
 
         this.#textureSrc = this.document.texture.src;
         this.#textures = await game.modules.get("pokemon-assets").api.spritesheetGenerator.getTexturesForToken(this, texture);
@@ -861,10 +861,10 @@ export function register() {
 
     /** @inheritDoc */
     _onUpdate(changed, options, userId) {
-      if (options.teleport === true) {
-        const to = foundry.utils.filterObject(this._getAnimationData(), changed);
-        this._handleTeleportAnimation(to);
-      }
+      // if (options.teleport === true) {
+      //   const to = foundry.utils.filterObject(this._getAnimationData(), changed);
+      //   this._handleTeleportAnimation(to);
+      // }
       super._onUpdate(changed, options, userId);
       if ("x" in changed || "y" in changed || "width" in changed || "height" in changed || "hidden" in changed) {
         this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });

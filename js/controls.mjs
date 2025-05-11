@@ -782,8 +782,8 @@ export function register() {
   Hooks.on("renderRegionConfig", OnRenderRegionConfig);
   if (early_isGM()) {
     Hooks.on("getSceneControlButtons", OnGetSceneControlButtons);
-    libWrapper.register(MODULENAME, "TilesLayer.prototype._onClickLeft2", TilesLayer_onClickLeft2, "WRAPPER");
-    libWrapper.register(MODULENAME, "RegionLayer.prototype._onClickLeft2", RegionLayer_onClickLeft2, "WRAPPER");
+    libWrapper.register(MODULENAME, "foundry.canvas.layers.TilesLayer.prototype._onClickLeft2", TilesLayer_onClickLeft2, "WRAPPER");
+    libWrapper.register(MODULENAME, "foundry.canvas.layers.RegionLayer.prototype._onClickLeft2", RegionLayer_onClickLeft2, "WRAPPER");
   }
 
   // scene config controls
