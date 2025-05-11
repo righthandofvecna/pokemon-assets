@@ -55,82 +55,120 @@
 .dialog .directional-chooser label.downright span {
   border-bottom-right-radius: 5px;
 }
-#controls .control-tool[data-tool="breakable-rock"] {
+.scene-controls-img-icon {
+  content: " ";
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
+}
+#scene-controls .ui-control.tool[data-tool="breakable-rock"] {
   background-color: #805030;
+  padding: 2px;
 }
-#controls .control-tool[data-tool="breakable-rock"] i {
+#scene-controls .ui-control.tool[data-tool="breakable-rock"]:before {
+  content: " ";
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
   background-image: url("../img/items-overworld/breakable_rock_frlg.png");
+}
+#scene-controls .ui-control.tool[data-tool="cuttable-plant"] {
+  background-color: lightgreen;
+  padding: 2px;
+}
+#scene-controls .ui-control.tool[data-tool="cuttable-plant"]:before {
+  content: " ";
+  width: 100%;
+  height: 100%;
   background-size: contain;
   image-rendering: pixelated;
   background-repeat: no-repeat;
   background-position: center;
   color: transparent;
-}
-#controls .control-tool[data-tool="cuttable-plant"] {
-  background-color: lightgreen;
-}
-#controls .control-tool[data-tool="cuttable-plant"] i {
   background-image: url("../img/items-overworld/cuttable_plant_frlg.png");
-  background-size: contain;
-  image-rendering: pixelated;
-  background-repeat: no-repeat;
-  background-position: center;
-  color: transparent;
 }
-#controls .control-tool[data-tool="movable-boulder"] {
+#scene-controls .ui-control.tool[data-tool="movable-boulder"] {
   background-color: lightgrey;
+  padding: 2px;
 }
-#controls .control-tool[data-tool="movable-boulder"] i {
+#scene-controls .ui-control.tool[data-tool="movable-boulder"]:before {
+  content: " ";
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
   background-image: url("../img/items-overworld/movable_boulder_frlg.png");
-  background-size: contain;
-  image-rendering: pixelated;
-  background-repeat: no-repeat;
-  background-position: center;
-  color: transparent;
 }
-#controls .control-tool[data-tool="whirlpool"] {
+#scene-controls .ui-control.tool[data-tool="whirlpool"] {
   background-color: #4878d8;
+  padding: 2px;
 }
-#controls .control-tool[data-tool="whirlpool"] i {
+#scene-controls .ui-control.tool[data-tool="whirlpool"]:before {
+  content: " ";
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
   background-image: url("../img/items-overworld/whirlpool_frlg.png");
+}
+#scene-controls .ui-control.tool[data-tool="sign"] {
+  background-color: lightgreen;
+  padding: 2px;
+}
+#scene-controls .ui-control.tool[data-tool="sign"]:before {
+  content: " ";
+  width: 100%;
+  height: 100%;
   background-size: contain;
   image-rendering: pixelated;
   background-repeat: no-repeat;
   background-position: center;
   color: transparent;
-}
-#controls .control-tool[data-tool="sign"] {
-  background-color: lightgreen;
-}
-#controls .control-tool[data-tool="sign"] i {
   background-image: url("../img/items-overworld/sign_frlg.png");
-  background-size: contain;
-  image-rendering: pixelated;
-  background-repeat: no-repeat;
-  background-position: center;
-  color: transparent;
 }
-#controls .control-tool[data-tool="item"] {
+#scene-controls .ui-control.tool[data-tool="item"] {
   background-color: lightgray;
+  padding: 2px;
 }
-#controls .control-tool[data-tool="item"] i {
+#scene-controls .ui-control.tool[data-tool="item"]:before {
+  content: " ";
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent;
   background-image: url("../img/items-overworld/pokeball.png");
-  background-size: contain;
-  image-rendering: pixelated;
-  background-repeat: no-repeat;
-  background-position: center;
-  color: transparent;
 }
-#controls .control-tool[data-tool="headbutt-tree"] {
+#scene-controls .ui-control.tool[data-tool="headbutt-tree"] {
   background-color: lightgreen;
+  padding: 2px;
 }
-#controls .control-tool[data-tool="headbutt-tree"] i {
-  background-image: url("../img/items-overworld/headbutt_tree_hgss.png");
+#scene-controls .ui-control.tool[data-tool="headbutt-tree"]:before {
+  content: " ";
+  width: 100%;
+  height: 100%;
   background-size: contain;
   image-rendering: pixelated;
   background-repeat: no-repeat;
   background-position: center;
   color: transparent;
+  background-image: url("../img/items-overworld/headbutt_tree_hgss.png");
 }
 .dialog-content file-picker button {
   line-height: var(--form-field-height);

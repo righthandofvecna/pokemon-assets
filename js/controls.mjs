@@ -16,39 +16,6 @@ function Scene_prepareBaseData(wrapped, ...args) {
   }
 }
 
-/**
- * Add the puzzle settings to the scene configuration!
- * @param {*} sceneConfig 
- * @param {*} html 
- * @param {*} context 
- * @returns 
- */
-async function OnRenderSceneConfig(sceneConfig, html, context) {
-  const scene = sceneConfig?.object;
-  const htmlEl = html.get(0);
-  if (!scene || !htmlEl) return;
-
-  const data = {
-    ...context,
-    flags: scene.flags[MODULENAME],
-  }
-
-  const tabs = htmlEl.querySelector(".sheet-tabs.tabs");
-  const puzzleSettingsLink = document.createElement("a");
-  puzzleSettingsLink.classList = "item";
-  puzzleSettingsLink.setAttribute("data-tab", "puzzle");
-  const puzzleIcon = document.createElement("i");
-  puzzleIcon.classList = "fa-solid fa-puzzle-piece";
-  puzzleSettingsLink.appendChild(puzzleIcon);
-  puzzleSettingsLink.appendChild(document.createTextNode("Puzzle"));
-
-  tabs.appendChild(puzzleSettingsLink);
-
-  // create puzzle page
-  const puzzleSettingsPage = $(await renderTemplate("modules/pokemon-assets/templates/scene-settings-page.hbs", data)).get(0);
-  htmlEl.querySelector("footer").before(puzzleSettingsPage);
-}
-
 
 /**
  * Add the puzzle button to the RegionConfig page
@@ -801,15 +768,39 @@ new ImagePopout("${imageSrc}", { title: "${title}" }).render(true);`
 }
 
 
+async function SceneConfig_preparePartContext(wrapped, partId, context, options) {
+  context = await wrapped(partId, context, options);
+  if (partId === "puzzle") {
+    const scene = context.document;
+    context.flags = scene.flags[MODULENAME]
+  }
+  return context;
+}
+
 export function register() {
   libWrapper.register(MODULENAME, "Scene.prototype.prepareBaseData", Scene_prepareBaseData, "WRAPPER");
-  Hooks.on("renderSceneConfig", OnRenderSceneConfig);
   Hooks.on("renderRegionConfig", OnRenderRegionConfig);
   if (early_isGM()) {
     Hooks.on("getSceneControlButtons", OnGetSceneControlButtons);
-    libWrapper.register(MODULENAME, "TilesLayer.prototype._onClickLeft2", TilesLayer_onClickLeft2, "WRAPPER");
-    libWrapper.register(MODULENAME, "RegionLayer.prototype._onClickLeft2", RegionLayer_onClickLeft2, "WRAPPER");
+    libWrapper.register(MODULENAME, "foundry.canvas.layers.TilesLayer.prototype._onClickLeft2", TilesLayer_onClickLeft2, "WRAPPER");
+    libWrapper.register(MODULENAME, "foundry.canvas.layers.RegionLayer.prototype._onClickLeft2", RegionLayer_onClickLeft2, "WRAPPER");
   }
+
+  // scene config controls
+  const SceneConfig = foundry.applications.sheets.SceneConfig;
+  SceneConfig.PARTS.puzzle = {
+    template: "modules/pokemon-assets/templates/scene-settings-page.hbs"
+  };
+  const footer = SceneConfig.PARTS.footer;
+  delete SceneConfig.PARTS.footer;
+  SceneConfig.PARTS.footer = footer;
+
+  SceneConfig.TABS.sheet.tabs.push({
+    id: "puzzle",
+    icon: "fa-solid fa-puzzle-piece",
+  });
+  libWrapper.register(MODULENAME, "foundry.applications.sheets.SceneConfig.prototype._preparePartContext", SceneConfig_preparePartContext, "WRAPPER");
+  
 
   const module = game.modules.get(MODULENAME);
   module.api ??= {};

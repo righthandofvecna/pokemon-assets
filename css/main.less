@@ -73,82 +73,72 @@
 }
 
 
-#controls .control-tool {
+.scene-controls-img-icon {
+    content: " ";
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    background-position: center;
+    color: transparent;
+}
+
+#scene-controls .ui-control.tool {
     &[data-tool="breakable-rock"] {
         background-color: #805030;
-        i {
+        padding: 2px;
+        &:before {
+            .scene-controls-img-icon();
             background-image: url("../img/items-overworld/breakable_rock_frlg.png");
-            background-size: contain;
-            image-rendering: pixelated;
-            background-repeat: no-repeat;
-            background-position: center;
-            color: transparent;
         }
     }
     &[data-tool="cuttable-plant"] {
         background-color: lightgreen;
-        i {
+        padding: 2px;
+        &:before {
+            .scene-controls-img-icon();
             background-image: url("../img/items-overworld/cuttable_plant_frlg.png");
-            background-size: contain;
-            image-rendering: pixelated;
-            background-repeat: no-repeat;
-            background-position: center;
-            color: transparent;
         }
     }
     &[data-tool="movable-boulder"] {
         background-color: lightgrey;
-        i {
+        padding: 2px;
+        &:before {
+            .scene-controls-img-icon();
             background-image: url("../img/items-overworld/movable_boulder_frlg.png");
-            background-size: contain;
-            image-rendering: pixelated;
-            background-repeat: no-repeat;
-            background-position: center;
-            color: transparent;
         }
     }
     &[data-tool="whirlpool"] {
         background-color: #4878d8;
-        i {
+        padding: 2px;
+        &:before {
+            .scene-controls-img-icon();
             background-image: url("../img/items-overworld/whirlpool_frlg.png");
-            background-size: contain;
-            image-rendering: pixelated;
-            background-repeat: no-repeat;
-            background-position: center;
-            color: transparent;
         }
     }
     &[data-tool="sign"] {
         background-color: lightgreen;
-        i {
+        padding: 2px;
+        &:before {
+            .scene-controls-img-icon();
             background-image: url("../img/items-overworld/sign_frlg.png");
-            background-size: contain;
-            image-rendering: pixelated;
-            background-repeat: no-repeat;
-            background-position: center;
-            color: transparent;
         }
     }
     &[data-tool="item"] {
         background-color: lightgray;
-        i {
+        padding: 2px;
+        &:before {
+            .scene-controls-img-icon();
             background-image: url("../img/items-overworld/pokeball.png");
-            background-size: contain;
-            image-rendering: pixelated;
-            background-repeat: no-repeat;
-            background-position: center;
-            color: transparent;
         }
     }
     &[data-tool="headbutt-tree"] {
         background-color: lightgreen;
-        i {
+        padding: 2px;
+        &:before {
+            .scene-controls-img-icon();
             background-image: url("../img/items-overworld/headbutt_tree_hgss.png");
-            background-size: contain;
-            image-rendering: pixelated;
-            background-repeat: no-repeat;
-            background-position: center;
-            color: transparent;
         }
     }
 }

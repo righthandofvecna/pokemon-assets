@@ -121,5 +121,7 @@
                 "hint": "The image used for this actor's Pokéball."
             }
         }
-    }
+    },
+    "SCENE.TABS.SHEET.puzzle": "Puzzle",
+    "TILE.TABS.puzzle": "Puzzle"
 }

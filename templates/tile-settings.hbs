@@ -1,0 +1,58 @@
+<div class="tab {{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+    <p class="notes">Additional attributes for controlling how the tile can be interacted with.</p>
+    <div class="form-group">
+      <label>Acts as a Wall</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.pokemon-assets.solid" {{#if pa.solid}}checked{{/if}}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Destroyed by "Rock Smash"</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.pokemon-assets.smashable" {{#if pa.smashable}}checked{{/if}}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Destroyed by "Cut"</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.pokemon-assets.cuttable" {{#if pa.cuttable}}checked{{/if}}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Destroyed by "Whirlpool"</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.pokemon-assets.whirlpool" {{#if pa.whirlpool}}checked{{/if}}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Movable by "Strength"</label>
+      <div class="form-fields">
+        <input type="checkbox" name="flags.pokemon-assets.pushable" {{#if pa.pushable}}checked{{/if}}>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Interaction Sound</label>
+      <div class="form-fields">
+        <select name="flags.pokemon-assets.interactionSound">
+          <option value="" default>None</option>
+          {{#each pa.sounds as |v k|}}
+          <option value="{{k}}" {{#if (eq k ../pa.interactionSound)}}selected{{/if}}>{{v}}</option>
+          {{/each}}
+          <option class="custom-interaction" value="{{#if pa.isCustomSound}}{{pa.customSound}}{{else}}custom{{/if}}" {{#if pa.isCustomSound}}selected{{/if}}>Custom</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group custom-sound" {{#unless pa.isCustomSound}}style='display:none'{{/unless}}>
+      <label>Custom Interaction Sound</label>
+      <div class="form-fields">
+        <file-picker class="custom-interaction" type="audio" value="{{#if pa.isCustomSound}}{{pa.customSound}}{{/if}}"></file-picker>
+      </div>
+    </div>
+    <div class="form-group stacked">
+      <label>Interaction Script</label>
+      <label>Execute as GM? <input type="checkbox" name="flags.pokemon-assets.scriptGm" {{#if pa.scriptGm}}checked{{/if}}></label>
+      <div class="form-fields">
+        <textarea type="checkbox" name="flags.pokemon-assets.script">{{{pa.script}}}</textarea>
+      </div>
+    </div>
+  </div>

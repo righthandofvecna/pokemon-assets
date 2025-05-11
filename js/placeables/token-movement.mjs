@@ -143,8 +143,8 @@ function TokenDocument_lockMovement() {
 
 
 export function register() {
-  libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype.moveMany", PlaceablesLayer_moveMany, "OVERRIDE");
-  libWrapper.register("pokemon-assets", "PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
+  libWrapper.register("pokemon-assets", "foundry.canvas.layers.PlaceablesLayer.prototype.moveMany", PlaceablesLayer_moveMany, "OVERRIDE");
+  libWrapper.register("pokemon-assets", "foundry.canvas.layers.PlaceablesLayer.prototype._getMovableObjects", PlaceablesLayer_getMovableObjects, "WRAPPER");
   libWrapper.register("pokemon-assets", "Scene.prototype.updateEmbeddedDocuments", Scene_updateEmbeddedDocuments, "WRAPPER");
   
   CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
