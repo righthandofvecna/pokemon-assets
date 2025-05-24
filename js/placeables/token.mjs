@@ -891,6 +891,7 @@ export function register() {
   });
 
   Hooks.on("renderTokenConfig", OnRenderTokenConfig);
+  Hooks.on("renderPrototypeTokenConfig", OnRenderTokenConfig);
   Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("preUpdateToken", OnPreUpdateToken);
   Hooks.on("initializeEdges", OnInitializeEdges);
