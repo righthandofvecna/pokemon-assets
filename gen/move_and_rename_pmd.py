@@ -8,9 +8,11 @@ import xml.etree.ElementTree as ET
 with open("local.json", "r") as local:
     data = json.load(local)
     SPRITECOLLAB = data["SPRITECOLLAB"]
+    UNFINISHED = data["UNFINISHED"]
     CREDITS_LOCATION = os.path.join(SPRITECOLLAB, "credit_names.txt")
     INFO_JSON_LOCATION = os.path.join(SPRITECOLLAB, "tracker.json")
-    FOLDER_LOCATION = os.path.join(SPRITECOLLAB, "sprite")
+    SC_FOLDER_LOCATION = os.path.join(SPRITECOLLAB, "sprite")
+    UF_FOLDER_LOCATION = os.path.join(UNFINISHED, "sprite")
 SPRITESHEET_SETTINGS_JS = os.path.join("data", "spritesheetmap.js")
 
 
@@ -27,11 +29,11 @@ def safeGet(d, *k, default=None):
 def getAnimFileFromFilesystem(*nests):
     # test for files
     for anim in ("Walk-Anim.png", "Charge-Anim.png", "Idle-Anim.png", ):
-        path = os.path.join(FOLDER_LOCATION, *nests, anim)
+        path = os.path.join(SC_FOLDER_LOCATION, *nests, anim)
         if os.path.exists(path):
             return path
         # test for the "unfinished" versions
-        path = os.path.join(FOLDER_LOCATION, "sprite-" + "-".join(nests), anim)
+        path = os.path.join(UF_FOLDER_LOCATION, "sprite-" + "-".join(nests), anim)
         if os.path.exists(path):
             return path
     return None
@@ -190,6 +192,9 @@ def main():
             "Egg"
             ):
             processVariant(t, f"_{t}")
+        
+        # low-power as normal forme
+        processVariant("Low_Power", "")
 
         # special formes (all caps)
         for t in ("Shadow", ):
