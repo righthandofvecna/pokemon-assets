@@ -1194,8 +1194,8 @@ export function NonPrivateTokenMixin(TokenClass) {
 
       // Prepare source and target meshes and shader class
       if ( ringEnabled ) {
-        targetNonPrivateToken._PRIVATE_ring = new CONFIG.Token.ring.ringClass(targetToken);
-        targetNonPrivateToken._PRIVATE_ring.configure(targetMesh);
+        targetToken._PRIVATE_ring = new CONFIG.Token.ring.ringClass(targetToken);
+        targetToken._PRIVATE_ring.configure(targetMesh);
         targetMesh.setShaderClass(CONFIG.Token.ring.shaderClass);
       }
       else {
@@ -3172,18 +3172,18 @@ export function NonPrivateTokenMixin(TokenClass) {
     this.renderFlags.set({refreshRuler: true, refreshState: !previousPlannedMovement});
 
     // Update the center offset of the preview token
-    context.clonedNonPrivateToken._PRIVATE_centerOffset.x = this._PRIVATE_centerOffset.x;
-    context.clonedNonPrivateToken._PRIVATE_centerOffset.y = this._PRIVATE_centerOffset.y;
-    context.clonedNonPrivateToken._PRIVATE_updateCenterOffset(origin, foundPath.slice(1).concat(unreachableWaypoints));
-    context.clonedNonPrivateToken._PRIVATE_animationCenterOffset.x = context.clonedNonPrivateToken._PRIVATE_centerOffset.x;
-    context.clonedNonPrivateToken._PRIVATE_animationCenterOffset.y = context.clonedNonPrivateToken._PRIVATE_centerOffset.y;
+    context.clonedToken._PRIVATE_centerOffset.x = this._PRIVATE_centerOffset.x;
+    context.clonedToken._PRIVATE_centerOffset.y = this._PRIVATE_centerOffset.y;
+    context.clonedToken._PRIVATE_updateCenterOffset(origin, foundPath.slice(1).concat(unreachableWaypoints));
+    context.clonedToken._PRIVATE_animationCenterOffset.x = context.clonedToken._PRIVATE_centerOffset.x;
+    context.clonedToken._PRIVATE_animationCenterOffset.y = context.clonedToken._PRIVATE_centerOffset.y;
 
     // Update light and/or vision sources of the preview token if Token Drag Preview is enabled
     if ( game.settings.get("core", "tokenDragPreview") ) {
       context.clonedToken.initializeSources();
       canvas.perception.update({refreshLighting: true, refreshVision: true});
     } else {
-      context.clonedNonPrivateToken._PRIVATE_adjustedCenter = context.clonedToken.getMovementAdjustedPoint(
+      context.clonedToken._PRIVATE_adjustedCenter = context.clonedToken.getMovementAdjustedPoint(
         context.clonedToken.document.getCenterPoint());
     }
   };
