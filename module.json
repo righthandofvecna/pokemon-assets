@@ -11,7 +11,7 @@
   "version": "0.5.5",
   "compatibility": {
     "minimum": "13",
-    "verified": "13.342",
+    "verified": "13.344",
     "maximum": "13"
   },
   "relationships": {

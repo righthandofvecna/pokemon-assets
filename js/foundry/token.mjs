@@ -30,6 +30,12 @@ export function NonPrivateTokenMixin(TokenClass) {
   _PRIVATE_centerOffset;
 
   /**
+   * The animated center point adjustment.
+   * @type {Point}
+   */
+  _PRIVATE_animationCenterOffset;
+
+  /**
    * The Token central coordinate, adjusted for its most recent movement vector.
    * @type {Point}
    */
@@ -141,11 +147,23 @@ export function NonPrivateTokenMixin(TokenClass) {
 
     // Initialize valid position
     this._PRIVATE_centerOffset = {x: Math.sign(r.dx), y: Math.sign(r.dy)};
+    this._PRIVATE_animationCenterOffset = {x: this._PRIVATE_centerOffset.x, y: this._PRIVATE_centerOffset.y};
     this._PRIVATE_adjustedCenter = this.getMovementAdjustedPoint(this.document.getCenterPoint());
 
     // Initialize animation data
     this._PRIVATE_animationData = foundry.utils.deepSeal(this._getAnimationData());
     this._PRIVATE_priorAnimationData = foundry.utils.deepSeal(foundry.utils.deepClone(this._PRIVATE_animationData));
+  };
+
+  /* -------------------------------------------- */
+
+  /** @inheritDoc */
+  clone() {
+    const clone = super.clone();
+    clone._PRIVATE_centerOffset.x = clone._PRIVATE_animationCenterOffset.x = this._PRIVATE_centerOffset.x;
+    clone._PRIVATE_centerOffset.y = clone._PRIVATE_animationCenterOffset.y = this._PRIVATE_centerOffset.y;
+    clone._PRIVATE_adjustedCenter = clone.getMovementAdjustedPoint(clone.document.getCenterPoint());
+    return clone;
   };
 
   /* -------------------------------------------- */
@@ -271,7 +289,8 @@ export function NonPrivateTokenMixin(TokenClass) {
    * @param {boolean} [options.deleted=false]       Indicate that this light and vision source has been deleted
    */
   initializeSources({deleted=false}={}) {
-    this._PRIVATE_adjustedCenter = this.getMovementAdjustedPoint(this.document.getCenterPoint());
+    this._PRIVATE_adjustedCenter = this.getMovementAdjustedPoint(this.document.getCenterPoint(),
+      this._PRIVATE_animationCenterOffset);
     this.initializeLightSource({deleted});
     this.initializeVisionSource({deleted});
   };
@@ -357,7 +376,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       externalRadius: this.externalRadius,
       seed: this.document.getFlag("core", "animationSeed"),
       preview: this.isPreview,
-      disabled: !this._isLightSource()
+      disabled: !this._isLightSource() || this._PRIVATE_isUnreachableDragPreview
     });
   };
 
@@ -426,7 +445,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       visionMode: sight.visionMode,
       color: sight.color,
       preview: this.isPreview,
-      disabled: false
+      disabled: this._PRIVATE_isUnreachableDragPreview
     };
   };
 
@@ -998,9 +1017,10 @@ export function NonPrivateTokenMixin(TokenClass) {
   _PRIVATE_animateFrame(context) {
     const completed = context.time >= context.duration;
     if ( completed ) foundry.utils.mergeObject(this._PRIVATE_animationData, context.to);
-    const changed = foundry.utils.diffObject(this._PRIVATE_priorAnimationData, this._PRIVATE_animationData);
-    foundry.utils.mergeObject(this._PRIVATE_priorAnimationData, this._PRIVATE_animationData);
-    foundry.utils.mergeObject(this.document, this._PRIVATE_animationData, {insertKeys: false});
+    const animationData = foundry.utils.filterObject(this._PRIVATE_animationData, context.to);
+    const changed = foundry.utils.diffObject(this._PRIVATE_priorAnimationData, animationData);
+    foundry.utils.mergeObject(this._PRIVATE_priorAnimationData, animationData);
+    foundry.utils.mergeObject(this.document, animationData, {insertKeys: false});
     for ( const fn of context.onAnimate ) fn(context);
     this._onAnimationUpdate(changed, context);
     if ( completed ) this._PRIVATE_completeAnimation(context);
@@ -2091,26 +2111,37 @@ export function NonPrivateTokenMixin(TokenClass) {
   /* -------------------------------------------- */
 
   /**
+   * Update the center offset.
+   * @param {TokenPosition} origin                                 The origin
+   * @param {TokenPosition & {intermediate?: boolean}} waypoints   The waypoints
+   */
+  _PRIVATE_updateCenterOffset(origin, waypoints) {
+    if ( waypoints.length === 0 ) return;
+    let c0 = this.document.getCenterPoint(origin);
+    for ( const waypoint of waypoints ) {
+      if ( waypoint.intermediate ) continue;
+      const c1 = this.document.getCenterPoint(waypoint);
+      if ( c1.x !== c0.x ) this._PRIVATE_centerOffset.x = Math.sign(c1.x - c0.x);
+      if ( c1.y !== c0.y ) this._PRIVATE_centerOffset.y = Math.sign(c1.y - c0.y);
+      c0 = c1;
+    }
+  };
+
+  /* -------------------------------------------- */
+
+  /**
    * Update the center offset unless animating.
    * Called in {@link Token_PRIVATE__onUpdate}.
    * @param {object} options    The update options
    */
   _PRIVATE_onUpdateCenterOffset(options) {
-
-    // If animating, we update the center offset for each movement waypoint in Token_PRIVATE__PRIVATE_onUpdateAnimation
-    if ( options.animate !== false ) return;
-
     const movement = options._movement?.[this.document.id];
-    if ( movement ) {
-      let c0 = this.document.getCenterPoint(movement.origin);
-      for ( const waypoint of movement.passed.waypoints ) {
-        if ( waypoint.intermediate ) continue;
-        const c1 = this.document.getCenterPoint(waypoint);
-        if ( c1.x !== c0.x ) this._PRIVATE_centerOffset.x = Math.sign(c1.x - c0.x);
-        if ( c1.y !== c0.y ) this._PRIVATE_centerOffset.y = Math.sign(c1.y - c0.y);
-        c0 = c1;
-      }
-    }
+    if ( movement ) this._PRIVATE_updateCenterOffset(movement.origin, movement.passed.waypoints);
+
+    // If animating, we update the animated center offset for each movement waypoint in Token_PRIVATE__PRIVATE_onUpdateAnimation
+    if ( options.animate !== false ) return;
+    this._PRIVATE_animationCenterOffset.x = this._PRIVATE_centerOffset.x;
+    this._PRIVATE_animationCenterOffset.y = this._PRIVATE_centerOffset.y;
   };
 
   /* -------------------------------------------- */
@@ -2136,10 +2167,6 @@ export function NonPrivateTokenMixin(TokenClass) {
     context.clonedToken.document.height = context.destination.height ?? this.document._source.height;
     context.clonedToken.document.shape = context.destination.shape ?? this.document._source.shape;
     context.clonedToken.renderFlags.set({refresh: true});
-    if ( game.settings.get("core", "tokenDragPreview") ) {
-      context.clonedToken.initializeSources();
-      canvas.perception.update({refreshLighting: true, refreshVision: true});
-    }
 
     // The ruler only needs updating if the position, size, or shape changed, or the movement history changed
     const hasMoved = TokenDocument._isMovementUpdate(changed);
@@ -2246,8 +2273,8 @@ export function NonPrivateTokenMixin(TokenClass) {
 
             // Update center offset
             const updateCenterOffset = () => {
-              if ( ray.dx !== 0 ) this._PRIVATE_centerOffset.x = Math.sign(ray.dx);
-              if ( ray.dy !== 0 ) this._PRIVATE_centerOffset.y = Math.sign(ray.dy);
+              if ( ray.dx !== 0 ) this._PRIVATE_animationCenterOffset.x = Math.sign(ray.dx);
+              if ( ray.dy !== 0 ) this._PRIVATE_animationCenterOffset.y = Math.sign(ray.dy);
             };
             if ( movementAnimationPromise ) movementAnimationPromise.finally(updateCenterOffset);
             else updateCenterOffset();
@@ -2634,6 +2661,19 @@ export function NonPrivateTokenMixin(TokenClass) {
   /* -------------------------------------------- */
 
   /**
+   * Is this a preview of drag operation and the destination is unreachable?
+   * @type {boolean}
+   */
+  get _PRIVATE_isUnreachableDragPreview() {
+    if ( !this.isPreview ) return false;
+    const context = this.layer._draggedToken?.mouseInteractionManager.interactionData.contexts[this.document.id];
+    if ( !context ) return false;
+    return context.unreachableWaypoints.length > 0;
+  };
+
+  /* -------------------------------------------- */
+
+  /**
    * Prevent the drop event?
    * Called by {@link Token_PRIVATE__onDragLeftDrop}.
    * @param {PIXI.FederatedEvent} event    The pointerup event
@@ -2655,7 +2695,6 @@ export function NonPrivateTokenMixin(TokenClass) {
    */
   _updateDragDestination(point, {snap=false}={}) {
     const contexts = Object.values(this.mouseInteractionManager.interactionData.contexts);
-    const tokenDragPreview = game.settings.get("core", "tokenDragPreview");
     if ( canvas.grid.isGridless ) snap = false;
 
     // Determine dragged distance
@@ -2676,17 +2715,11 @@ export function NonPrivateTokenMixin(TokenClass) {
       if ( Object.keys(context.destination).every(k => context.destination[k] === destination[k]) ) continue;
       context.destination = destination;
 
-      // Update the ruler path
-      NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
-
       // Update the position of the preview token
       NonPrivateToken._PRIVATE_updateDragPreview(context.clonedToken, destination);
 
-      // Update light and/or vision sources of the preview token if Token Drag Preview is enabled
-      if ( tokenDragPreview ) {
-        context.clonedToken.initializeSources();
-        canvas.perception.update({refreshLighting: true, refreshVision: true});
-      }
+      // Update the ruler path
+      NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
     }
   };
 
@@ -2900,11 +2933,11 @@ export function NonPrivateTokenMixin(TokenClass) {
       if ( TokenDocument.MOVEMENT_FIELDS.every(k => context.destination[k] === destination[k]) ) continue;
       for ( const k of TokenDocument.MOVEMENT_FIELDS ) context.destination[k] = destination[k];
 
-      // Update the ruler path
-      NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
-
       // Update the destination of the preview token
       NonPrivateToken._PRIVATE_updateDragPreview(context.clonedToken, destination);
+
+      // Update the ruler path
+      NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
     }
   };
 
@@ -3133,8 +3166,26 @@ export function NonPrivateTokenMixin(TokenClass) {
       hidden: context.hidden, searching: context.searching};
     if ( foundry.utils.objectsEqual(previousPlannedMovement, plannedMovement) ) return;
     this._plannedMovement[game.user.id] = plannedMovement;
-    this.renderFlags.set({refreshRuler: true, refreshState: !previousPlannedMovement});
     this._PRIVATE_throttleBroadcastPlannedMovement();
+
+    // Refresh ruler and state
+    this.renderFlags.set({refreshRuler: true, refreshState: !previousPlannedMovement});
+
+    // Update the center offset of the preview token
+    context.clonedNonPrivateToken._PRIVATE_centerOffset.x = this._PRIVATE_centerOffset.x;
+    context.clonedNonPrivateToken._PRIVATE_centerOffset.y = this._PRIVATE_centerOffset.y;
+    context.clonedNonPrivateToken._PRIVATE_updateCenterOffset(origin, foundPath.slice(1).concat(unreachableWaypoints));
+    context.clonedNonPrivateToken._PRIVATE_animationCenterOffset.x = context.clonedNonPrivateToken._PRIVATE_centerOffset.x;
+    context.clonedNonPrivateToken._PRIVATE_animationCenterOffset.y = context.clonedNonPrivateToken._PRIVATE_centerOffset.y;
+
+    // Update light and/or vision sources of the preview token if Token Drag Preview is enabled
+    if ( game.settings.get("core", "tokenDragPreview") ) {
+      context.clonedToken.initializeSources();
+      canvas.perception.update({refreshLighting: true, refreshVision: true});
+    } else {
+      context.clonedNonPrivateToken._PRIVATE_adjustedCenter = context.clonedToken.getMovementAdjustedPoint(
+        context.clonedToken.document.getCenterPoint());
+    }
   };
 
   /* -------------------------------------------- */
