@@ -137,7 +137,7 @@ def transform_members(members, oldCls, newCls):
             member = member.replace("#", "_PRIVATE_")
             transformed = True
         if f"{oldCls}._PRIVATE_" in member:
-            member = member.replace(f"{oldCls}._PRIVATE_", f"{newCls}._PRIVATE_")
+            member = member.replace(f" {oldCls}._PRIVATE_", f" {newCls}._PRIVATE_")
             transformed = True
         if transformed:
             transformed_members.append(member)

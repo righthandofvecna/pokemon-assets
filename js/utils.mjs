@@ -1,6 +1,8 @@
 
 export const MODULENAME = "pokemon-assets";
 
+export const MYSTERY_MAN = "icons/svg/mystery-man.svg";
+
 export function early_isGM() {
 	const level = game.data.users.find(u => u._id == game.data.userId).role;
 	const gmLevel = CONST.USER_ROLES.ASSISTANT;

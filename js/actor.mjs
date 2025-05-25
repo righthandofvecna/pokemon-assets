@@ -35,6 +35,7 @@ export function _getTokenChangesForSpritesheet(src) {
 
 
 function OnPreUpdateActor(actor, updates) {
+  if (!game.settings.get(MODULENAME, "autoMatchTokenSprite")) return;
   if (actor.img == updates.img || !updates.img) return;
 
   // the image has changed!
@@ -48,6 +49,7 @@ function OnPreUpdateActor(actor, updates) {
 }
 
 function OnPreCreateActor(actor, data) {
+  if (!game.settings.get(MODULENAME, "autoMatchTokenSprite")) return;
   const img = data.img ?? actor.img;
   if (!img || !img.includes("modules/pokemon-assets/img/trainers-profile/")) return;
 
@@ -61,6 +63,7 @@ function OnPreCreateActor(actor, data) {
 }
 
 function OnCreateActor(actor) {
+  if (!game.settings.get(MODULENAME, "autoMatchTokenSprite")) return;
   if (!isTheGM()) return;
   if (!actor.img.includes("modules/pokemon-assets/img/trainers-profile/")) return;
   
@@ -75,9 +78,7 @@ function OnCreateActor(actor) {
 
 
 export function register() {
-  if (game.settings.get(MODULENAME, "autoMatchTokenSprite")) {
-    Hooks.on("preUpdateActor", OnPreUpdateActor);
-    Hooks.on("preCreateActor", OnPreCreateActor);
-    Hooks.on("createActor", OnCreateActor);
-  }
+  Hooks.on("preUpdateActor", OnPreUpdateActor);
+  Hooks.on("preCreateActor", OnPreCreateActor);
+  Hooks.on("createActor", OnCreateActor);
 }
