@@ -1,18 +1,35 @@
 
+import { MODULENAME, MYSTERY_MAN } from "../utils.mjs";
 
-function OnPreCreateActor(actor, data) {
-  if (game.system.id === "ptr2e") {
-    actor.updateSource(foundry.utils.expandObject({
-      "prototypeToken.texture.src": foundry.utils.getProperty(data, "prototypeToken.texture.src"),
-      "prototypeToken.flags.pokemon-assets": foundry.utils.getProperty(data, "prototypeToken.flags.pokemon-assets"),
-    }));
-  }
+
+async function PTR2e_OnCreateActor(actor) {
+  if (!game.user.isActiveGM) return;
+  // check if this is a pokemon that has the same image and prototype image
+  if (actor.img != actor.prototypeToken.texture.src && actor.prototypeToken.texture.src != MYSTERY_MAN) return;
+  // regenerate the token because Bar Brawl probably messed it up
+  const config = game.ptr.data.artMap.get(actor?.species?.slug ?? "");
+  if (!config) return;
+  const tokenResolver = await game.ptr.util.image.createFromSpeciesData(
+    {
+      dexId: actor?.species?.number,
+      shiny: actor?.system?.shiny ?? false,
+      female: actor?.gender === "female",
+      forms: actor?.species?.form ? [...actor.species.form.split("-"), "token"] : ["token"],
+    },
+    config
+  );
+  if (!tokenResolver.result || tokenResolver.result == actor.prototypeToken.texture.src) return;
+  await actor.update({
+    "prototypeToken.texture.src": tokenResolver.result,
+  });
 }
 
 export function register() {
   Hooks.on("ready", ()=>{
     if (game.modules.get("barbrawl")?.active) {
-      Hooks.on("preCreateActor", OnPreCreateActor);
+      if (game.system.id === "ptr2e") {
+        Hooks.on("createActor", PTR2e_OnCreateActor);
+      }
     }
   })
 }
