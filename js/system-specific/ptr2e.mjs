@@ -404,15 +404,6 @@ function ActorCry(actor) {
 }
 
 
-// 
-
-
-
-// re-prepare the token document on render? to account for weird size issues
-function Token_applyRenderFlags(wrapped, flags) {
-  TokenDocument.prototype.prepareData.apply(this.document);
-  wrapped(flags);
-}
 
 // re-apply PTR2e's "_onUpdate" extension. Copied/modified from ptr2e.mjs
 function Token_onUpdate(wrapped, e, t, s) {
@@ -510,7 +501,6 @@ export function register() {
   Hooks.on("preCreateActor", OnPreCreateActor);
   Hooks.on("createToken", OnCreateToken);
   libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
-  libWrapper.register(MODULENAME, "CONFIG.Token.objectClass.prototype._applyRenderFlags", Token_applyRenderFlags, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Token.objectClass.prototype._onUpdate", Token_onUpdate, "WRAPPER");
 
   libWrapper.register(MODULENAME, "CONFIG.ActiveEffect.dataModels.passive.schema.fields.changes.element.types.token-alterations.model.prototype.apply", TokenAlterations_apply, "WRAPPER");
