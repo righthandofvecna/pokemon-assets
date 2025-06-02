@@ -226,7 +226,7 @@ function OnPreUpdateToken(doc, change, options) {
 
   const dx = nx - ox;
   const dy = ny - oy;
-  if ((dx !== 0 || dy !== 0) && !options.teleport) {
+  if ((dx !== 0 || dy !== 0) && !options.teleport) { // && !game.settings.get("core", "tokenAutoRotate")) {
     change.rotation = getAngleFromDirection(getDirection(dx, dy));
   };
 
@@ -531,7 +531,7 @@ export function register() {
         return game.settings.get(MODULENAME, "runSpeed") ?? 8;
       })();
 
-      if (to.rotation != undefined) {
+      if (this.isTileset && to.rotation != undefined) {
         from.rotation = to.rotation ?? from.rotation;
         delete to.rotation;
       }
@@ -573,6 +573,7 @@ export function register() {
      * @protected
      */
     _prepareAnimation(from, changes, context, options) {
+      if (!this.isTileset) return super._prepareAnimation(from, changes, context, options);
       const attributes = [];
 
       // TODO: handle teleportation
@@ -860,19 +861,19 @@ export function register() {
     }
 
     /** @inheritDoc */
-    _onUpdate(changed, options, userId) {
-      // if (options.teleport === true) {
-      //   const to = foundry.utils.filterObject(this._getAnimationData(), changed);
-      //   this._handleTeleportAnimation(to);
-      // }
-      super._onUpdate(changed, options, userId);
-      if ("x" in changed || "y" in changed || "width" in changed || "height" in changed || "hidden" in changed) {
-        this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });
-      }
-      if ("hidden" in changed && !changed.hidden) {
-        this.#localOpacity = 1;
-      }
-    }
+    // _onUpdate(changed, options, userId) {
+    //   // if (options.teleport === true) {
+    //   //   const to = foundry.utils.filterObject(this._getAnimationData(), changed);
+    //   //   this._handleTeleportAnimation(to);
+    //   // }
+    //   super._onUpdate(changed, options, userId);
+    //   if ("x" in changed || "y" in changed || "width" in changed || "height" in changed || "hidden" in changed) {
+    //     this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });
+    //   }
+    //   if ("hidden" in changed && !changed.hidden) {
+    //     this.#localOpacity = 1;
+    //   }
+    // }
 
     /** @inheritDoc */
     _onDelete(options, userId) {
