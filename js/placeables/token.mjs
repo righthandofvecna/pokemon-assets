@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene, angleDiff } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 import { NonPrivateTokenMixin } from "../foundry/token.mjs";
@@ -532,8 +532,14 @@ export function register() {
       })();
 
       if (this.isTileset && to.rotation != undefined) {
-        from.rotation = to.rotation ?? from.rotation;
-        delete to.rotation;
+        to.rotation = (to.rotation + 360) % 360; // normalize the rotation
+        if (Object.keys(to).length > 1 || angleDiff(to.rotation, from.rotation) < 45) {
+          from.rotation = to.rotation ?? from.rotation;
+          delete to.rotation;
+        } else {
+          // don't delete it
+          console.log(`Keeping rotation for token ${this.id} as it is the only change`, foundry.utils.deepClone(to), foundry.utils.deepClone(from));
+        }
       }
 
       this._origin = { x: this.x, y: this.y };
@@ -542,6 +548,10 @@ export function register() {
         // start the idle animation
         if (this.animationContexts.size == 0) this.startIdleAnimation();
       });
+    }
+
+    _getAnimationRotationSpeed() {
+      return Number.POSITIVE_INFINITY; // don't animate rotation
     }
 
     get isPokemon() {
@@ -577,7 +587,7 @@ export function register() {
       const attributes = [];
 
       // TODO: handle teleportation
-      // NonPrivateToken._PRIVATE_handleRotationChanges(from, changes);
+      TilesetToken._PRIVATE_handleRotationChanges(from, changes);
       // this._PRIVATE_handleTransitionChanges(changes, context, options, attributes);
 
       // Create animation attributes from the changes
@@ -861,19 +871,19 @@ export function register() {
     }
 
     /** @inheritDoc */
-    // _onUpdate(changed, options, userId) {
-    //   // if (options.teleport === true) {
-    //   //   const to = foundry.utils.filterObject(this._getAnimationData(), changed);
-    //   //   this._handleTeleportAnimation(to);
-    //   // }
-    //   super._onUpdate(changed, options, userId);
-    //   if ("x" in changed || "y" in changed || "width" in changed || "height" in changed || "hidden" in changed) {
-    //     this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });
-    //   }
-    //   if ("hidden" in changed && !changed.hidden) {
-    //     this.#localOpacity = 1;
-    //   }
-    // }
+    _onUpdate(changed, options, userId) {
+      // if (options.teleport === true) {
+      //   const to = foundry.utils.filterObject(this._getAnimationData(), changed);
+      //   this._handleTeleportAnimation(to);
+      // }
+      super._onUpdate(changed, options, userId);
+      if ("x" in changed || "y" in changed || "width" in changed || "height" in changed || "hidden" in changed) {
+        this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });
+      }
+      if ("hidden" in changed && !changed.hidden) {
+        this.#localOpacity = 1;
+      }
+    }
 
     /** @inheritDoc */
     _onDelete(options, userId) {

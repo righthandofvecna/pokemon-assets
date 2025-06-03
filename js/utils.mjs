@@ -32,6 +32,10 @@ function _norm_angle(a) {
   return a < 0 ? a + 360 : (a >= 360 ? a - 360 : a);
 }
 
+export function angleDiff(a, b) {
+	return Math.min(Math.abs(a - b), 360 - Math.abs(a - b));
+}
+
 /**
  * 
  * @param {object} a the thing that has the rotation
