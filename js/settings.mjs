@@ -320,6 +320,16 @@ export function register() {
 		hint: "The folder where cries for unofficial Pokemon are stored. They must be stored in that folder as '<custom dex number>.mp3'."
 	});
 
+  game.settings.register(MODULENAME, "debug", {
+    name: "Debug Mode",
+    default: false,
+    type: Boolean,
+    scope: "world",
+    requiresReload: false,
+    config: false,
+    hint: "Enable debug mode for additional logging and diagnostics."
+});
+
 };
 
 

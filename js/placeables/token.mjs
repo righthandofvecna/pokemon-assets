@@ -532,9 +532,10 @@ export function register() {
       })();
 
       if (this.isTileset && to.rotation != undefined) {
-        to.rotation = (to.rotation + 360) % 360; // normalize the rotation
-        if (Object.keys(to).length > 1 || angleDiff(to.rotation, from.rotation) < 45) {
-          from.rotation = to.rotation ?? from.rotation;
+        to.rotation = (to.rotation ?? 0 + 360) % 360; // normalize the rotation
+        from.rotation = to.rotation ?? from.rotation;
+        from.rotation = (from.rotation ?? 0 + 360) % 360; // normalize the rotation
+        if (Object.keys(to).length > 1 || angleDiff(to.rotation, from.rotation ?? to.rotation) < 45) {
           delete to.rotation;
         } else {
           // don't delete it
@@ -683,7 +684,7 @@ export function register() {
       return game.settings.get(MODULENAME, "tokenCollision") && (!this.document.hidden || game.settings.get(MODULENAME, "tokenCollisionHidden"));
     }
 
-    filterCollisions(collisions, {follow=false}) {
+    filterCollisions(collisions, {follow=false}={}) {
       const followChain = (()=>{
         if (follow) return getAllInFollowChain(this.document);
         return new Set(getAllFollowing(this.document));
