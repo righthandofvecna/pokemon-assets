@@ -350,7 +350,7 @@ function OnFollowKey() {
           stroke: "#FFFFFF"
         });
         updatesById[follower] ??= {};
-        updatesById[follower][`flags.${MODULENAME}.${FLAG_FOLLOWING}.who`] = null;
+        updatesById[follower][`flags.${MODULENAME}.${FLAG_FOLLOWING}.==who`] = null;
         lineOrder.splice(lineOrder.findIndex((_id)=>_id===follower), 1);
         continue;
       } else if (lineOrder.includes(follower)) {

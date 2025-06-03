@@ -1,6 +1,7 @@
 const { PointMovementSource } = foundry.canvas.sources;
 const { PreciseText } = foundry.canvas.containers;
 const { PrimarySpriteMesh } = foundry.canvas.primary;
+const { PlaceableObject } = foundry.canvas.placeables;
 const { Ray } = foundry.canvas.geometry;
 const { CanvasAnimation } = foundry.canvas.animation;
 const { PrimaryCanvasGroup } = foundry.canvas.groups;
@@ -2041,7 +2042,7 @@ export function NonPrivateTokenMixin(TokenClass) {
 
   /** @inheritDoc */
   _onUpdate(changed, options, userId) {
-    super._onUpdate(changed, options, userId);
+    PlaceableObject.prototype._onUpdate.call(this, changed, options, userId);
     const doc = this.document;
 
     // Update the center offset

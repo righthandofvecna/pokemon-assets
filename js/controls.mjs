@@ -643,7 +643,7 @@ async function CreateJump(regionConfig) {
     type: "executeScript",
     name: `Jump ${direction.titleCase()}`,
     system: {
-      events: ["tokenMove"],
+      events: ["tokenMoveWithin"],
       source: `game.modules.get("${MODULENAME}")?.api?.scripts?.HandleJumps?.("${direction}", ...arguments);`
     }
   };
@@ -664,7 +664,7 @@ async function CreateIce(regionConfig) {
     type: "executeScript",
     name: `Slippery Floor`,
     system: {
-      events: ["tokenMove"],
+      events: ["tokenMoveWithin"],
       source: `game.modules.get("${MODULENAME}")?.api?.scripts?.HandleIce?.(...arguments);`
     }
   };

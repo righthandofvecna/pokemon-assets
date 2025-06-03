@@ -301,7 +301,7 @@ async function SwitchScenes(newScene, newAttributes, ...args) {
  * @returns 
  */
 async function HandleJumps() {
-  const [direction, scene, regionDocument, regionBehavior, { data: { token }, name: eventName, user }] = arguments;
+  const [direction, scene, regionDocument, regionBehavior, { data: { token, movement }, name: eventName, user }] = arguments;
 
   if (user !== game.user || !token || !scene) return;
 
@@ -312,6 +312,7 @@ async function HandleJumps() {
   const unlock = token.lockMovement();
   // wait until the token has finished animating
   await renderedToken.allAnimationsPromise;
+  const startpos = movement.passed?.waypoints?.at(-1) ?? { x: token.x, y: token.y };
 
   // check if the token is still inside the jump area
   if (!token.regions.has(regionDocument)) {
@@ -320,16 +321,16 @@ async function HandleJumps() {
   }
   switch (direction) {
     case "down": 
-      await token.update({ y: token.y + sizeY});
+      await token.update({ y: startpos.y + sizeY});
       break;
     case "left":
-      await token.update({ x: token.x - sizeX});
+      await token.update({ x: startpos.x - sizeX});
       break;
     case "right":
-      await token.update({ x: token.x + sizeX});
+      await token.update({ x: startpos.x + sizeX});
       break;
     case "up":
-      await token.update({ y: token.y - sizeY});
+      await token.update({ y: startpos.y - sizeY});
       break;
   }
   unlock();
@@ -350,32 +351,71 @@ async function HandleJumps() {
  * @returns 
  */
 async function HandleIce() {
-  const [scene, regionDocument, regionBehavior, { data: { token }, name: eventName, user }] = arguments;
+  const [scene, regionDocument, regionBehavior, { data: { token, movement }, name: eventName, user }] = arguments;
 
-  if (user !== game.user || !token || !scene) return;
+  if (user?.id !== game.user.id || !token || !scene) return;
 
   if (token._sliding ?? false) return;
   token._sliding = true;
   const unlock = token.lockMovement();
+  token.stopMovement();
 
   const { sizeX, sizeY } = scene.grid;
-  const { x: originalX, y: originalY } = token;
+  const elevation = token.elevation ?? 0;
+  const tokenSource = game.canvas.grid.getSnappedPoint({ x: token.center.x, y: token.center.y, elevation }, { mode: CONST.GRID_SNAPPING_MODES.CENTER });
 
   const renderedToken = token.object;
 
   // wait until the token has finished animating
-  await renderedToken.allAnimationsPromise;
+  // await renderedToken.allAnimationsPromise;
 
-  const dx = Math.sign(token.x - originalX) * sizeX;
-  const dy = Math.sign(token.y - originalY) * sizeY;
+  const { origin: src } = movement;
+  const startpos = movement.passed?.waypoints?.at(-1) ?? { x: token.x, y: token.y };
+  const dest = movement.passed?.waypoints?.at(-1) ?? movement?.pending?.waypoints?.at(0) ?? origin;
 
-  let count = 0;
-  // check if the token is still inside the jump area
-  while (count < 80 && token.regions.has(regionDocument)) {
-    await renderedToken.allAnimationsPromise;
-    const shiftedPosition = renderedToken._getShiftedPosition(dx, dy);
-    await token.update(shiftedPosition);
+  const dx = Math.sign(dest.x - src.x) * sizeX;
+  const dy = Math.sign(dest.y - src.y) * sizeY;
+
+  let count = 1;
+  let endpos = foundry.utils.deepClone(tokenSource);
+  // check if the token is still inside the slide area
+  while (count < 80 && regionDocument.testPoint(endpos)) {
+    // hitscan out!
+    const pointSource = new foundry.canvas.sources.PointMovementSource({object: renderedToken});
+    pointSource.initialize(renderedToken);
+    const nextPos = { x: tokenSource.x + (dx * count), y: tokenSource.y + (dy * count), elevation };
+    const hits = (CONFIG.Canvas.polygonBackends.move.testCollision(tokenSource, nextPos, {
+      type: "move",
+      mode: "all",
+      source: pointSource
+    }) ?? []);
+    const stops = renderedToken.filterCollisions(hits);
+    if (stops.length) {
+      break;
+    }
+    endpos = nextPos;
     count++;
+  }
+  if (endpos.x != tokenSource.x || endpos.y != tokenSource.y) {
+    const DEBUG = game.settings.get(MODULENAME, "debug");
+    if (DEBUG) canvas.scene.createEmbeddedDocuments("Drawing", [{shape:{points:[tokenSource.x, tokenSource.y, endpos.x, endpos.y], height: canvas.dimensions.height, width: canvas.dimensions.width, type: "p"}}]);
+    if (DEBUG) console.log(`pokemon-assets | HandleIce: Sliding token ${token.name}`, foundry.utils.deepClone(tokenSource), foundry.utils.deepClone(endpos), dx * count, dy * count);
+    endpos = game.canvas.grid.getSnappedPoint({
+      x: startpos.x + (dx * (count - 0.7)),
+      y: startpos.y + (dy * (count - 0.7)),
+    }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX });
+
+    if (DEBUG) canvas.scene.createEmbeddedDocuments("Drawing", [{
+      shape:{points:[], height: 32, width: 32, type: "e"},
+      x: endpos.x - 16,
+      y: endpos.y - 16,
+    }]);
+    
+    // if we moved, update the token's position
+    await token.update({
+      x: endpos.x,
+      y: endpos.y,
+    });
   }
   await renderedToken.allAnimationsPromise;
   token._sliding = false;

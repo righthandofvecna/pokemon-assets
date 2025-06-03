@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene, angleDiff } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 import { NonPrivateTokenMixin } from "../foundry/token.mjs";
@@ -226,7 +226,7 @@ function OnPreUpdateToken(doc, change, options) {
 
   const dx = nx - ox;
   const dy = ny - oy;
-  if ((dx !== 0 || dy !== 0) && !options.teleport) {
+  if ((dx !== 0 || dy !== 0) && !options.teleport) { // && !game.settings.get("core", "tokenAutoRotate")) {
     change.rotation = getAngleFromDirection(getDirection(dx, dy));
   };
 
@@ -531,9 +531,16 @@ export function register() {
         return game.settings.get(MODULENAME, "runSpeed") ?? 8;
       })();
 
-      if (to.rotation != undefined) {
+      if (this.isTileset && to.rotation != undefined) {
+        to.rotation = (to.rotation ?? 0 + 360) % 360; // normalize the rotation
         from.rotation = to.rotation ?? from.rotation;
-        delete to.rotation;
+        from.rotation = (from.rotation ?? 0 + 360) % 360; // normalize the rotation
+        if (Object.keys(to).length > 1 || angleDiff(to.rotation, from.rotation ?? to.rotation) < 45) {
+          delete to.rotation;
+        } else {
+          // don't delete it
+          console.log(`Keeping rotation for token ${this.id} as it is the only change`, foundry.utils.deepClone(to), foundry.utils.deepClone(from));
+        }
       }
 
       this._origin = { x: this.x, y: this.y };
@@ -542,6 +549,10 @@ export function register() {
         // start the idle animation
         if (this.animationContexts.size == 0) this.startIdleAnimation();
       });
+    }
+
+    _getAnimationRotationSpeed() {
+      return Number.POSITIVE_INFINITY; // don't animate rotation
     }
 
     get isPokemon() {
@@ -573,10 +584,11 @@ export function register() {
      * @protected
      */
     _prepareAnimation(from, changes, context, options) {
+      if (!this.isTileset) return super._prepareAnimation(from, changes, context, options);
       const attributes = [];
 
       // TODO: handle teleportation
-      // NonPrivateToken._PRIVATE_handleRotationChanges(from, changes);
+      TilesetToken._PRIVATE_handleRotationChanges(from, changes);
       // this._PRIVATE_handleTransitionChanges(changes, context, options, attributes);
 
       // Create animation attributes from the changes
@@ -672,7 +684,7 @@ export function register() {
       return game.settings.get(MODULENAME, "tokenCollision") && (!this.document.hidden || game.settings.get(MODULENAME, "tokenCollisionHidden"));
     }
 
-    filterCollisions(collisions, {follow=false}) {
+    filterCollisions(collisions, {follow=false}={}) {
       const followChain = (()=>{
         if (follow) return getAllInFollowChain(this.document);
         return new Set(getAllFollowing(this.document));

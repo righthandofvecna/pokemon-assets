@@ -162,11 +162,13 @@ def generate_token_class():
                 transformed_members[i] = member
     replace_in_members("offsetX ??= this._PRIVATE_centerOffset.x", "offsetX ??= this._PRIVATE_centerOffset?.x || 0")
     replace_in_members("offsetY ??= this._PRIVATE_centerOffset.y", "offsetY ??= this._PRIVATE_centerOffset?.y || 0")
+    replace_in_members("super._onUpdate(", "PlaceableObject.prototype._onUpdate.call(this, ")
 
     with open(TOKEN_MJS_PATH, "w", encoding="utf-8") as outfile:
         outfile.write("""const { PointMovementSource } = foundry.canvas.sources;
 const { PreciseText } = foundry.canvas.containers;
 const { PrimarySpriteMesh } = foundry.canvas.primary;
+const { PlaceableObject } = foundry.canvas.placeables;
 const { Ray } = foundry.canvas.geometry;
 const { CanvasAnimation } = foundry.canvas.animation;
 const { PrimaryCanvasGroup } = foundry.canvas.groups;

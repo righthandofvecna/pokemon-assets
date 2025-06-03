@@ -195,12 +195,14 @@
 }
 .window-app.pokemon-dialog .window-content {
   background: white;
+}
+.window-app.pokemon-dialog .window-content .dialog-content {
   font-family: "Pokemon DPPt";
   font-size: xx-large;
   text-shadow: 2px 2px darkgray;
   color: black;
 }
-.window-app.pokemon-dialog .window-content p {
+.window-app.pokemon-dialog .window-content .dialog-content p {
   margin: 0;
 }
 .window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons {
