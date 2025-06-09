@@ -390,6 +390,9 @@ async function HandleIce() {
  * @param {boolean} lowHp if below 1/5 hp, we should play the alert
  */
 async function IndicateDamage(actor, token, lowHp) {
+  const sceneVisible = token?.scene?.id === canvas?.scene?.id;
+  if (!sceneVisible) return;
+
   const sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });
   sequence.sound()
       .file(`modules/pokemon-assets/audio/bgs/hit.mp3`)
@@ -440,6 +443,9 @@ async function IndicateDamage(actor, token, lowHp) {
  * @returns the sequence to play
  */
 function ThrowPokeball(source, target, img, hit) {
+  const sceneVisible = target?.scene?.id === canvas?.scene?.id;
+  if (!sceneVisible) return;
+
   Sequencer.Preloader.preload([
     "modules/pokemon-assets/audio/bgs/pokeball-throw.mp3",
     "modules/pokemon-assets/audio/bgs/pokeball-drop.mp3",
@@ -491,6 +497,10 @@ function ThrowPokeball(source, target, img, hit) {
  * @returns the sequence to play
  */
 function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
+  const scene = tokenScene(target);
+  const sceneVisible = scene?.id === canvas?.scene?.id;
+  if (!sceneVisible) return extendSequence;
+
   Sequencer.Preloader.preload([
     "modules/pokemon-assets/audio/bgs/pokeball-shake.mp3",
     "modules/pokemon-assets/audio/bgs/pokeball-caught.mp3",
@@ -500,7 +510,6 @@ function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
   const volume = VolumeSettings.getVolume("catch");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
-  const scene = tokenScene(target);
   const targetCenter = target.center ?? {
     x: target.x + (target.width * (scene?.grid?.sizeX ?? 100) / 2),
     y: target.y + (target.height * (scene?.grid?.sizeY ?? 100) / 2)
@@ -564,6 +573,10 @@ function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
  * @returns 
  */
 function SummonPokemon(target, shiny, extendSequence=null) {
+  const scene = tokenScene(target);
+  const sceneVisible = scene?.id === canvas?.scene?.id;
+  if (!sceneVisible) return extendSequence;
+
   const cry = game.modules.get(MODULENAME)?.api?.logic?.ActorCry(target?.actor);
   const preloads = ["modules/pokemon-assets/audio/bgs/pokeball-escape.mp3"];
   if (cry) preloads.push(cry);
@@ -573,7 +586,6 @@ function SummonPokemon(target, shiny, extendSequence=null) {
   const cryVolume = VolumeSettings.getVolume("cry");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
-  const scene = tokenScene(target);
   const targetCenter = target.center ?? {
     x: target.x + (target.width * (scene?.grid?.sizeX ?? 100) / 2),
     y: target.y + (target.height * (scene?.grid?.sizeX ?? 100) / 2)
@@ -628,6 +640,10 @@ function SummonPokemon(target, shiny, extendSequence=null) {
  * @param {*} extendSequence 
  */
 function SummonWildPokemon(target, shiny, extendSequence=null) {
+  const scene = tokenScene(target);
+  const sceneVisible = scene?.id === canvas?.scene?.id;
+  if (!sceneVisible) return extendSequence;
+
   const cry = game.modules.get(MODULENAME)?.api?.logic?.ActorCry(target?.actor);
   const preloads = ["modules/pokemon-assets/audio/bgs/grass-shake.mp3"];
   if (cry) preloads.push(cry);
@@ -637,7 +653,6 @@ function SummonWildPokemon(target, shiny, extendSequence=null) {
   const cryVolume = VolumeSettings.getVolume("cry");
   const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
 
-  const scene = tokenScene(target);
   const targetCenter = target.center ?? {
     x: target.x + (target.width * (scene?.grid?.sizeX ?? 100) / 2),
     y: target.y + (target.height * (scene?.grid?.sizeX ?? 100) / 2)
