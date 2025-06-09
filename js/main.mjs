@@ -1,4 +1,5 @@
 
+import * as migration from "./migration.mjs";
 import * as settings from "./settings.mjs";
 import * as preload from "./preload.mjs";
 import * as actor from "./actor.mjs";
@@ -17,7 +18,8 @@ import * as system from "./system-specific/index.mjs";
 import * as socket from "./socket.mjs";
 
 Hooks.on("init", ()=>{
-  for (const m of [settings,
+  for (const m of [migration,
+    settings,
     preload,
     actor,
     audio,
