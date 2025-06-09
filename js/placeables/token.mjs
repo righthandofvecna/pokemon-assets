@@ -479,10 +479,12 @@ export function register() {
     }
 
     _canDrag() {
-      const scene = this?.document?.parent;
-      const hasCombat = getCombatsForScene(scene.uuid).length > 0;
-      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && hasCombat)))
-        return false;
+      try {
+        const scene = this?.document?.parent;
+        const hasCombat = getCombatsForScene(scene?.uuid).length > 0;
+        if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && hasCombat)))
+          return false;
+      } catch { }
       return super._canDrag();
     }
 
