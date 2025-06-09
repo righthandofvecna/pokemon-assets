@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, MODULENAME, tokenScene } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 
@@ -474,10 +474,12 @@ export function register() {
     }
 
     _canDrag() {
-      const scene = this?.document?.parent;
-      const hasCombat = !!game.combats.find(c=>c.active && c.scene.uuid === scene.uuid);
-      if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && hasCombat)))
-        return false;
+      try {
+        const scene = this?.document?.parent;
+        const hasCombat = getCombatsForScene(scene?.uuid).length > 0;
+        if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && hasCombat)))
+          return false;
+      } catch { }
       return super._canDrag();
     }
 
