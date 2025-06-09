@@ -1,4 +1,4 @@
-import { MODULENAME, early_isGM, sleep, snapToGrid, listenFilepickerChange } from "./utils.mjs";
+import { MODULENAME, early_isGM, sleep, snapToGrid, listenFilepickerChange, getCombatsForScene } from "./utils.mjs";
 import { SOUNDS } from "./audio.mjs";
 import { UserPaintArea } from "./scripts.mjs";
 
@@ -10,7 +10,7 @@ import { UserPaintArea } from "./scripts.mjs";
  */
 function Scene_prepareBaseData(wrapped, ...args) {
   wrapped(...args);
-  const hasCombat = !!game.combats.find(c=>c.active && c.scene.uuid === this.uuid);
+  const hasCombat = getCombatsForScene(this.uuid).length > 0;
   if (this.getFlag(MODULENAME, "diagonals") && !(this.getFlag(MODULENAME, "outOfCombat") && hasCombat)) {
     this.grid.diagonals = CONST.GRID_DIAGONALS.ILLEGAL;
   }
