@@ -418,27 +418,36 @@ function Token_onUpdate(wrapped, e, t, s) {
  * Overridden for the purposes of mega evolutions
  */
 function TokenAlterations_apply(wrapped, ...args) {
+  const preUpdatedTexture = foundry.utils.deepClone(this.actor.synthetics.tokenOverrides.texture);
+
   wrapped(...args);
   if (!this.test()) return;
 
-  if (true || game.settings.get(MODULENAME, "autoOverrideMegaEvolutionSprite")) {
-    // check if this is a mega evolution that we have a sprite for
-    const foundMegaEvo = (()=>{
-      const basename = this.texture.substring(this.texture.lastIndexOf("/")+1, this.texture.lastIndexOf("."));
-      if (!basename) return false;
+  // if we're not updating the texture, just return
+  if (!this.texture) return;
+  
+  // check if this is a mega evolution that we have a sprite for
+  const foundMegaEvo = (()=>{
+    const basename = this.texture.substring(this.texture.lastIndexOf("/")+1, this.texture.lastIndexOf("."));
+    if (!basename) return false;
 
-      const src = (()=>{
-        for (const src of SpritesheetGenerator.allSheetKeys()) {
-          if (src.toLowerCase().includes(basename.toLowerCase())) return src;
-        }
-      })();
-
-      if (!src) return false;
-
-      this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, _getTokenChangesForSpritesheet(src));
-      return true;
+    const src = (()=>{
+      for (const src of SpritesheetGenerator.allSheetKeys()) {
+        if (src.toLowerCase().includes(basename.toLowerCase())) return src;
+      }
     })();
-    if (foundMegaEvo) return;
+
+    if (!src) return false;
+
+    this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, _getTokenChangesForSpritesheet(src));
+    return true;
+  })();
+  if (foundMegaEvo) return;
+
+  // if we're updating the texture to {actor|img}, such as in the glow automation, undo it
+  if (this.texture == "{actor|img}") {
+    this.actor.synthetics.tokenOverrides.texture = preUpdatedTexture;
+    return;
   }
 
   // if not, disable spritesheet processing
