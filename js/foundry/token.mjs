@@ -6,6 +6,7 @@ const { Ray } = foundry.canvas.geometry;
 const { CanvasAnimation } = foundry.canvas.animation;
 const { PrimaryCanvasGroup } = foundry.canvas.groups;
 const { InvisibilityFilter } = foundry.canvas.rendering.filters;
+const { REGION_MOVEMENT_SEGMENTS } = CONST;
 
 export function NonPrivateTokenMixin(TokenClass) {
   return class NonPrivateToken extends TokenClass {
