@@ -730,7 +730,7 @@ async function CreateImageShow(regionConfig) {
   });
   if (!imageSrc) return;
 
-  const title = imageSrc.substring(imageSrc.lastIndexOf("/") + 1, imageSrc.lastIndexOf(".")).replaceAll("_", " ").replaceAll("-", " ").titleCase();
+  const title = imageSrc.substring(imageSrc.lastIndexOf("/") + 1, imageSrc.lastIndexOf(".")).replaceAll("_", " ").replaceAll("-", " ").replaceAll("%20", " ").titleCase();
 
   // get the direction we need to look in order to trigger this
   const directions = (await game.modules.get(MODULENAME).api.scripts.UserChooseDirections({
