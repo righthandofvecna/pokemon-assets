@@ -936,15 +936,21 @@ async function TriggerClimb(climbType, to, ...args) {
 
 export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
   if (canUse) {
-    if (skipQuery|| await new Promise((resolve)=>Dialog.confirm({
-      title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
-      content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CanUse`),
-      yes: ()=>resolve(true),
-      no: ()=>resolve(false),
-      options: {
-        pokemon: true,
-      },
-    }))) {
+    let confirm = skipQuery;
+    if (!skipQuery) {
+      Interact();
+      confirm = await new Promise((resolve)=>Dialog.confirm({
+        title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
+        content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CanUse`),
+        yes: ()=>resolve(true),
+        no: ()=>resolve(false),
+        options: {
+          pokemon: true,
+        },
+      }));
+    }
+    if (confirm) {
+      Interact();
       await Dialog.prompt({
         title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
         content: game.i18n.format(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Used`, { name: who?.name}),
@@ -956,6 +962,7 @@ export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
     };
     return false;
   } else {
+    Interact();
     Dialog.prompt({
       title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
       content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CannotUse`),
