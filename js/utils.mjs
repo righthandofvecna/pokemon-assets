@@ -92,10 +92,10 @@ export function listenFilepickerChange(filepicker, onChange) {
 }
 
 
-export function getCombatsForScene(scene) {
-	const combats = game.combats.filter(c=>c?.active && c?.scene?.uuid === scene) ?? [];
+export function getCombatsForScene(sceneId) {
+	const combats = game.combats.filter(c=>c?.active && c?.scene?.uuid === sceneId) ?? [];
 	if (combats.length > 0) return combats;
 	// PTR 2e automatically disconnects the combat from the scene, so let's check the participants' scene IDs instead
-	return game.combats.contents.filter(c=>c?.active && c?.combatants?.contents?.some(p=>p.sceneId === scene)) ?? [];
+	return game.combats.contents.filter(c=>c?.active && c?.combatants?.contents?.some(p=>p.sceneId === sceneId)) ?? [];
 }
 
