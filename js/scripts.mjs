@@ -917,7 +917,18 @@ async function TriggerClimb(climbType, to, ...args) {
         }
       }
       seq.play();
-      await token.update(to, { animation: animationOptions });
+      await token.update(to, {
+        animation: animationOptions,
+        movement: {
+          [token.id]: {
+            constrainOptions: {
+              ignoreWalls: true,
+              ignoreCost: true,
+              history: false,
+            }
+          }
+        }
+      });
 
       return;
     case "waterfall":
@@ -928,7 +939,17 @@ async function TriggerClimb(climbType, to, ...args) {
       } else {
         return;
       }
-      await token.update(to);
+      await token.update(to, {
+        movement: {
+          [token.id]: {
+            constrainOptions: {
+              ignoreWalls: true,
+              ignoreCost: true,
+              history: false,
+            }
+          }
+        }
+      });
       return;
     default: return;
   }
