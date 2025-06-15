@@ -14,6 +14,7 @@ async function PokemonCenter(nurse, doHeal) {
   let volume = music?.volume ?? 1;
 
   const talk = async function(text, ms=1500) {
+    Interact();
     await Dialog.prompt({
       content: `<p>${game.i18n.localize(text)}</p>`,
       options: {
@@ -24,6 +25,7 @@ async function PokemonCenter(nurse, doHeal) {
   await talk("POKEMON-ASSETS.PokemonCenter.Welcome1");
   await talk("POKEMON-ASSETS.PokemonCenter.Welcome2");
 
+  Interact();
   if (await new Promise((resolve)=>Dialog.confirm({
     title: "Pokemon Center Nurse",
     content: game.i18n.localize("POKEMON-ASSETS.PokemonCenter.Question"),
@@ -76,6 +78,7 @@ async function PokemonCenter(nurse, doHeal) {
   await talk("POKEMON-ASSETS.PokemonCenter.Thank1");
   await talk("POKEMON-ASSETS.PokemonCenter.Thank2");
   await talk("POKEMON-ASSETS.PokemonCenter.Goodbye");
+  Interact();
 }
 
 /**
