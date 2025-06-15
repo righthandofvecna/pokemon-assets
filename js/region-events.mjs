@@ -176,6 +176,7 @@ async function OnInteract() {
     });
 
     if (facingTokens.length > 0) {
+      Interact();
       facingTokens.forEach(ip=>game.itempiles.API.renderItemPileInterface(ip.document, { inspectingTarget: token?.actor?.uuid }));
     }
   };
