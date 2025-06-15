@@ -534,15 +534,7 @@ export function register() {
       })();
 
       if (this.isTileset && to.rotation != undefined) {
-        to.rotation = (to.rotation ?? 0 + 360) % 360; // normalize the rotation
-        from.rotation = to.rotation ?? from.rotation;
-        from.rotation = (from.rotation ?? 0 + 360) % 360; // normalize the rotation
-        if (Object.keys(to).length > 1 || angleDiff(to.rotation, from.rotation ?? to.rotation) < 45) {
-          delete to.rotation;
-        } else {
-          // don't delete it
-          console.log(`Keeping rotation for token ${this.id} as it is the only change`, foundry.utils.deepClone(to), foundry.utils.deepClone(from));
-        }
+        delete to.rotation;
       }
 
       this._origin = {
@@ -551,6 +543,9 @@ export function register() {
       };
 
       return super._PRIVATE_animate(to, options, chained).finally(()=>{
+        if (!this.isTileset) return;
+        // change rotation to the direction of the token
+        this.direction = getDirectionFromAngle(this.document.rotation ?? 0);
         // start the idle animation
         if (this.animationContexts.size == 0) this.startIdleAnimation();
       });
