@@ -295,7 +295,7 @@ function OnInitializeEdges() {
 }
 
 export function register() {
-  class TilesetToken extends NonPrivateTokenMixin(CONFIG.Token.objectClass) {
+  class SpritesheetToken extends NonPrivateTokenMixin(CONFIG.Token.objectClass) {
     #index;
     #textures;
     #textureSrc;
@@ -321,7 +321,7 @@ export function register() {
       this.#direction = "down";
     }
 
-    get isTileset() {
+    get isSpritesheet() {
       return this.document.getFlag(MODULENAME, "spritesheet");
     }
 
@@ -347,8 +347,8 @@ export function register() {
 
     /** @override */
     async _draw(options) {
-      // check if this token has a tileset configured
-      if (!this.isTileset) return super._draw(options);
+      // check if this token has a spritesheet configured
+      if (!this.isSpritesheet) return super._draw(options);
       
       this._PRIVATE_cleanData();
 
@@ -497,7 +497,7 @@ export function register() {
      * @protected
      */
     _refreshRotation() {
-      if (!this.isTileset) return super._refreshRotation();
+      if (!this.isSpritesheet) return super._refreshRotation();
 
       this.mesh.angle = 0;
       this.#updateDirection();
@@ -533,7 +533,7 @@ export function register() {
         return game.settings.get(MODULENAME, "runSpeed") ?? 8;
       })();
 
-      if (this.isTileset && to.rotation != undefined) {
+      if (this.isSpritesheet && to.rotation != undefined) {
         delete to.rotation;
       }
 
@@ -543,7 +543,7 @@ export function register() {
       };
 
       return super._PRIVATE_animate(to, options, chained).finally(()=>{
-        if (!this.isTileset) return;
+        if (!this.isSpritesheet) return;
         // change rotation to the direction of the token
         this.direction = getDirectionFromAngle(this.document.rotation ?? 0);
         // start the idle animation
@@ -584,11 +584,11 @@ export function register() {
      * @protected
      */
     _prepareAnimation(from, changes, context, options) {
-      if (!this.isTileset) return super._prepareAnimation(from, changes, context, options);
+      if (!this.isSpritesheet) return super._prepareAnimation(from, changes, context, options);
       const attributes = [];
 
       // TODO: handle teleportation
-      TilesetToken._PRIVATE_handleRotationChanges(from, changes);
+      SpritesheetToken._PRIVATE_handleRotationChanges(from, changes);
       // this._PRIVATE_handleTransitionChanges(changes, context, options, attributes);
 
       // Create animation attributes from the changes
@@ -604,7 +604,7 @@ export function register() {
     }
 
     get framesInAnimation() {
-      if (!this.isTileset || this.#textures == null) return 1;
+      if (!this.isSpritesheet || this.#textures == null) return 1;
       const idxOffset = this.separateIdle ? 1 : 0;
       return this.#textures[this.#facing].length - idxOffset;
     }
@@ -618,7 +618,7 @@ export function register() {
 
     _onAnimationUpdate(changed, context) {
       const irrelevant = !["x", "y", "rotation", "frame"].some(p=>foundry.utils.hasProperty(changed, p));
-      if (irrelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
+      if (irrelevant || !this.isSpritesheet || this.#textures == null) return super._onAnimationUpdate(changed, context);
 
       // get tile size
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
@@ -894,7 +894,7 @@ export function register() {
 
   };
 
-  CONFIG.Token.objectClass = TilesetToken;
+  CONFIG.Token.objectClass = SpritesheetToken;
 
   Object.defineProperty(CONFIG.Token.documentClass.prototype, "movable", {
     get() {

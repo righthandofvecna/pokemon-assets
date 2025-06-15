@@ -250,15 +250,15 @@ export class SpritesheetGenerator {
     return spritesheet.animations;
   }
 
-  async getTexturesForToken(tilesetToken, texture) {
+  async getTexturesForToken(spritesheetToken, texture) {
     const spritesheet = await this.#getSpritesheet(
-      tilesetToken.document.texture.src,
+      spritesheetToken.document.texture.src,
       texture,
-      tilesetToken.sheetStyle,
-      tilesetToken.animationFrames
+      spritesheetToken.sheetStyle,
+      spritesheetToken.animationFrames
     );
     spritesheet._registeredTokens ??= new Set();
-    spritesheet._registeredTokens.add(tilesetToken);
+    spritesheet._registeredTokens.add(spritesheetToken);
     return spritesheet.animations;
   }
 }

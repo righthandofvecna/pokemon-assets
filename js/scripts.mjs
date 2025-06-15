@@ -998,12 +998,12 @@ export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
 
 /**
  * Check if the token is facing one of the given directions
- * @param {TilesetToken} token 
+ * @param {SpritesheetToken} token 
  * @param {array} directions 
  * @returns 
  */
 function TokenHasDirection(token, directions) {
-  return !token?.object?.isTileset || directions.includes(token?.object?.direction);
+  return !token?.object?.isSpritesheet || directions.includes(token?.object?.direction);
 }
 
 class PainterTemplate extends MeasuredTemplate {
