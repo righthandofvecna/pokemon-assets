@@ -56,7 +56,7 @@ function Scene_updateEmbeddedDocuments(wrapped, embeddedName, updates=[], operat
 
 
 
-function TilesetToken_tryPush(dx, dy) {
+function SpritesheetToken_tryPush(dx, dy) {
   dx = Math.round(dx / Math.max(Math.abs(dx), Math.abs(dy)));
   dy = Math.round(dy / Math.max(Math.abs(dx), Math.abs(dy)));
   if (dx === 0 && dy === 0) return;
@@ -95,5 +95,5 @@ export function register() {
   libWrapper.register("pokemon-assets", "Scene.prototype.updateEmbeddedDocuments", Scene_updateEmbeddedDocuments, "WRAPPER");
   
   CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
-  CONFIG.Token.objectClass.prototype._tryPush = TilesetToken_tryPush;
+  CONFIG.Token.objectClass.prototype._tryPush = SpritesheetToken_tryPush;
 }

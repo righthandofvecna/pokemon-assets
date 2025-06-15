@@ -357,7 +357,6 @@ export function NonPrivateTokenMixin(TokenClass) {
 
     // Update perception and rendering
     canvas.perception.update(perceptionFlags);
-    if ( canvas.lighting.active ) this.renderFlags.set({refreshField: true});
   };
 
   /* -------------------------------------------- */
@@ -495,6 +494,7 @@ export function NonPrivateTokenMixin(TokenClass) {
     if ( this._PRIVATE_unlinkedVideo ) this.texture?.baseTexture?.destroy(); // Destroy base texture if the token has an unlinked video
     this._PRIVATE_unlinkedVideo = false;
     if ( this.hasActiveHUD ) this.layer.hud.close();
+    return this;
   };
 
   /* -------------------------------------------- */
@@ -1021,8 +1021,8 @@ export function NonPrivateTokenMixin(TokenClass) {
     if ( completed ) foundry.utils.mergeObject(this._PRIVATE_animationData, context.to);
     const animationData = foundry.utils.filterObject(this._PRIVATE_animationData, context.to);
     const changed = foundry.utils.diffObject(this._PRIVATE_priorAnimationData, animationData);
-    foundry.utils.mergeObject(this._PRIVATE_priorAnimationData, animationData);
-    foundry.utils.mergeObject(this.document, animationData, {insertKeys: false});
+    foundry.utils.mergeObject(this._PRIVATE_priorAnimationData, changed);
+    foundry.utils.mergeObject(this.document, this._PRIVATE_animationData, {insertKeys: false});
     for ( const fn of context.onAnimate ) fn(context);
     this._onAnimationUpdate(changed, context);
     if ( completed ) this._PRIVATE_completeAnimation(context);
@@ -1416,6 +1416,7 @@ export function NonPrivateTokenMixin(TokenClass) {
     }
 
     for ( let i = 1; i < waypoints.length; i++ ) {
+      const priorWaypoint = waypoint;
       let {x=waypoint.x, y=waypoint.y, elevation=waypoint.elevation, width=waypoint.width, height=waypoint.height,
         shape=waypoint.shape, action=waypoint.action, terrain=null, snapped=false, explicit=false,
         checkpoint=false} = waypoints[i];
@@ -1449,12 +1450,12 @@ export function NonPrivateTokenMixin(TokenClass) {
       if ( !ignoreWalls && wallType ) {
         let collision = this._PRIVATE_testWallCollision(origin, destination, wallType, preview);
         if ( collision ) {
+          result.constrained = true;
 
-          // Calculate the 3D collision point that is slightly shifted in the direction of the origin
-          // so that the token won't clip through the wall
+          // Calculate the 3D collision point
           collision = {
-            x: Math.round(collision.x - (center.x - waypoint.x)) - Math.sign(destination.x - origin.x),
-            y: Math.round(collision.y - (center.y - waypoint.y)) - Math.sign(destination.y - origin.y),
+            x: Math.round(collision.x - (center.x - waypoint.x)),
+            y: Math.round(collision.y - (center.y - waypoint.y)),
             elevation: Math.mix(origin.elevation, destination.elevation, collision._distance)
           };
 
@@ -1466,8 +1467,14 @@ export function NonPrivateTokenMixin(TokenClass) {
           // Get the collision waypoint
           const collisionWaypoint = this._PRIVATE_getCollisionWaypoint(waypoint, collision, origin, center, offsetX, offsetY,
             wallType, preview);
-          if ( collisionWaypoint ) result.path.push(collisionWaypoint);
-          result.constrained = true;
+          if ( !collisionWaypoint ) break;
+
+          // Skip if collision waypoint is almost the same as the origin waypoint
+          if ( Math.max(Math.abs(collisionWaypoint.x - priorWaypoint.x),
+            Math.abs(collisionWaypoint.y - priorWaypoint.y)) <= 1 ) break;
+
+          // Add collision waypoint to the result
+          result.path.push(collisionWaypoint);
           break;
         }
       }
@@ -1498,45 +1505,69 @@ export function NonPrivateTokenMixin(TokenClass) {
    *                                          should stop at the origin
    */
   _PRIVATE_getCollisionWaypoint(waypoint, collision, origin, center, offsetX, offsetY, type, preview) {
+    const priorOffsetX = offsetX;
+    const priorOffsetY = offsetY;
 
-    // If not snapped or gridless, we use the exact point of collision
+    // If not snapped or gridless, we use the exact point of collision if possible
     if ( !waypoint.snapped || canvas.grid.isGridless ) {
-      return {x: collision.x, y: collision.y, elevation: collision.elevation, width: waypoint.width,
-        height: waypoint.height, shape: waypoint.shape, action: waypoint.action, terrain: waypoint.terrain,
-        snapped: false, explicit: false, checkpoint: false};
+      const k = Math.ceil(canvas.dimensions.size / 4);
+      const n = Math.ceil(Math.hypot(collision.x - origin.x, collision.y - origin.y));
+      for ( let j = 0; j < n; j += Math.clamp(j, 1, k) ) {
+        const t = j / n;
+        const p = {
+          x: Math.round(Math.mix(collision.x, origin.x, t)),
+          y: Math.round(Math.mix(collision.y, origin.y, t)),
+          elevation: Math.mix(collision.elevation, origin.elevation, t),
+          width: waypoint.width, height: waypoint.height, shape: waypoint.shape,
+          action: waypoint.action, terrain: waypoint.terrain, snapped: false, explicit: false, checkpoint: false
+        };
+        const c = this.document.getCenterPoint(p);
+        const ox = Math.sign(c.x - center.x);
+        const oy = Math.sign(c.y - center.y);
+        if ( ox !== 0 ) offsetX = ox;
+        if ( oy !== 0 ) offsetY = oy;
+        const destination = this.getMovementAdjustedPoint(c, {offsetX, offsetY});
+        if ( !this._PRIVATE_testWallCollision(origin, destination, type, preview) ) return p;
+        offsetX = priorOffsetX;
+        offsetY = priorOffsetY;
+      }
     }
 
     // Otherwise we try to find the closest snapped position between the origin and the collision.
     // Note that this algorithm might not return the closest (best) snapped position.
-    const d = canvas.dimensions;
-    const n = Math.ceil(Math.hypot(collision.x - origin.x, collision.y - origin.y,
-      (collision.elevation - origin.elevation) * d.distancePixels) / (d.size / 4));
-    for ( let j = 0; j < n; j++ ) {
-      const t = j / n;
-      const p = this.document.getSnappedPosition({
-        x: Math.mix(collision.x, origin.x, t),
-        y: Math.mix(collision.y, origin.y, t),
-        elevation: Math.mix(collision.elevation, origin.elevation, t),
-        width: waypoint.width, height: waypoint.height, shape: waypoint.shape
-      });
-      p.x = Math.round(p.x);
-      p.y = Math.round(p.y);
-      p.width = waypoint.width;
-      p.height = waypoint.height;
-      p.shape = waypoint.shape;
-      const c = this.document.getCenterPoint(p);
-      const ox = Math.sign(c.x - center.x);
-      const oy = Math.sign(c.y - center.y);
-      if ( ox !== 0 ) offsetX = ox;
-      if ( oy !== 0 ) offsetY = oy;
-      const destination = this.getMovementAdjustedPoint(c, {offsetX, offsetY});
-      if ( !this._PRIVATE_testWallCollision(origin, destination, type, preview) ) {
-        p.action = waypoint.action;
-        p.terrain = waypoint.terrain;
-        p.snapped = false;
-        p.explicit = false;
-        p.checkpoint = false;
-        return p;
+    else {
+      const d = canvas.dimensions;
+      const n = Math.ceil(Math.hypot(collision.x - origin.x, collision.y - origin.y,
+        (collision.elevation - origin.elevation) * d.distancePixels) / (d.size / 4));
+      for ( let j = 0; j < n; j++ ) {
+        const t = j / n;
+        const p = this.document.getSnappedPosition({
+          x: Math.mix(collision.x, origin.x, t),
+          y: Math.mix(collision.y, origin.y, t),
+          elevation: Math.mix(collision.elevation, origin.elevation, t),
+          width: waypoint.width, height: waypoint.height, shape: waypoint.shape
+        });
+        p.x = Math.round(p.x);
+        p.y = Math.round(p.y);
+        p.width = waypoint.width;
+        p.height = waypoint.height;
+        p.shape = waypoint.shape;
+        const c = this.document.getCenterPoint(p);
+        const ox = Math.sign(c.x - center.x);
+        const oy = Math.sign(c.y - center.y);
+        if ( ox !== 0 ) offsetX = ox;
+        if ( oy !== 0 ) offsetY = oy;
+        const destination = this.getMovementAdjustedPoint(c, {offsetX, offsetY});
+        if ( !this._PRIVATE_testWallCollision(origin, destination, type, preview) ) {
+          p.action = waypoint.action;
+          p.terrain = waypoint.terrain;
+          p.snapped = true;
+          p.explicit = false;
+          p.checkpoint = false;
+          return p;
+        }
+        offsetX = priorOffsetX;
+        offsetY = priorOffsetY;
       }
     }
   };
@@ -2240,11 +2271,30 @@ export function NonPrivateTokenMixin(TokenClass) {
       this._preventKeyboardMovement = false;
       return;
     }
-    let to = this._getAnimationData();
+    const movement = options._movement?.[this.document.id];
+    const animationData = this._getAnimationData();
+    const to = foundry.utils.filterObject(animationData, changed);
+
+    // Delete positional and size from the animation data, which we are animating separately
+    for ( const k of TokenDocument.MOVEMENT_FIELDS ) delete to[k];
+    if ( movement && movement.autoRotate ) delete to.rotation;
+
+    // TODO: Can we find a solution that doesn't require special handling for hidden?
+    if ( "hidden" in changed ) to.alpha = animationData.alpha;
+
+    // We need to infer subject texture if ring is enabled and texture is changed
+    const ringEnabled = this.document.ring.enabled;
+    const ringChanged = "ring" in changed;
+    const ringEnabledChanged = ringChanged && ("enabled" in changed.ring);
+    const ringSubjectChanged = ringEnabled && ringChanged && ("subject" in changed.ring);
+    const ringSubjectTextureChanged = ringSubjectChanged && ("texture" in changed.ring.subject);
+    if ( (ringEnabled || ringEnabledChanged) && !ringSubjectTextureChanged && ("texture" in changed)
+      && ("src" in changed.texture) && !this.document._source.ring.subject.texture ) {
+      foundry.utils.mergeObject(to, {ring: {subject: {texture: animationData.ring.subject.texture}}});
+    }
 
     // Animate movement separately from the non-movement-related fields
     let movementAnimationDuration;
-    const movement = options._movement?.[this.document.id];
     if ( movement ) {
       const previousMovementAnimationPromise = this.movementAnimationPromise;
       let movementAnimationPromise = previousMovementAnimationPromise;
@@ -2306,7 +2356,7 @@ export function NonPrivateTokenMixin(TokenClass) {
         movementAnimationPromise = end;
       }
       if ( movement.autoRotate ) {
-        movementAnimationPromise = this.animate({rotation: to.rotation}, {
+        movementAnimationPromise = this.animate({rotation: animationData.rotation}, {
           name: this.movementAnimationName,
           chain: true,
           action: animationPath.at(-1).action,
@@ -2406,25 +2456,6 @@ export function NonPrivateTokenMixin(TokenClass) {
         movementAnimationPromise.finally(callback);
         setTimeout(callback, movementContinuationDuration);
       });
-    }
-
-    // Delete positional and size from the animation data, which we are animating separately
-    to = foundry.utils.filterObject(to, changed);
-    for ( const k of TokenDocument.MOVEMENT_FIELDS ) delete to[k];
-    if ( movement && movement.autoRotate ) delete to.rotation;
-
-    // TODO: Can we find a solution that doesn't require special handling for hidden?
-    if ( "hidden" in changed ) to.alpha = this.document.alpha;
-
-    // We need to infer subject texture if ring is enabled and texture is changed
-    const ringEnabled = this.document.ring.enabled;
-    const ringChanged = "ring" in changed;
-    const ringEnabledChanged = ringChanged && ("enabled" in changed.ring);
-    const ringSubjectChanged = ringEnabled && ringChanged && ("subject" in changed.ring);
-    const ringSubjectTextureChanged = ringSubjectChanged && ("texture" in changed.ring.subject);
-    if ( (ringEnabled || ringEnabledChanged) && !ringSubjectTextureChanged && ("texture" in changed)
-      && ("src" in changed.texture) && !this.document._source.ring.subject.texture ) {
-      foundry.utils.mergeObject(to, {ring: {subject: {texture: this.document.ring.subject.texture}}});
     }
 
     // Set the duration of non-movement properties to the animation duration of movement if requested

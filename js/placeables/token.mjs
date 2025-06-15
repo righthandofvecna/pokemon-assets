@@ -259,7 +259,7 @@ function getAngleFromDirection(d) {
 }
 
 function getDirectionFromAngle(angle) {
-  switch (Math.floor(((angle + 22.5) % 360) / 45)) {
+  switch (( 8 + Math.floor(((angle + 22.5) % 360) / 45) ) % 8) {
     case 0: return "down";
     case 1: return "downleft";
     case 2: return "left";
@@ -533,10 +533,6 @@ export function register() {
         return game.settings.get(MODULENAME, "runSpeed") ?? 8;
       })();
 
-      if (this.isSpritesheet && to.rotation != undefined) {
-        delete to.rotation;
-      }
-
       this._origin = {
         x: this.transform?.position?.x ?? this.document?.x,
         y: this.transform?.position?.y ?? this.document?.y,
@@ -544,8 +540,6 @@ export function register() {
 
       return super._PRIVATE_animate(to, options, chained).finally(()=>{
         if (!this.isSpritesheet) return;
-        // change rotation to the direction of the token
-        this.direction = getDirectionFromAngle(this.document.rotation ?? 0);
         // start the idle animation
         if (this.animationContexts.size == 0) this.startIdleAnimation();
       });
@@ -631,23 +625,16 @@ export function register() {
       // set the direction
       const dx = (context?.to?.x ?? changed.x ?? 0) - (changed.x ?? context?.to?.x ?? 0);
       const dy = (context?.to?.y ?? changed.y ?? 0) - (changed.y ?? context?.to?.y ?? 0);
-      if (dx != 0 || dy != 0 || changed.frame != undefined) {
-        if (this.document._spinning) { // spinning
-          this.#index = 0;
-          this.#direction = ["down", "right", "up", "left"][frame % 4];
-        } else { // normal animation
-          if (dx != 0 || dy != 0) this.#direction = getDirection(dx, dy);
-          const idxOffset = this.separateIdle ? 1 : 0;
-          this.#index = idxOffset + ( frame % this.framesInAnimation );
-        }
-
-        // don't animate rotation while moving
-        if (changed.rotation != undefined) {
-          delete changed.rotation;
-        }
-      } else {
-        this.#updateDirection();
+      if (changed.frame != undefined) { // idle animation
+        if (dx != 0 || dy != 0) this.#direction = getDirection(dx, dy);
+        const idxOffset = this.separateIdle ? 1 : 0;
+        this.#index = idxOffset + ( frame % this.framesInAnimation );
+      } else if (this._spinning && (dx != 0 || dy != 0)) { // spinning animation
         this.#index = 0;
+        this.#direction = ["down", "right", "up", "left"][frame % 4];
+      } else {  // normal animation
+        this.#direction = getDirectionFromAngle(changed.rotation ?? this.document.rotation);
+        this.#index = frame;
       }
 
       if (this.document._sliding) { // slide with one leg out

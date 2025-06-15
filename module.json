@@ -11,8 +11,7 @@
   "version": "0.5.9",
   "compatibility": {
     "minimum": "13",
-    "verified": "13.344",
-    "maximum": "13"
+    "verified": "13.345"
   },
   "relationships": {
     "requires": [
@@ -21,7 +20,7 @@
         "type": "module",
         "compatibility": {
           "minimum": "1.0.0.0",
-          "verified": "1.13.2.0"
+          "verified": "1.13.3.0"
         }
       },
       {
@@ -29,14 +28,14 @@
         "type": "module",
         "compatibility": {
           "minimum": "3.6.0",
-          "verified": "3.6.0"
+          "verified": "3.6.1"
         }
       },
 		  {
         "id": "socketlib",
         "type": "module",
         "compatibility": {
-          "verified": "1.1.0"
+          "verified": "1.1.3"
         }
 		  }
     ]
