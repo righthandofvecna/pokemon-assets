@@ -545,8 +545,11 @@ export function register() {
         }
       }
 
-      this._origin = { x: this.x, y: this.y };
-      
+      this._origin = {
+        x: this.transform?.position?.x ?? this.document?.x,
+        y: this.transform?.position?.y ?? this.document?.y,
+      };
+
       return super._PRIVATE_animate(to, options, chained).finally(()=>{
         // start the idle animation
         if (this.animationContexts.size == 0) this.startIdleAnimation();
