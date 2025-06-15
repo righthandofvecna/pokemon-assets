@@ -1,5 +1,5 @@
 
-import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing, tokenScene } from "./utils.mjs";
+import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing, tokenScene, centerTokenMovement } from "./utils.mjs";
 import { VolumeSettings } from "./settings.mjs";
 import * as socket from "./socket.mjs";
 import { getAllFollowing } from "./module-compatibility/follow-me.mjs";
@@ -199,15 +199,16 @@ async function TokenReact(token, reaction) {
  * @returns 
  */
 async function TrainerEyesMeet(token, scene, regionDocument, regionBehavior, event) {
-  if (!isTheGM()) return; // only do updates as the GM
+  if (!game.user.isActiveGM) return; // only do updates as the GM
   if (token === event?.data?.token) return; // the token can't trigger its own vision!
   if (token.disposition === event?.data?.token?.disposition) return; // the token has to be aligned differently
 
   // pause game!
-  game.togglePause(true, true);
+  game.togglePause(true, { broadcast: true });
 
   // turn the token
-  const target = event?.data?.destination;
+  const target = centerTokenMovement(token, event?.data?.movement);
+  if (!target) return;
   const dx = token.x - target.x;
   const dy = token.y - target.y;
   const rotation = (()=>{
@@ -230,7 +231,7 @@ async function TrainerEyesMeet(token, scene, regionDocument, regionBehavior, eve
   await TokenReact(token, "surprise");
   const { sizeX, sizeY } = token?.parent?.grid ?? { sizeX: 100,  sizeY: 100 };
 
-  // new target location
+  // new target location, just short of colliding with the target
   const nx = target.x + (Math.sign(dx) * sizeX);
   const ny = target.y + (Math.sign(dy) * sizeY);
   await token.update({
@@ -315,7 +316,11 @@ async function HandleJumps() {
   const unlock = token.lockMovement();
   // wait until the token has finished animating
   await renderedToken.allAnimationsPromise;
-  const startpos = movement.passed?.waypoints?.at(-1) ?? { x: token.x, y: token.y };
+  const startpos = centerTokenMovement(token, movement);
+  if (!startpos) {
+    unlock();
+    return;
+  }
 
   // check if the token is still inside the jump area
   if (!token.regions.has(regionDocument)) {

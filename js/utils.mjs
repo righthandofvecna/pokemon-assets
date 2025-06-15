@@ -10,7 +10,7 @@ export function early_isGM() {
 }
 
 export function isTheGM() {
-	return game.users.find(u=>u.active && u.isGM)?.id === game.user.id;
+	return game.user.isActiveGM;
 }
 
 export function isGMOnline() {
@@ -26,6 +26,12 @@ export function snapToGrid({ x, y }, grid) {
 		x: Math.floor(x / grid.sizeX) * grid.sizeX,
 		y: Math.floor(y / grid.sizeY) * grid.sizeY,
 	}
+}
+
+export function centerTokenMovement(token, movement) {
+	return token?.parent?.grid?.getSnappedPoint(
+		movement?.passed?.waypoints?.[0],
+		{ mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_CORNER});
 }
 
 function _norm_angle(a) {

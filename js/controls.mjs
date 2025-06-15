@@ -643,7 +643,7 @@ async function CreateJump(regionConfig) {
     type: "executeScript",
     name: `Jump ${direction.titleCase()}`,
     system: {
-      events: ["tokenMoveWithin"],
+      events: ["tokenMoveWithin", "tokenMoveIn"],
       source: `game.modules.get("${MODULENAME}")?.api?.scripts?.HandleJumps?.("${direction}", ...arguments);`
     }
   };
@@ -708,7 +708,7 @@ async function CreateTrainer(regionConfig) {
     type: "executeScript",
     name: `Trainer Watch: ${currentScene.tokens.find(t=>t.uuid === tokenUuid)?.name ?? "Unknown"}`,
     system: {
-      events: ["tokenMove"],
+      events: ["tokenEnter"],
       source: `await game.modules.get("${MODULENAME}")?.api?.scripts?.TrainerEyesMeet?.(await fromUuid("${tokenUuid}"), ...arguments);`
     }
   };

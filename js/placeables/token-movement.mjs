@@ -13,7 +13,7 @@ import * as socket from "../socket.mjs";
  */
 async function TokenDocument_preUpdate(wrapped, changed, options, user) {
   await wrapped(changed, options, user);
-  const lwp = options.movement?.[this.id]?.waypoints?.at(-1) ?? [changed];
+  const lwp = options.movement?.[this.id]?.waypoints?.at(-1) ?? changed;
   if (!lwp || options?._movement?.[this.id]?.pending?.waypoints?.length > 0) return;
   // update direction
   const dx = lwp.x - this.x;
