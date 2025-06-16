@@ -16,7 +16,7 @@ gotThere = False
 for dirpath, dirnames, filenames in os.walk(os.path.join("img", "pmd-overworld")):
     for file in filenames:
         imgPath = os.path.join(dirpath, file)
-        if not gotThere and imgPath[imgPath.rindex("\\")+1:] != "0000.png":
+        if not gotThere and imgPath.split(os.path.sep)[-1] != "0000.png":
             continue
         gotThere = True
 
