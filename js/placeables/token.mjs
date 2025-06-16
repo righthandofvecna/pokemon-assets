@@ -713,6 +713,7 @@ export function register() {
 
       // move it to the top-right corner
       this.indicators.transform.position.x = this.document.getSize().width - size;
+      this.indicators.alpha = 0.75;
 
       for ( const effect of this.indicators.children ) {
         effect.width = effect.height = size;
