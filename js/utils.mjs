@@ -65,17 +65,6 @@ export function tokenScene(token) {
 	return token?.scene ?? token?.parent ?? game.scenes.active;
 }
 
-
-export function getUuidFromTableResult(result) {
-	if (result.type === "pack") {
-		return `Compendium.${result.documentCollection}.${result.documentId}`;
-	}
-	if (result.type === "document") {
-		return `${result.documentCollection}.${result.documentId}`;
-	}
-	return null;
-}
-
 export function listenFilepickerChange(filepicker, onChange) {
 	$(filepicker).on("change", "input[type='text']", function() {onChange(this.value)});
   // dumb workaround to listen on the filepicker button too

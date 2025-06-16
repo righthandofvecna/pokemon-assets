@@ -1,4 +1,4 @@
-import { MODULENAME, getUuidFromTableResult } from "../utils.mjs";
+import { MODULENAME } from "../utils.mjs";
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
 
@@ -24,6 +24,6 @@ export function register() {
   api.scripts.HasMoveFunction ??= (slug)=>function (actor){ return true };
   api.scripts.AwardItems ??= (actor, item)=>actor.createEmbeddedDocuments("Item", item instanceof Array ? item : [item]);
 
-  api.scripts.GetUuidFromTableResult ??= getUuidFromTableResult;
+  api.scripts.GetUuidFromTableResult ??= (result)=>result.documentUuid;
   api.scripts.GetTokenChangesForSpritesheet ??= _getTokenChangesForSpritesheet;
 }
