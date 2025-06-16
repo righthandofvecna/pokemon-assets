@@ -717,7 +717,7 @@ export function register() {
 
       for ( const effect of this.indicators.children ) {
         effect.width = effect.height = size;
-        effect.x = Math.floor(i / rows) * size;
+        effect.x = Math.floor(i / rows) * (-size);
         effect.y = (i % rows) * size;
         i++;
       }
