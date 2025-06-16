@@ -645,9 +645,13 @@ export function register() {
       } else if (this._spinning && (dx != 0 || dy != 0)) { // spinning animation
         this.#index = 0;
         this.#direction = ["down", "right", "up", "left"][frame % 4];
-      } else {  // normal animation
+      } else if (dx != 0 || dy != 0) {  // normal animation
         this.#direction = getDirectionFromAngle(changed.rotation ?? this.document.rotation);
-        this.#index = frame;
+        const idxOffset = this.separateIdle ? 1 : 0;
+        this.#index = idxOffset + ( frame % this.framesInAnimation );
+      } else {
+        this.#direction = getDirectionFromAngle(changed.rotation ?? this.document.rotation);
+        this.#index = 0; // no movement, reset to first frame
       }
 
       if (this.document._sliding) { // slide with one leg out
@@ -674,7 +678,7 @@ export function register() {
       this.indicators.removeChildren().forEach(c => c.destroy());
       
       if (game.settings.get(MODULENAME, "showCaughtIndicator")) {
-        const logic = game?.modules?.get(MODULENAME)?.api?.logic
+        const logic = game?.modules?.get(MODULENAME)?.api?.logic;
         // if the pokemon is uncaught, draw the "uncaught" effect
         const catchable = logic?.ActorCatchable(this?.document?.actor);
         const catchKey = logic?.ActorCatchKey(this?.document?.actor);
