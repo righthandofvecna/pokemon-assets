@@ -403,7 +403,33 @@ function ActorCry(actor) {
   }
 }
 
+/**
+ * Get whether or not the actor is catchable
+ */
+function ActorCatchable(actor) {
+  if (!actor) return false;
+  if (actor.type !== "pokemon") return false;
+  if (actor.party?.owner !== undefined) return false;
+  return true;
+}
 
+/**
+ * Get the catch key for a given actor, for the purposes of checking if the species has been caught before
+ * @param {*} actor 
+ * @returns a string representing the catch key, or null if the actor is not a pokemon or otherwise invalid
+ */
+function ActorCatchKey(actor) {
+  if (!actor) return null;
+
+  if (actor.type !== "pokemon") return null;
+
+  const slug = actor.species?.slug;
+  if (slug === undefined) return null;
+
+  const form = actor.species?.form;
+  if (!form) return `${slug}`;
+  return `${slug}:${form}`;
+}
 
 // re-apply PTR2e's "_onUpdate" extension. Copied/modified from ptr2e.mjs
 function Token_onUpdate(wrapped, e, t, s) {
@@ -544,7 +570,8 @@ export function register() {
   api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
 
   api.logic.ActorCry ??= ActorCry;
-
+  api.logic.ActorCatchable ??= ActorCatchable;
+  api.logic.ActorCatchKey ??= ActorCatchKey;
   api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
 
   api.scripts ??= {};

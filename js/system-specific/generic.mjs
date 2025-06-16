@@ -16,7 +16,8 @@ export function register() {
   api.logic.CanUseWhirlpool ??= (actor)=>true;
 
   api.logic.ActorCry ??= (actor)=>null;
-
+  api.logic.ActorCatchable ??= (actor)=>true;
+  api.logic.ActorCatchKey ??= (actor)=>null;
   api.logic.isPokemon ??= (token)=>token?.texture?.src?.includes("/pmd-overworld/") ?? false;
   
   api.scripts ??= {};

@@ -345,67 +345,79 @@ export function register() {
       return Promise.allSettled(this.animationContexts.values().map(c=>c.promise))
     }
 
+    static RENDER_FLAGS = foundry.utils.mergeObject(super.RENDER_FLAGS, {
+      refreshIndicators: {},
+      refreshSize: { propagate: [...super.RENDER_FLAGS.refreshSize.propagate, "refreshIndicators"] },
+      refreshShape: { propagate: [...super.RENDER_FLAGS.refreshShape.propagate, "refreshIndicators"] },
+    })
+
     /** @override */
     async _draw(options) {
       // check if this token has a spritesheet configured
-      if (!this.isSpritesheet) return super._draw(options);
-      
-      this._PRIVATE_cleanData();
+      if (!this.isSpritesheet) {
+        await super._draw(options);
+      } else {
+        this._PRIVATE_cleanData();
 
-      // Load token texture
-      await this.playFromSpritesheet();
-  
-      // Cache token ring subject texture if needed
-      // const ring = this.document.ring;
-      // if ( ring.enabled && ring.subject.texture ) await foundry.canvas.loadTexture(ring.subject.texture);
-  
-  
-      // Draw the token's PrimarySpriteMesh in the PrimaryCanvasGroup
-      this.mesh = canvas.primary.addToken(this);
-  
-      // Initialize token ring
-      // this.#initializeRing();
-  
-      // Draw the border
-      this.border ||= this.addChild(new PIXI.Graphics());
-  
-      // Draw the void of the token's PrimarySpriteMesh
-      if ( !this.voidMesh ) {
-        this.voidMesh = this.addChild(new PIXI.Container());
-        this.voidMesh.updateTransform = () => {};
-        this.voidMesh.render = renderer => this.mesh?._renderVoid(renderer);
+        // Load token texture
+        await this.playFromSpritesheet();
+    
+        // Cache token ring subject texture if needed
+        // const ring = this.document.ring;
+        // if ( ring.enabled && ring.subject.texture ) await foundry.canvas.loadTexture(ring.subject.texture);
+    
+    
+        // Draw the token's PrimarySpriteMesh in the PrimaryCanvasGroup
+        this.mesh = canvas.primary.addToken(this);
+    
+        // Initialize token ring
+        // this.#initializeRing();
+    
+        // Draw the border
+        this.border ||= this.addChild(new PIXI.Graphics());
+    
+        // Draw the void of the token's PrimarySpriteMesh
+        if ( !this.voidMesh ) {
+          this.voidMesh = this.addChild(new PIXI.Container());
+          this.voidMesh.updateTransform = () => {};
+          this.voidMesh.render = renderer => this.mesh?._renderVoid(renderer);
+        }
+    
+        // Draw the detection filter of the token's PrimarySpriteMesh
+        if ( !this.detectionFilterMesh ) {
+          this.detectionFilterMesh = this.addChild(new PIXI.Container());
+          this.detectionFilterMesh.updateTransform = () => {};
+          this.detectionFilterMesh.render = renderer => {
+            if ( this.detectionFilter ) this._renderDetectionFilter(renderer);
+          };
+        }
+    
+        // Draw Token interface components
+        this.bars ||= this.addChild(this._PRIVATE_drawAttributeBars());
+        this.tooltip ||= this.addChild(this._PRIVATE_drawTooltip());
+        this.effects ||= this.addChild(new PIXI.Container());
+        this.targetArrows ||= this.addChild(new PIXI.Graphics());
+        this.targetPips ||= this.addChild(new PIXI.Graphics());
+        this.nameplate ||= this.addChild(this._PRIVATE_drawNameplate());
+        this.sortableChildren = true;
+    
+        // Initialize and draw the ruler
+        if ( this.ruler === undefined ) this.ruler = this._initializeRuler();
+        if ( this.ruler ) await this.ruler.draw();
+    
+        // Add filter effects
+        this._updateSpecialStatusFilterEffects();
+    
+        // Draw elements
+        await this._drawEffects();
+    
+        // Initialize sources
+        if ( !this.isPreview ) this.initializeSources();
       }
-  
-      // Draw the detection filter of the token's PrimarySpriteMesh
-      if ( !this.detectionFilterMesh ) {
-        this.detectionFilterMesh = this.addChild(new PIXI.Container());
-        this.detectionFilterMesh.updateTransform = () => {};
-        this.detectionFilterMesh.render = renderer => {
-          if ( this.detectionFilter ) this._renderDetectionFilter(renderer);
-        };
-      }
-  
-      // Draw Token interface components
-      this.bars ||= this.addChild(this._PRIVATE_drawAttributeBars());
-      this.tooltip ||= this.addChild(this._PRIVATE_drawTooltip());
-      this.effects ||= this.addChild(new PIXI.Container());
-      this.targetArrows ||= this.addChild(new PIXI.Graphics());
-      this.targetPips ||= this.addChild(new PIXI.Graphics());
-      this.nameplate ||= this.addChild(this._PRIVATE_drawNameplate());
-      this.sortableChildren = true;
-  
-      // Initialize and draw the ruler
-      if ( this.ruler === undefined ) this.ruler = this._initializeRuler();
-      if ( this.ruler ) await this.ruler.draw();
-  
-      // Add filter effects
-      this._updateSpecialStatusFilterEffects();
-  
-      // Draw elements
-      await this._drawEffects();
-  
-      // Initialize sources
-      if ( !this.isPreview ) this.initializeSources();
+
+      // draw the indicators (caught/uncaught/etc)
+      this.indicators ||= this.addChild(new PIXI.Container());
+      await this._drawIndicators();
     }
 
     async playFromSpritesheet() {
@@ -534,8 +546,8 @@ export function register() {
       })();
 
       this._origin = {
-        x: this.transform?.position?.x ?? this.document?.x,
-        y: this.transform?.position?.y ?? this.document?.y,
+        x: this.x,
+        y: this.y,
       };
 
       return super._PRIVATE_animate(to, options, chained).finally(()=>{
@@ -559,6 +571,7 @@ export function register() {
     }
 
     startIdleAnimation() {
+      if (this.destroyed) return;
       const fia = this.framesInAnimation;
       if (fia <= 1) return;
       const iad = this.idleAnimationDuration;
@@ -649,6 +662,65 @@ export function register() {
         });
       }
       return super._onAnimationUpdate(changed, context);
+    }
+
+    /**
+     * 
+     */
+    async _drawIndicators() {
+      this.indicators.renderable = false;
+
+      // clear caught indicator
+      this.indicators.removeChildren().forEach(c => c.destroy());
+      
+      if (game.settings.get(MODULENAME, "showCaughtIndicator")) {
+        const logic = game?.modules?.get(MODULENAME)?.api?.logic
+        // if the pokemon is uncaught, draw the "uncaught" effect
+        const catchable = logic?.ActorCatchable(this?.document?.actor);
+        const catchKey = logic?.ActorCatchKey(this?.document?.actor);
+        if (catchable && catchKey) {
+          const caught = game.settings.get(MODULENAME, "caughtPokemon")?.has(catchKey);
+          if (caught === true) {
+            const tex = await loadTexture(`modules/${MODULENAME}/img/ui/caught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
+            const icon = new PIXI.Sprite(tex);
+            this.indicators.addChild(icon);
+          } else if (caught === false) {
+            const tex = await loadTexture(`modules/${MODULENAME}/img/ui/uncaught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
+            const icon = new PIXI.Sprite(tex);
+            this.indicators.addChild(icon);
+          }
+        }
+      }
+
+      this.indicators.sortChildren();
+      this.indicators.renderable = true;
+      this.renderFlags.set({refreshIndicators: true});
+    }
+
+    /**
+     * Refresh the display of the caught indicator, adjusting its position for the token width and height.
+     * @protected
+     */
+    _refreshIndicators() {
+      const s = canvas.dimensions.uiScale;
+      let i = 0;
+      const size = 20 * s;
+      const rows = Math.floor((this.document.getSize().height / size) + 1e-6);
+
+      // move it to the top-right corner
+      this.indicators.transform.position.x = this.document.getSize().width - size;
+
+      for ( const effect of this.indicators.children ) {
+        effect.width = effect.height = size;
+        effect.x = Math.floor(i / rows) * size;
+        effect.y = (i % rows) * size;
+        i++;
+      }
+    }
+
+    _applyRenderFlags(flags) {
+      super._applyRenderFlags(flags);
+      if ( flags.refreshIndicators ) this._refreshIndicators();
     }
 
     /**

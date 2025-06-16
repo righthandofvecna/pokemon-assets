@@ -232,6 +232,26 @@ export function register() {
 		hint: "When you interact with a Scene Region with a \"Token Interaction\" trigger, play the Pokemon \"interact\" sound."
 	});
 
+	game.settings.register(MODULENAME, "showCaughtIndicator", {
+		name: "Show Caught Indicator",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: false,
+		config: true,
+		hint: "Show a caught indicator on wild Pokemon tokens whose species/form have been caught, and an uncaught indicator on other wild Pokemon tokens which are catchable. This is determined by if a non-GM user ever had owner access to a matching actor."
+	});
+
+	game.settings.register(MODULENAME, "caughtPokemon", {
+		name: "Caught Pokemon",
+		default: new Set(),
+		type: new foundry.data.fields.SetField(new foundry.data.fields.StringField({})),
+		scope: "world",
+		config: false,
+		hint: "The set of all caught Pokemon, used to determine if a Pokemon has been caught before. This is used for the 'Caught' flag on Pokemon tokens.",
+		onChange: ()=>canvas?.tokens?.objects?.children?.forEach(t=>t._drawIndicators()),
+	});
+
   game.settings.register(MODULENAME, "canUseRockSmash", {
 		name: "Field Move: Can Use Rock Smash",
 		default: true,
@@ -328,7 +348,7 @@ export function register() {
     requiresReload: false,
     config: false,
     hint: "Enable debug mode for additional logging and diagnostics."
-});
+	});
 
 };
 
