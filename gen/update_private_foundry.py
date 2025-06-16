@@ -1,6 +1,7 @@
 
 import json
 import os
+import re
 
 # get local settings
 with open("local.json", "r") as local:
@@ -135,11 +136,10 @@ def transform_members(members, oldCls, newCls):
         transformed = False
         if "#" in member:
             member = member.replace("#", "_PRIVATE_")
-            transformed = True
         if f"{oldCls}._PRIVATE_" in member:
             member = member.replace(f" {oldCls}._PRIVATE_", f" {newCls}._PRIVATE_")
-            transformed = True
-        if transformed:
+        withoutComments = re.sub(r'(\/\/.*)|(\/\*[\s\S]*?\*\/)', '', member, flags=re.MULTILINE)
+        if "_PRIVATE_" in withoutComments:
             transformed_members.append(member)
     return transformed_members
 

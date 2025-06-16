@@ -255,37 +255,6 @@ export function NonPrivateTokenMixin(TokenClass) {
   /* -------------------------------------------- */
 
   /**
-   * Determine whether the Token is visible to the calling user's perspective.
-   * Hidden Tokens are only displayed to GM Users.
-   * Non-hidden Tokens are always visible if Token Vision is not required.
-   * Controlled tokens are always visible.
-   * All Tokens are visible to a GM user if no Token is controlled.
-   *
-   * @see {CanvasVisibility_PRIVATE_testVisibility}
-   * @type {boolean}
-   */
-  get isVisible() {
-    // Clear the detection filter
-    this.detectionFilter = null;
-
-    // Only GM users can see hidden tokens
-    const gm = game.user.isGM;
-    if ( this.document.hidden && !gm ) return false;
-
-    // Some tokens are always visible
-    if ( !canvas.visibility.tokenVision ) return true;
-    if ( this.controlled ) return true;
-
-    // Otherwise, test visibility against current sight polygons
-    if ( this.vision?.active ) return true;
-    const {width, height} = this.document.getSize();
-    const tolerance = Math.min(width, height) / 4;
-    return canvas.visibility.testVisibility(this.center, {tolerance, object: this});
-  };
-
-  /* -------------------------------------------- */
-
-  /**
    * Update the light and vision source objects associated with this Token.
    * @param {object} [options={}]       Options which configure how perception sources are updated
    * @param {boolean} [options.deleted=false]       Indicate that this light and vision source has been deleted
@@ -763,44 +732,6 @@ export function NonPrivateTokenMixin(TokenClass) {
   /* -------------------------------------------- */
 
   /**
-   * Draw the effect icons for ActiveEffect documents which apply to the Token's Actor.
-   * Called by {@link Token_PRIVATE_drawEffects}.
-   * @protected
-   */
-  async _drawEffects() {
-    this.effects.renderable = false;
-
-    // Clear Effects Container
-    this.effects.removeChildren().forEach(c => c.destroy());
-    this.effects.bg = this.effects.addChild(new PIXI.Graphics());
-    this.effects.bg.zIndex = -1;
-    this.effects.overlay = null;
-
-    // Categorize effects
-    const activeEffects = this.actor?.temporaryEffects || [];
-    const overlayEffect = activeEffects.findLast(e => e.img && e.getFlag("core", "overlay"));
-
-    // Draw effects
-    const promises = [];
-    for ( const [i, effect] of activeEffects.entries() ) {
-      if ( !effect.img ) continue;
-      const promise = effect === overlayEffect
-        ? this._drawOverlay(effect.img, effect.tint)
-        : this._drawEffect(effect.img, effect.tint);
-      promises.push(promise.then(e => {
-        if ( e ) e.zIndex = i;
-      }));
-    }
-    await Promise.allSettled(promises);
-
-    this.effects.sortChildren();
-    this.effects.renderable = true;
-    this.renderFlags.set({refreshEffects: true});
-  };
-
-  /* -------------------------------------------- */
-
-  /**
    * Animate from the old to the new state of this Token.
    * @param {Partial<TokenAnimationData>} to      The animation data to animate to
    * @param {TokenAnimationOptions} [options]     The options that configure the animation behavior
@@ -1253,38 +1184,6 @@ export function NonPrivateTokenMixin(TokenClass) {
   };
 
   /* -------------------------------------------- */
-  /*  Methods
-  /* -------------------------------------------- */
-
-  /**
-   * Get the drop position for the given token.
-   * @param {TokenDocument} token
-   * @param {{x: number; y: number; elevation?: number}} point
-   * @param {object} [options]
-   * @param {boolean} [options.snap=false]
-   * @returns {TokenPosition}
-   * @see {@link foundry.canvas.layers.TokenLayer_PRIVATE__onDropActorData}
-   * @internal
-   */
-  static _getDropActorPosition(token, point, {snap=false}={}) {
-    const {width, height, shape} = token._source;
-    const pivot = token.getCenterPoint({x: 0, y: 0, elevation: 0, width, height, shape});
-    let position = {
-      x: point.x - pivot.x,
-      y: point.y - pivot.y,
-      elevation: (point.elevation ?? 0) - pivot.elevation,
-      width, height, shape
-    };
-    if ( snap ) position = token.getSnappedPosition(position);
-    position.x = Math.round(position.x);
-    position.y = Math.round(position.y);
-    position.width = width;
-    position.height = height;
-    position.shape = shape;
-    return position;
-  };
-
-  /* -------------------------------------------- */
 
   /**
    * Check for collision when attempting a move to a new position.
@@ -1357,20 +1256,6 @@ export function NonPrivateTokenMixin(TokenClass) {
     const movement = new PointMovementSource({object: this});
     movement.initialize(origin);
     return movement;
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Measure the movement path for this Token.
-   * @param {TokenMeasureMovementPathWaypoint[]} waypoints    The waypoints of movement
-   * @param {TokenMeasureMovementPathOptions} [options]       Additional options that affect cost calculations
-   *                                                          (passed to {@link Token_PRIVATE__getMovementCostFunction})
-   * @returns {GridMeasurePathResult}
-   */
-  measureMovementPath(waypoints, options) {
-    const cost = this._getMovementCostFunction(options);
-    return this.document.measureMovementPath(waypoints, {cost});
   };
 
   /* -------------------------------------------- */
@@ -1638,238 +1523,6 @@ export function NonPrivateTokenMixin(TokenClass) {
   /* -------------------------------------------- */
 
   /**
-   * This function adds intermediate waypoints pre/post enter and exit for a {@link Region} if the Region
-   * has at least one Behavior that could affect the movement, which is determined by
-   * {@link foundry.data.regionBehaviors.RegionBehaviorType_PRIVATE__getTerrainEffects}.
-   * For each segment of the movement path the terrain data is created from all behaviors that
-   * could affect the movement of this Token with {@link CONFIG.Token.movement.TerrainData.resolveTerrainEffects}.
-   * This terrain data is included in the returned regionalized movement path.
-   * This terrain data may then be used in {@link Token_PRIVATE__getMovementCostFunction} and
-   * {@link Token_PRIVATE_constrainMovementPath}.
-   * @param {TokenGetTerrainMovementPathWaypoint[]} waypoints    The waypoints of movement
-   * @param {object} [options]                                   Additional options
-   * @param {boolean} [options.preview=false]                    Is preview?
-   * @returns {TokenTerrainMovementWaypoint[]}                   The movement path with terrain data
-   */
-  createTerrainMovementPath(waypoints, {preview=false}={}) {
-    if ( !this.scene ) throw new Error("The Token must be in a Scene");
-    const path = [];
-    if ( waypoints.length === 0 ) return path;
-
-    // Ignore preview if token vision is disabled or the current user is a GM
-    if ( !canvas.visibility.tokenVision || game.user.isGM ) preview = false;
-
-    // Add first waypoint
-    const source = this.document._source;
-    let {x=source.x, y=source.y, elevation=source.elevation, width=source.width, height=source.height,
-      shape=source.shape, action=this.document.movementAction, snapped=false, explicit=false,
-      checkpoint=false} = waypoints[0];
-    x = Math.round(x);
-    y = Math.round(y);
-    path.push({x, y, elevation, width, height, shape, action, terrain: null, snapped, explicit, checkpoint,
-      intermediate: false});
-    let from = {x, y, elevation, width, height, shape, action};
-
-    // Create region states
-    const regionStates = this.scene.regions.map(region => ({region, active: false, effects: []}));
-
-    const distancePixels = this.scene.dimensions.distancePixels;
-    for ( let i = 1; i < waypoints.length; i++ ) {
-      let {x=from.x, y=from.y, elevation=from.elevation, width=from.width, height=from.height, shape=from.shape,
-        action=from.action, snapped=false, explicit=false, checkpoint=false} = waypoints[i];
-      x = Math.round(x);
-      y = Math.round(y);
-      const to = {x, y, elevation, width, height, shape, action};
-
-      // If preview, subdivide segments in explored/visible and unexplored/invisible sub-segments
-      const subwaypoints = [];
-      if ( !preview ) subwaypoints.push([to, undefined]);
-      else {
-        const c0 = this.document.getCenterPoint(from);
-        const c1 = this.document.getCenterPoint(to);
-        const pivot = this.document.getCenterPoint({x: 0, y: 0, elevation: 0, width, height, shape});
-        const d = Math.hypot(c0.x - c1.x, c0.y - c1.y);
-        const n = Math.ceil((d / canvas.dimensions.size) - 1e-6);
-        let wasExplored;
-        for ( let i = 0; i < n; i++ ) {
-          const a0 = (i + (1 / 3)) / n;
-          const p0 = {x: Math.mix(c0.x, c1.x, a0), y: Math.mix(c0.y, c1.y, a0)};
-          const a1 = (i + (2 / 3)) / n;
-          const p1 = {x: Math.mix(c0.x, c1.x, a1), y: Math.mix(c0.y, c1.y, a1)};
-          const explored = (canvas.fog.isPointExplored(p0) || canvas.visibility.testVisibility(p0, {tolerance: 1}))
-            && (canvas.fog.isPointExplored(p1) || canvas.visibility.testVisibility(p1, {tolerance: 1}));
-          if ( explored === wasExplored ) continue;
-          if ( wasExplored !== undefined ) {
-            const a = i / n;
-            const x = Math.round(Math.mix(c0.x, c1.x, a) - pivot.x);
-            const y = Math.round(Math.mix(c0.y, c1.y, a) - pivot.y);
-            const elevation = Math.mix(c0.elevation, c1.elevation, a) - pivot.elevation;
-            subwaypoints.push([{x, y, elevation, width, height, shape}, wasExplored]);
-          }
-          wasExplored = explored;
-        }
-        subwaypoints.push([to, wasExplored ?? (canvas.fog.isPointExplored(c0)
-          || canvas.visibility.testVisibility(c0, {tolerance: 1}))]);
-      }
-
-      // Iterate for each sub-waypoint of this segment
-      const segment = {width, height, shape, action, preview};
-      let previousTerrain;
-      for ( let i = 0; i < subwaypoints.length; i++ ) {
-        const [to, explored] = subwaypoints[i];
-
-        // Initialize region states for this segment
-        for ( const state of regionStates ) {
-          const hadEffects = state.effects.length !== 0;
-          state.effects.length = 0;
-          if ( explored !== false ) {
-            for ( const behavior of state.region.behaviors ) {
-              if ( behavior.disabled ) continue;
-              state.effects.push(...behavior.system._getTerrainEffects(this.document, segment));
-            }
-          }
-          if ( state.effects.length === 0 ) state.active = false;
-          else if ( !hadEffects ) state.active = this.document.testInsideRegion(state.region, from);
-        }
-
-        // Find region waypoints
-        const regionWaypoints = [];
-        const previousCenter = this.document.getCenterPoint(from);
-        for ( const state of regionStates ) {
-          if ( state.effects.length === 0 ) continue;
-          const segments = this.document.segmentizeRegionMovementPath(state.region, [from, to]);
-          for ( const {type, from} of segments ) {
-            const center = this.document.getCenterPoint(from);
-            const dx = center.x - previousCenter.x;
-            const dy = center.y - previousCenter.y;
-            const dz = (center.elevation - previousCenter.elevation) * distancePixels;
-            const t = (dx * dx) + (dy * dy) + (dz * dz);
-            regionWaypoints.push({t, x: from.x, y: from.y, elevation: from.elevation,
-              crosses: type !== REGION_MOVEMENT_SEGMENTS.MOVE, state, terrain: null});
-          }
-        }
-
-        // Sort region waypoints
-        regionWaypoints.sort((w0, w1) => w0.t - w1.t);
-
-        // Process region waypoints
-        let n = regionWaypoints.length;
-        if ( n !== 0 ) {
-          let k = 0;
-          let d = 0;
-          for (let j = 0; j + 1 < n; j++) {
-            const w0 = regionWaypoints[j];
-            const w1 = regionWaypoints[j + 1];
-
-            // Same position: combine them
-            if ( (w0.x === w1.x) && (w0.y === w1.y) && (w0.elevation === w1.elevation) ) {
-              k++;
-              d++;
-              continue;
-            }
-
-            // Different position: set regions of the previous region waypoint
-            w0.terrain = CONFIG.Token.movement.TerrainData.resolveTerrainEffects(
-              regionStates.reduce((effects, state) => {
-                if ( state.active ) effects.push(...state.effects);
-                return effects;
-              }, [])
-            );
-
-            // Update active states: moving to w1
-            if ( w0.crosses ) w0.state.active = !w0.state.active;
-            while ( d !== 0 ) {
-              const w = regionWaypoints[j - d--];
-              if ( w.crosses ) w.state.active = !w.state.active;
-            }
-
-            if ( k !== 0 ) regionWaypoints[j - k] = w0;
-          }
-
-          // Process the last region waypoint
-          const w1 = regionWaypoints[n - 1];
-          w1.terrain = CONFIG.Token.movement.TerrainData.resolveTerrainEffects(
-            regionStates.reduce((effects, state) => {
-              if ( state.active ) effects.push(...state.effects);
-              return effects;
-            }, [])
-          );
-
-          // Update active states: moving past the last waypoint
-          if ( w1.crosses ) w1.state.active = !w1.state.active;
-          while ( d !== 0 ) {
-            const w = regionWaypoints[n - 1 - d--];
-            if ( w.crosses ) w.state.active = !w.state.active;
-          }
-
-          if ( k !== 0 ) {
-            regionWaypoints[n - 1 - k] = w1;
-            n -= k;
-          }
-        }
-
-        let terrain;
-
-        let j = 0;
-        if ( n !== 0 ) {
-
-          // Skip the first region waypoint if it matches the previous movement waypoint
-          const first = regionWaypoints[0];
-          if ( (first.x === from.x) && (first.y === from.y) && (first.elevation === from.elevation) ) j = 1;
-
-          // Skip the last region waypoint if it matches the current movement waypoint
-          const last = regionWaypoints[n - 1];
-          if ( (last.x === to.x) && (last.y === to.y) && (last.elevation === to.elevation) ) {
-            n -= 1;
-            terrain = last.terrain;
-          }
-        }
-
-        // Add the region waypoints between the previous and the current movement waypoint
-        while ( j < n ) {
-          const {x, y, elevation, terrain} = regionWaypoints[j++];
-
-          // Remove redundant region waypoints
-          if ( (previousTerrain !== undefined) && (!previousTerrain === !terrain)
-            && (!previousTerrain || previousTerrain.equals(terrain)) ) {
-            path.pop();
-          }
-
-          path.push({x, y, elevation, width: to.width, height: to.height, shape: to.shape, action,
-            terrain, snapped: false, explicit: true, checkpoint: false, intermediate: true});
-          previousTerrain = terrain;
-        }
-
-        if ( terrain === undefined ) {
-          terrain = CONFIG.Token.movement.TerrainData.resolveTerrainEffects(
-            regionStates.reduce((effects, state) => {
-              if ( state.active ) effects.push(...state.effects);
-              return effects;
-            }, [])
-          );
-        }
-
-        // Remove redundant region waypoint
-        if ( (previousTerrain !== undefined) && (!previousTerrain === !terrain)
-          && (!previousTerrain || previousTerrain.equals(terrain)) ) {
-          path.pop();
-        }
-
-        // Add the current movement waypoint
-        path.push({...to, action, terrain, snapped, explicit, checkpoint,
-          intermediate: i < subwaypoints.length - 1});
-        previousTerrain = terrain;
-
-        from = to;
-      }
-    }
-
-    return path;
-  };
-
-  /* -------------------------------------------- */
-
-  /**
    * Create the animation path.
    * @param {TokenPosition} origin                               The origin of movement
    * @param {TokenMeasuredMovementWaypoint[]} passedWaypoints    The passed waypoints
@@ -2028,46 +1681,6 @@ export function NonPrivateTokenMixin(TokenClass) {
     }
 
     return [path, initialRegions];
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the position for movement via the Token HUD.
-   * @param {number} elevation
-   * @returns {Partial<TokenPosition>}
-   * @see {@link foundry.applications.hud.TokenHUD_PRIVATE__onSubmit}
-   * @internal
-   */
-  _getHUDMovementPosition(elevation) {
-    return {elevation};
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the movement action in {@link CONFIG.Token.movement | CONFIG.Token.movement.actions} to be used for movement
-   * via the Token HUD.
-   * The default implementation returns `this.document.movementAction`.
-   * @returns {string}
-   * @see {@link foundry.applications.hud.TokenHUD_PRIVATE__onSubmit}
-   * @protected
-   */
-  _getHUDMovementAction() {
-    return this.document.movementAction;
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Get the position for movement via the Token Config.
-   * @param {Partial<TokenPosition>} changes
-   * @returns {Partial<TokenPosition>}
-   * @see {@link foundry.applications.sheets.TokenConfig_PRIVATE__processSubmitData}
-   * @internal
-   */
-  _getConfigMovementPosition(changes) {
-    return {...changes};
   };
 
   /* -------------------------------------------- */
@@ -2707,19 +2320,6 @@ export function NonPrivateTokenMixin(TokenClass) {
   /* -------------------------------------------- */
 
   /**
-   * Prevent the drop event?
-   * Called by {@link Token_PRIVATE__onDragLeftDrop}.
-   * @param {PIXI.FederatedEvent} event    The pointerup event
-   * @returns {boolean}
-   * @protected
-   */
-  _shouldPreventDragLeftDrop(event) {
-    return (event.ctrlKey || event.metaKey) && !!this.ruler;
-  };
-
-  /* -------------------------------------------- */
-
-  /**
    * Update the destinations of the drag previews and rulers
    * @param {Point} point                     The (unsnapped) center point of the waypoint
    * @param {object} [options]                Additional options
@@ -2754,26 +2354,6 @@ export function NonPrivateTokenMixin(TokenClass) {
       // Update the ruler path
       NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
     }
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Called by {@link foundry.canvas.layers.TokenLayer_PRIVATE__onClickLeft} while this Token is in a drag workflow.
-   * @param {PIXI.FederatedEvent} event    The pointerdown event
-   * @protected
-   */
-  _onDragClickLeft(event) {
-
-    // Add waypoints if CTRL is down
-    const isCtrl = event.ctrlKey || event.metaKey;
-    if ( isCtrl && this.ruler ) this._addDragWaypoint(event.interactionData.origin, {snap: !event.shiftKey});
-
-    // Otherwise drop the token
-    else this._triggerDragLeftDrop();
-
-    // Prevent left-click drag workflow on the canvas
-    canvas.mouseInteractionManager.cancel();
   };
 
   /* -------------------------------------------- */
@@ -2823,58 +2403,6 @@ export function NonPrivateTokenMixin(TokenClass) {
   /* -------------------------------------------- */
 
   /**
-   * Trigger drop event. This drop cannot be prevented by {@link Token_PRIVATE__shouldPreventDragLeftDrop}.
-   * @protected
-   */
-  _triggerDragLeftDrop() {
-    const eventSystem = canvas.app.renderer.events;
-    const rootBoundary = eventSystem.rootBoundary;
-    const dropEvent = rootBoundary.createPointerEvent(eventSystem.pointer, "pointerup", this);
-    dropEvent.defaultPrevented = false;
-    dropEvent.path = null;
-    try {
-      this.mouseInteractionManager.interactionData.dropped = true;
-      this.mouseInteractionManager.handleEvent(dropEvent);
-    } finally {
-      rootBoundary.freeEvent(dropEvent);
-    }
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Called by {@link foundry.canvas.layers.TokenLayer_PRIVATE__onClickLeft2} while this Token is in a drag workflow.
-   * @param {PIXI.FederatedEvent} event    The pointerdown event
-   * @protected
-   */
-  _onDragClickLeft2(event) {
-
-    // Prevent left-click drag workflow on the canvas
-    canvas.mouseInteractionManager.cancel();
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Called by {@link foundry.canvas.layers.TokenLayer_PRIVATE__onClickRight} while this Token is in a drag workflow.
-   * @param {PIXI.FederatedEvent} event    The pointerdown event
-   * @protected
-   */
-  _onDragClickRight(event) {
-
-    // Remove last waypoints
-    if ( this.ruler ) this._removeDragWaypoint();
-
-    // Otherwise cancel the drag workflow
-    else this._triggerDragLeftCancel();
-
-    // Prevent right-click drag workflow on the canvas
-    canvas.mouseInteractionManager.cancel();
-  };
-
-  /* -------------------------------------------- */
-
-  /**
    * Remove last ruler waypoints and update ruler paths.
    * @protected
    */
@@ -2896,30 +2424,6 @@ export function NonPrivateTokenMixin(TokenClass) {
         NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
       }
     }
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Cancel the drag workflow. This cancellation cannot be prevented by {@link Token_PRIVATE__onDragLeftCancel}.
-   * @protected
-   */
-  _triggerDragLeftCancel() {
-    this.mouseInteractionManager.interactionData.cancelled = true;
-    this.mouseInteractionManager.cancel();
-  };
-
-  /* -------------------------------------------- */
-
-  /**
-   * Called by {@link foundry.canvas.layers.TokenLayer_PRIVATE__onClickRight2} while this Token is in a drag workflow.
-   * @param {PIXI.FederatedEvent} event    The pointerdown event
-   * @protected
-   */
-  _onDragClickRight2(event) {
-
-    // Prevent right-click drag workflow on the canvas
-    canvas.mouseInteractionManager.cancel();
   };
 
   /* -------------------------------------------- */
