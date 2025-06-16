@@ -56,6 +56,36 @@
                 "hint": "The trainer of this Pokémon. This is the trainer that will throw the Pokéball when the Pokémon is summoned.",
                 "none": "No Trainer (Drop Trainer Actor Here)",
                 "dropWarning": "You can only drop a Trainer Actor here."
+            },
+            "FieldMoves": {
+                "canUseRockSmash": {
+                    "label": "Rock Smash",
+                    "hint": "Whether a Pokémon that knows Rock Smash (or trainer that owns such a Pokémon) can use it to break rocks."
+                },
+                "canUseCut": {
+                    "label": "Cut",
+                    "hint": "Whether a Pokémon that knows Cut (or trainer that owns such a Pokémon) can use it to cut down trees."
+                },
+                "canUseWhirlpool": {
+                    "label": "Whirlpool",
+                    "hint": "Whether a Pokémon that knows Whirlpool (or trainer that owns such a Pokémon) can use it to cross whirlpools."
+                },
+                "canUseStrength": {
+                    "label": "Strength",
+                    "hint": "Whether a Pokémon that knows Strength (or trainer that owns such a Pokémon) can use it to move boulders."
+                },
+                "canUseRockClimb": {
+                    "label": "Rock Climb",
+                    "hint": "Whether a Pokémon that knows Rock Climb (or trainer that owns such a Pokémon) can use it to climb rocky walls."
+                },
+                "canUseWaterfall": {
+                    "label": "Waterfall",
+                    "hint": "Whether a Pokémon that knows Waterfall (or trainer that owns such a Pokémon) can use it to climb waterfalls."
+                },
+                "canUseHeadbutt": {
+                    "label": "Headbutt",
+                    "hint": "Whether a Pokémon that knows Headbutt (or trainer that owns such a Pokémon) can use it to hit trees."
+                }
             }
         },
         "FieldMoves": {

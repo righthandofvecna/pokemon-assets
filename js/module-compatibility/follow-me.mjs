@@ -17,6 +17,11 @@ function getFollowMap(scene) {
   return followMap;
 }
 
+/**
+ * Get the chain of following tokens beginning at the provided token.
+ * @param {*} token 
+ * @returns 
+ */
 export function getAllFollowing(token) {
   const scene = tokenScene(token);
   const allSceneTokens = scene?.tokens;
@@ -36,6 +41,12 @@ export function getAllFollowing(token) {
 }
 
 
+/**
+ * Get the chain of following tokens which the given token is a part of.
+ * This includes the token itself and all tokens that are following it, or that it is following, directly or indirectly.
+ * @param {*} token 
+ * @returns 
+ */
 export function getAllInFollowChain(token) {
   const followers = getAllFollowing(token);
   const scene = tokenScene(token);
@@ -162,12 +173,20 @@ async function TeleportTokenRegionBehaviorType_tokenMoveIn(wrapped, event) {
   }
 }
 
+
 async function TeleportTokenRegionBehaviorType_tokenPreMove(wrapped, event) {
   const token = event.data.token;
   if (token.getFlag(MODULENAME, FLAG_FOLLOWING)?.who) return;
   return wrapped(event);
 }
 
+/**
+ * Teleports all followers of a token to the new destination, possibly across scenes.
+ * @param {*} followerIds 
+ * @param {*} destination 
+ * @param {*} sceneId 
+ * @returns 
+ */
 async function TeleportFollowers(followerIds, destination, sceneId) {
   if (!isTheGM() && isGMOnline()) {
     const soc = socket.current();
@@ -248,6 +267,9 @@ async function TeleportFollowers(followerIds, destination, sceneId) {
 }
 
 
+/**
+ * Begins or ends following a token.
+ */
 function OnFollowKey() {
   const allTokens = canvas?.tokens;
   let leader = canvas?.tokens?.hover?.id;

@@ -12,7 +12,7 @@ with open("local.json", "r") as local:
     CREDITS_LOCATION = os.path.join(SPRITECOLLAB, "credit_names.txt")
     INFO_JSON_LOCATION = os.path.join(SPRITECOLLAB, "tracker.json")
     SC_FOLDER_LOCATION = os.path.join(SPRITECOLLAB, "sprite")
-    UF_FOLDER_LOCATION = os.path.join(UNFINISHED, "sprite")
+    UF_FOLDER_LOCATION = os.path.join(UNFINISHED)
 SPRITESHEET_SETTINGS_JS = os.path.join("data", "spritesheetmap.js")
 
 

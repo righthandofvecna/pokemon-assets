@@ -1,5 +1,5 @@
 
-import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing, tokenScene } from "./utils.mjs";
+import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing, tokenScene, centerTokenMovement } from "./utils.mjs";
 import { VolumeSettings } from "./settings.mjs";
 import * as socket from "./socket.mjs";
 import { getAllFollowing } from "./module-compatibility/follow-me.mjs";
@@ -14,6 +14,7 @@ async function PokemonCenter(nurse, doHeal) {
   let volume = music?.volume ?? 1;
 
   const talk = async function(text, ms=1500) {
+    Interact();
     await Dialog.prompt({
       content: `<p>${game.i18n.localize(text)}</p>`,
       options: {
@@ -24,6 +25,7 @@ async function PokemonCenter(nurse, doHeal) {
   await talk("POKEMON-ASSETS.PokemonCenter.Welcome1");
   await talk("POKEMON-ASSETS.PokemonCenter.Welcome2");
 
+  Interact();
   if (await new Promise((resolve)=>Dialog.confirm({
     title: "Pokemon Center Nurse",
     content: game.i18n.localize("POKEMON-ASSETS.PokemonCenter.Question"),
@@ -76,6 +78,7 @@ async function PokemonCenter(nurse, doHeal) {
   await talk("POKEMON-ASSETS.PokemonCenter.Thank1");
   await talk("POKEMON-ASSETS.PokemonCenter.Thank2");
   await talk("POKEMON-ASSETS.PokemonCenter.Goodbye");
+  Interact();
 }
 
 /**
@@ -196,15 +199,16 @@ async function TokenReact(token, reaction) {
  * @returns 
  */
 async function TrainerEyesMeet(token, scene, regionDocument, regionBehavior, event) {
-  if (!isTheGM()) return; // only do updates as the GM
+  if (!game.user.isActiveGM) return; // only do updates as the GM
   if (token === event?.data?.token) return; // the token can't trigger its own vision!
   if (token.disposition === event?.data?.token?.disposition) return; // the token has to be aligned differently
 
   // pause game!
-  game.togglePause(true, true);
+  game.togglePause(true, { broadcast: true });
 
   // turn the token
-  const target = event?.data?.destination;
+  const target = centerTokenMovement(token, event?.data?.movement);
+  if (!target) return;
   const dx = token.x - target.x;
   const dy = token.y - target.y;
   const rotation = (()=>{
@@ -227,7 +231,7 @@ async function TrainerEyesMeet(token, scene, regionDocument, regionBehavior, eve
   await TokenReact(token, "surprise");
   const { sizeX, sizeY } = token?.parent?.grid ?? { sizeX: 100,  sizeY: 100 };
 
-  // new target location
+  // new target location, just short of colliding with the target
   const nx = target.x + (Math.sign(dx) * sizeX);
   const ny = target.y + (Math.sign(dy) * sizeY);
   await token.update({
@@ -312,7 +316,11 @@ async function HandleJumps() {
   const unlock = token.lockMovement();
   // wait until the token has finished animating
   await renderedToken.allAnimationsPromise;
-  const startpos = movement.passed?.waypoints?.at(-1) ?? { x: token.x, y: token.y };
+  const startpos = centerTokenMovement(token, movement);
+  if (!startpos) {
+    unlock();
+    return;
+  }
 
   // check if the token is still inside the jump area
   if (!token.regions.has(regionDocument)) {
@@ -909,7 +917,18 @@ async function TriggerClimb(climbType, to, ...args) {
         }
       }
       seq.play();
-      await token.update(to, { animation: animationOptions });
+      await token.update(to, {
+        animation: animationOptions,
+        movement: {
+          [token.id]: {
+            constrainOptions: {
+              ignoreWalls: true,
+              ignoreCost: true,
+              history: false,
+            }
+          }
+        }
+      });
 
       return;
     case "waterfall":
@@ -920,7 +939,17 @@ async function TriggerClimb(climbType, to, ...args) {
       } else {
         return;
       }
-      await token.update(to);
+      await token.update(to, {
+        movement: {
+          [token.id]: {
+            constrainOptions: {
+              ignoreWalls: true,
+              ignoreCost: true,
+              history: false,
+            }
+          }
+        }
+      });
       return;
     default: return;
   }
@@ -928,15 +957,21 @@ async function TriggerClimb(climbType, to, ...args) {
 
 export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
   if (canUse) {
-    if (skipQuery|| await new Promise((resolve)=>Dialog.confirm({
-      title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
-      content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CanUse`),
-      yes: ()=>resolve(true),
-      no: ()=>resolve(false),
-      options: {
-        pokemon: true,
-      },
-    }))) {
+    let confirm = skipQuery;
+    if (!skipQuery) {
+      Interact();
+      confirm = await new Promise((resolve)=>Dialog.confirm({
+        title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
+        content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CanUse`),
+        yes: ()=>resolve(true),
+        no: ()=>resolve(false),
+        options: {
+          pokemon: true,
+        },
+      }));
+    }
+    if (confirm) {
+      Interact();
       await Dialog.prompt({
         title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
         content: game.i18n.format(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Used`, { name: who?.name}),
@@ -948,6 +983,7 @@ export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
     };
     return false;
   } else {
+    Interact();
     Dialog.prompt({
       title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
       content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CannotUse`),
@@ -962,12 +998,12 @@ export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
 
 /**
  * Check if the token is facing one of the given directions
- * @param {TilesetToken} token 
+ * @param {SpritesheetToken} token 
  * @param {array} directions 
  * @returns 
  */
 function TokenHasDirection(token, directions) {
-  return !token?.object?.isTileset || directions.includes(token?.object?.direction);
+  return !token?.object?.isSpritesheet || directions.includes(token?.object?.direction);
 }
 
 class PainterTemplate extends MeasuredTemplate {

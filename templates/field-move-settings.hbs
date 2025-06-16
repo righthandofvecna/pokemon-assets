@@ -1,0 +1,16 @@
+<article class="standard-form h-100">
+  <section class="scrollable">
+    {{#each settings as |setting k|}}
+    <div class="form-group {{k}}" data-tooltip="{{setting.hint}}">
+        <label>{{localize setting.label}}</label>
+        <div class="form-fields">
+          <input type="checkbox" name="{{setting.key}}" {{#if setting.value}}checked{{/if}}>
+        </div>
+        <p class="hint">{{localize setting.hint}}</p>
+    </div>
+    {{/each}}
+  </section>
+  <footer class="form-footer">
+    <button type="submit" class="standard-button">{{localize "Save Changes"}}</button>
+  </footer>
+</article>

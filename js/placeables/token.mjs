@@ -259,7 +259,7 @@ function getAngleFromDirection(d) {
 }
 
 function getDirectionFromAngle(angle) {
-  switch (Math.floor(((angle + 22.5) % 360) / 45)) {
+  switch (( 8 + Math.floor(((angle + 22.5) % 360) / 45) ) % 8) {
     case 0: return "down";
     case 1: return "downleft";
     case 2: return "left";
@@ -295,7 +295,7 @@ function OnInitializeEdges() {
 }
 
 export function register() {
-  class TilesetToken extends NonPrivateTokenMixin(CONFIG.Token.objectClass) {
+  class SpritesheetToken extends NonPrivateTokenMixin(CONFIG.Token.objectClass) {
     #index;
     #textures;
     #textureSrc;
@@ -321,7 +321,7 @@ export function register() {
       this.#direction = "down";
     }
 
-    get isTileset() {
+    get isSpritesheet() {
       return this.document.getFlag(MODULENAME, "spritesheet");
     }
 
@@ -345,67 +345,79 @@ export function register() {
       return Promise.allSettled(this.animationContexts.values().map(c=>c.promise))
     }
 
+    static RENDER_FLAGS = foundry.utils.mergeObject(super.RENDER_FLAGS, {
+      refreshIndicators: {},
+      refreshSize: { propagate: [...super.RENDER_FLAGS.refreshSize.propagate, "refreshIndicators"] },
+      refreshShape: { propagate: [...super.RENDER_FLAGS.refreshShape.propagate, "refreshIndicators"] },
+    })
+
     /** @override */
     async _draw(options) {
-      // check if this token has a tileset configured
-      if (!this.isTileset) return super._draw(options);
-      
-      this._PRIVATE_cleanData();
+      // check if this token has a spritesheet configured
+      if (!this.isSpritesheet) {
+        await super._draw(options);
+      } else {
+        this._PRIVATE_cleanData();
 
-      // Load token texture
-      await this.playFromSpritesheet();
-  
-      // Cache token ring subject texture if needed
-      // const ring = this.document.ring;
-      // if ( ring.enabled && ring.subject.texture ) await foundry.canvas.loadTexture(ring.subject.texture);
-  
-  
-      // Draw the token's PrimarySpriteMesh in the PrimaryCanvasGroup
-      this.mesh = canvas.primary.addToken(this);
-  
-      // Initialize token ring
-      // this.#initializeRing();
-  
-      // Draw the border
-      this.border ||= this.addChild(new PIXI.Graphics());
-  
-      // Draw the void of the token's PrimarySpriteMesh
-      if ( !this.voidMesh ) {
-        this.voidMesh = this.addChild(new PIXI.Container());
-        this.voidMesh.updateTransform = () => {};
-        this.voidMesh.render = renderer => this.mesh?._renderVoid(renderer);
+        // Load token texture
+        await this.playFromSpritesheet();
+    
+        // Cache token ring subject texture if needed
+        // const ring = this.document.ring;
+        // if ( ring.enabled && ring.subject.texture ) await foundry.canvas.loadTexture(ring.subject.texture);
+    
+    
+        // Draw the token's PrimarySpriteMesh in the PrimaryCanvasGroup
+        this.mesh = canvas.primary.addToken(this);
+    
+        // Initialize token ring
+        // this.#initializeRing();
+    
+        // Draw the border
+        this.border ||= this.addChild(new PIXI.Graphics());
+    
+        // Draw the void of the token's PrimarySpriteMesh
+        if ( !this.voidMesh ) {
+          this.voidMesh = this.addChild(new PIXI.Container());
+          this.voidMesh.updateTransform = () => {};
+          this.voidMesh.render = renderer => this.mesh?._renderVoid(renderer);
+        }
+    
+        // Draw the detection filter of the token's PrimarySpriteMesh
+        if ( !this.detectionFilterMesh ) {
+          this.detectionFilterMesh = this.addChild(new PIXI.Container());
+          this.detectionFilterMesh.updateTransform = () => {};
+          this.detectionFilterMesh.render = renderer => {
+            if ( this.detectionFilter ) this._renderDetectionFilter(renderer);
+          };
+        }
+    
+        // Draw Token interface components
+        this.bars ||= this.addChild(this._PRIVATE_drawAttributeBars());
+        this.tooltip ||= this.addChild(this._PRIVATE_drawTooltip());
+        this.effects ||= this.addChild(new PIXI.Container());
+        this.targetArrows ||= this.addChild(new PIXI.Graphics());
+        this.targetPips ||= this.addChild(new PIXI.Graphics());
+        this.nameplate ||= this.addChild(this._PRIVATE_drawNameplate());
+        this.sortableChildren = true;
+    
+        // Initialize and draw the ruler
+        if ( this.ruler === undefined ) this.ruler = this._initializeRuler();
+        if ( this.ruler ) await this.ruler.draw();
+    
+        // Add filter effects
+        this._updateSpecialStatusFilterEffects();
+    
+        // Draw elements
+        await this._drawEffects();
+    
+        // Initialize sources
+        if ( !this.isPreview ) this.initializeSources();
       }
-  
-      // Draw the detection filter of the token's PrimarySpriteMesh
-      if ( !this.detectionFilterMesh ) {
-        this.detectionFilterMesh = this.addChild(new PIXI.Container());
-        this.detectionFilterMesh.updateTransform = () => {};
-        this.detectionFilterMesh.render = renderer => {
-          if ( this.detectionFilter ) this._renderDetectionFilter(renderer);
-        };
-      }
-  
-      // Draw Token interface components
-      this.bars ||= this.addChild(this._PRIVATE_drawAttributeBars());
-      this.tooltip ||= this.addChild(this._PRIVATE_drawTooltip());
-      this.effects ||= this.addChild(new PIXI.Container());
-      this.targetArrows ||= this.addChild(new PIXI.Graphics());
-      this.targetPips ||= this.addChild(new PIXI.Graphics());
-      this.nameplate ||= this.addChild(this._PRIVATE_drawNameplate());
-      this.sortableChildren = true;
-  
-      // Initialize and draw the ruler
-      if ( this.ruler === undefined ) this.ruler = this._initializeRuler();
-      if ( this.ruler ) await this.ruler.draw();
-  
-      // Add filter effects
-      this._updateSpecialStatusFilterEffects();
-  
-      // Draw elements
-      await this._drawEffects();
-  
-      // Initialize sources
-      if ( !this.isPreview ) this.initializeSources();
+
+      // draw the indicators (caught/uncaught/etc)
+      this.indicators ||= this.addChild(new PIXI.Container());
+      await this._drawIndicators();
     }
 
     async playFromSpritesheet() {
@@ -497,7 +509,7 @@ export function register() {
      * @protected
      */
     _refreshRotation() {
-      if (!this.isTileset) return super._refreshRotation();
+      if (!this.isSpritesheet) return super._refreshRotation();
 
       this.mesh.angle = 0;
       this.#updateDirection();
@@ -533,21 +545,13 @@ export function register() {
         return game.settings.get(MODULENAME, "runSpeed") ?? 8;
       })();
 
-      if (this.isTileset && to.rotation != undefined) {
-        to.rotation = (to.rotation ?? 0 + 360) % 360; // normalize the rotation
-        from.rotation = to.rotation ?? from.rotation;
-        from.rotation = (from.rotation ?? 0 + 360) % 360; // normalize the rotation
-        if (Object.keys(to).length > 1 || angleDiff(to.rotation, from.rotation ?? to.rotation) < 45) {
-          delete to.rotation;
-        } else {
-          // don't delete it
-          console.log(`Keeping rotation for token ${this.id} as it is the only change`, foundry.utils.deepClone(to), foundry.utils.deepClone(from));
-        }
-      }
+      this._origin = {
+        x: this.x,
+        y: this.y,
+      };
 
-      this._origin = { x: this.x, y: this.y };
-      
       return super._PRIVATE_animate(to, options, chained).finally(()=>{
+        if (!this.isSpritesheet) return;
         // start the idle animation
         if (this.animationContexts.size == 0) this.startIdleAnimation();
       });
@@ -567,6 +571,7 @@ export function register() {
     }
 
     startIdleAnimation() {
+      if (this.destroyed) return;
       const fia = this.framesInAnimation;
       if (fia <= 1) return;
       const iad = this.idleAnimationDuration;
@@ -586,11 +591,11 @@ export function register() {
      * @protected
      */
     _prepareAnimation(from, changes, context, options) {
-      if (!this.isTileset) return super._prepareAnimation(from, changes, context, options);
+      if (!this.isSpritesheet) return super._prepareAnimation(from, changes, context, options);
       const attributes = [];
 
       // TODO: handle teleportation
-      TilesetToken._PRIVATE_handleRotationChanges(from, changes);
+      SpritesheetToken._PRIVATE_handleRotationChanges(from, changes);
       // this._PRIVATE_handleTransitionChanges(changes, context, options, attributes);
 
       // Create animation attributes from the changes
@@ -606,7 +611,7 @@ export function register() {
     }
 
     get framesInAnimation() {
-      if (!this.isTileset || this.#textures == null) return 1;
+      if (!this.isSpritesheet || this.#textures == null) return 1;
       const idxOffset = this.separateIdle ? 1 : 0;
       return this.#textures[this.#facing].length - idxOffset;
     }
@@ -620,7 +625,7 @@ export function register() {
 
     _onAnimationUpdate(changed, context) {
       const irrelevant = !["x", "y", "rotation", "frame"].some(p=>foundry.utils.hasProperty(changed, p));
-      if (irrelevant || !this.isTileset || this.#textures == null) return super._onAnimationUpdate(changed, context);
+      if (irrelevant || !this.isSpritesheet || this.#textures == null) return super._onAnimationUpdate(changed, context);
 
       // get tile size
       const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
@@ -633,23 +638,20 @@ export function register() {
       // set the direction
       const dx = (context?.to?.x ?? changed.x ?? 0) - (changed.x ?? context?.to?.x ?? 0);
       const dy = (context?.to?.y ?? changed.y ?? 0) - (changed.y ?? context?.to?.y ?? 0);
-      if (dx != 0 || dy != 0 || changed.frame != undefined) {
-        if (this.document._spinning) { // spinning
-          this.#index = 0;
-          this.#direction = ["down", "right", "up", "left"][frame % 4];
-        } else { // normal animation
-          if (dx != 0 || dy != 0) this.#direction = getDirection(dx, dy);
-          const idxOffset = this.separateIdle ? 1 : 0;
-          this.#index = idxOffset + ( frame % this.framesInAnimation );
-        }
-
-        // don't animate rotation while moving
-        if (changed.rotation != undefined) {
-          delete changed.rotation;
-        }
-      } else {
-        this.#updateDirection();
+      if (changed.frame != undefined) { // idle animation
+        if (dx != 0 || dy != 0) this.#direction = getDirection(dx, dy);
+        const idxOffset = this.separateIdle ? 1 : 0;
+        this.#index = idxOffset + ( frame % this.framesInAnimation );
+      } else if (this._spinning && (dx != 0 || dy != 0)) { // spinning animation
         this.#index = 0;
+        this.#direction = ["down", "right", "up", "left"][frame % 4];
+      } else if (dx != 0 || dy != 0) {  // normal animation
+        this.#direction = getDirectionFromAngle(changed.rotation ?? this.document.rotation);
+        const idxOffset = this.separateIdle ? 1 : 0;
+        this.#index = idxOffset + ( frame % this.framesInAnimation );
+      } else {
+        this.#direction = getDirectionFromAngle(changed.rotation ?? this.document.rotation);
+        this.#index = 0; // no movement, reset to first frame
       }
 
       if (this.document._sliding) { // slide with one leg out
@@ -664,6 +666,66 @@ export function register() {
         });
       }
       return super._onAnimationUpdate(changed, context);
+    }
+
+    /**
+     * 
+     */
+    async _drawIndicators() {
+      this.indicators.renderable = false;
+
+      // clear caught indicator
+      this.indicators.removeChildren().forEach(c => c.destroy());
+      
+      if (game.settings.get(MODULENAME, "showCaughtIndicator")) {
+        const logic = game?.modules?.get(MODULENAME)?.api?.logic;
+        // if the pokemon is uncaught, draw the "uncaught" effect
+        const catchable = logic?.ActorCatchable(this?.document?.actor);
+        const catchKey = logic?.ActorCatchKey(this?.document?.actor);
+        if (catchable && catchKey) {
+          const caught = game.settings.get(MODULENAME, "caughtPokemon")?.has(catchKey);
+          if (caught === true) {
+            const tex = await loadTexture(`modules/${MODULENAME}/img/ui/caught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
+            const icon = new PIXI.Sprite(tex);
+            this.indicators.addChild(icon);
+          } else if (caught === false) {
+            const tex = await loadTexture(`modules/${MODULENAME}/img/ui/uncaught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
+            const icon = new PIXI.Sprite(tex);
+            this.indicators.addChild(icon);
+          }
+        }
+      }
+
+      this.indicators.sortChildren();
+      this.indicators.renderable = true;
+      this.renderFlags.set({refreshIndicators: true});
+    }
+
+    /**
+     * Refresh the display of the caught indicator, adjusting its position for the token width and height.
+     * @protected
+     */
+    _refreshIndicators() {
+      const s = canvas.dimensions.uiScale;
+      let i = 0;
+      const size = 20 * s;
+      const rows = Math.floor((this.document.getSize().height / size) + 1e-6);
+
+      // move it to the top-right corner
+      this.indicators.transform.position.x = this.document.getSize().width - size;
+      this.indicators.alpha = 0.75;
+
+      for ( const effect of this.indicators.children ) {
+        effect.width = effect.height = size;
+        effect.x = Math.floor(i / rows) * (-size);
+        effect.y = (i % rows) * size;
+        i++;
+      }
+    }
+
+    _applyRenderFlags(flags) {
+      super._applyRenderFlags(flags);
+      if ( flags.refreshIndicators ) this._refreshIndicators();
     }
 
     /**
@@ -896,7 +958,7 @@ export function register() {
 
   };
 
-  CONFIG.Token.objectClass = TilesetToken;
+  CONFIG.Token.objectClass = SpritesheetToken;
 
   Object.defineProperty(CONFIG.Token.documentClass.prototype, "movable", {
     get() {

@@ -10,7 +10,7 @@ export function early_isGM() {
 }
 
 export function isTheGM() {
-	return game.users.find(u=>u.active && u.isGM)?.id === game.user.id;
+	return game.user.isActiveGM;
 }
 
 export function isGMOnline() {
@@ -26,6 +26,12 @@ export function snapToGrid({ x, y }, grid) {
 		x: Math.floor(x / grid.sizeX) * grid.sizeX,
 		y: Math.floor(y / grid.sizeY) * grid.sizeY,
 	}
+}
+
+export function centerTokenMovement(token, movement) {
+	return token?.parent?.grid?.getSnappedPoint(
+		movement?.passed?.waypoints?.[0],
+		{ mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_CORNER});
 }
 
 function _norm_angle(a) {
@@ -59,17 +65,6 @@ export function tokenScene(token) {
 	return token?.scene ?? token?.parent ?? game.scenes.active;
 }
 
-
-export function getUuidFromTableResult(result) {
-	if (result.type === "pack") {
-		return `Compendium.${result.documentCollection}.${result.documentId}`;
-	}
-	if (result.type === "document") {
-		return `${result.documentCollection}.${result.documentId}`;
-	}
-	return null;
-}
-
 export function listenFilepickerChange(filepicker, onChange) {
 	$(filepicker).on("change", "input[type='text']", function() {onChange(this.value)});
   // dumb workaround to listen on the filepicker button too
@@ -86,10 +81,10 @@ export function listenFilepickerChange(filepicker, onChange) {
 }
 
 
-export function getCombatsForScene(scene) {
-	const combats = game.combats.filter(c=>c?.active && c?.scene?.uuid === scene) ?? [];
+export function getCombatsForScene(sceneId) {
+	const combats = game.combats.filter(c=>c?.active && c?.scene?.uuid === sceneId) ?? [];
 	if (combats.length > 0) return combats;
 	// PTR 2e automatically disconnects the combat from the scene, so let's check the participants' scene IDs instead
-	return game.combats.filter(c=>c?.active && c?.combatants?.some(p=>p.scene === scene)) ?? [];
+	return game.combats.contents.filter(c=>c?.active && c?.combatants?.contents?.some(p=>p.sceneId === sceneId)) ?? [];
 }
 

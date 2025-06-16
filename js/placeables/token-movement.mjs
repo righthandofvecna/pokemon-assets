@@ -13,7 +13,7 @@ import * as socket from "../socket.mjs";
  */
 async function TokenDocument_preUpdate(wrapped, changed, options, user) {
   await wrapped(changed, options, user);
-  const lwp = options.movement?.[this.id]?.waypoints?.at(-1) ?? [changed];
+  const lwp = options.movement?.[this.id]?.waypoints?.at(-1) ?? changed;
   if (!lwp || options?._movement?.[this.id]?.pending?.waypoints?.length > 0) return;
   // update direction
   const dx = lwp.x - this.x;
@@ -56,7 +56,7 @@ function Scene_updateEmbeddedDocuments(wrapped, embeddedName, updates=[], operat
 
 
 
-function TilesetToken_tryPush(dx, dy) {
+function SpritesheetToken_tryPush(dx, dy) {
   dx = Math.round(dx / Math.max(Math.abs(dx), Math.abs(dy)));
   dy = Math.round(dy / Math.max(Math.abs(dx), Math.abs(dy)));
   if (dx === 0 && dy === 0) return;
@@ -95,5 +95,5 @@ export function register() {
   libWrapper.register("pokemon-assets", "Scene.prototype.updateEmbeddedDocuments", Scene_updateEmbeddedDocuments, "WRAPPER");
   
   CONFIG.Token.documentClass.prototype.lockMovement = TokenDocument_lockMovement;
-  CONFIG.Token.objectClass.prototype._tryPush = TilesetToken_tryPush;
+  CONFIG.Token.objectClass.prototype._tryPush = SpritesheetToken_tryPush;
 }

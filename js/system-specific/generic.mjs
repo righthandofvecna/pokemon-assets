@@ -1,4 +1,4 @@
-import { MODULENAME, getUuidFromTableResult } from "../utils.mjs";
+import { MODULENAME } from "../utils.mjs";
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 
 
@@ -16,13 +16,14 @@ export function register() {
   api.logic.CanUseWhirlpool ??= (actor)=>true;
 
   api.logic.ActorCry ??= (actor)=>null;
-
+  api.logic.ActorCatchable ??= (actor)=>true;
+  api.logic.ActorCatchKey ??= (actor)=>null;
   api.logic.isPokemon ??= (token)=>token?.texture?.src?.includes("/pmd-overworld/") ?? false;
   
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= (slug)=>function (actor){ return true };
   api.scripts.AwardItems ??= (actor, item)=>actor.createEmbeddedDocuments("Item", item instanceof Array ? item : [item]);
 
-  api.scripts.GetUuidFromTableResult ??= getUuidFromTableResult;
+  api.scripts.GetUuidFromTableResult ??= (result)=>result.documentUuid;
   api.scripts.GetTokenChangesForSpritesheet ??= _getTokenChangesForSpritesheet;
 }

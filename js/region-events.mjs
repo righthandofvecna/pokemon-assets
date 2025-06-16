@@ -161,7 +161,7 @@ async function OnInteract() {
   const { x: tx, y: ty } = canvas.grid.getCenterPoint(tObj.center);
   const { sizeX, sizeY } = canvas.grid;
   const tokenBounds = { x: tx, y: ty, w: Math.max(tObj.w, sizeX), h: Math.max(tObj.h, sizeY), r: token.rotation};
-  const requireFacing = !!tObj?.isTileset;
+  const requireFacing = !!tObj?.isSpritesheet;
 
   // check if we are facing/adjacent to an item pile
   if (game.modules.get("item-piles")?.active) {
@@ -176,6 +176,7 @@ async function OnInteract() {
     });
 
     if (facingTokens.length > 0) {
+      Interact();
       facingTokens.forEach(ip=>game.itempiles.API.renderItemPileInterface(ip.document, { inspectingTarget: token?.actor?.uuid }));
     }
   };
