@@ -639,7 +639,11 @@ export function register() {
       const dx = (context?.to?.x ?? changed.x ?? 0) - (changed.x ?? context?.to?.x ?? 0);
       const dy = (context?.to?.y ?? changed.y ?? 0) - (changed.y ?? context?.to?.y ?? 0);
       if (changed.frame != undefined) { // idle animation
-        if (dx != 0 || dy != 0) this.#direction = getDirection(dx, dy);
+        if (changed.rotation != undefined) {
+          this.#direction = getDirectionFromAngle(changed.rotation);
+        } else if (dx != 0 || dy != 0) {
+          this.#direction = getDirection(dx, dy);
+        }
         const idxOffset = this.separateIdle ? 1 : 0;
         this.#index = idxOffset + ( frame % this.framesInAnimation );
       } else if (this._spinning && (dx != 0 || dy != 0)) { // spinning animation
