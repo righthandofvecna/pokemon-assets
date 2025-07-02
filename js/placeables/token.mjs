@@ -82,6 +82,7 @@ async function OnRenderTokenConfig(config, html, context) {
     if (!form.querySelector(".spritesheet-config")) {
       $(form).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
     };
+    form.querySelector(".spritesheet-config-aux")?.remove();
     form.querySelector(".spritesheet-config").replaceWith(rendered);
 
     // check that the anchoring fields exist

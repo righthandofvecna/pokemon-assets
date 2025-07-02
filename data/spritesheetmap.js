@@ -4217,6 +4217,9 @@ export default
       "05XX/051X/0511.png": {
         "animationframes": 4
       },
+      "05XX/051X/0511s.png": {
+        "animationframes": 4
+      },
       "05XX/051X/0512.png": {
         "animationframes": 9
       },
@@ -4227,6 +4230,9 @@ export default
         "animationframes": 4
       },
       "05XX/051X/0515.png": {
+        "animationframes": 4
+      },
+      "05XX/051X/0515s.png": {
         "animationframes": 4
       },
       "05XX/051X/0517.png": {
@@ -4308,6 +4314,9 @@ export default
         "animationframes": 4
       },
       "05XX/053X/0531.png": {
+        "animationframes": 4
+      },
+      "05XX/053X/0531_MEGA.png": {
         "animationframes": 4
       },
       "05XX/053X/0531s.png": {
@@ -4607,6 +4616,9 @@ export default
       "05XX/058X/0581.png": {
         "animationframes": 4
       },
+      "05XX/058X/0581s.png": {
+        "animationframes": 4
+      },
       "05XX/058X/0582.png": {
         "animationframes": 6
       },
@@ -4685,6 +4697,12 @@ export default
       "05XX/059X/0590s.png": {
         "animationframes": 4
       },
+      "05XX/059X/0592.png": {
+        "animationframes": 9
+      },
+      "05XX/059X/0592f.png": {
+        "animationframes": 9
+      },
       "05XX/059X/0593.png": {
         "animationframes": 7
       },
@@ -4722,6 +4740,9 @@ export default
         "animationframes": 5
       },
       "06XX/060X/0602.png": {
+        "animationframes": 4
+      },
+      "06XX/060X/0602s.png": {
         "animationframes": 4
       },
       "06XX/060X/0603.png": {
@@ -4849,6 +4870,9 @@ export default
       },
       "06XX/062X/0625s.png": {
         "animationframes": 4
+      },
+      "06XX/062X/0626.png": {
+        "animationframes": 7
       },
       "06XX/062X/0627.png": {
         "animationframes": 5
@@ -6337,6 +6361,9 @@ export default
       "08XX/081X/0817.png": {
         "animationframes": 4
       },
+      "08XX/081X/0817s.png": {
+        "animationframes": 4
+      },
       "08XX/081X/0818.png": {
         "animationframes": 4
       },
@@ -6500,6 +6527,9 @@ export default
         "animationframes": 5
       },
       "08XX/085X/0853.png": {
+        "animationframes": 4
+      },
+      "08XX/085X/0853s.png": {
         "animationframes": 4
       },
       "08XX/085X/0854.png": {
@@ -7507,6 +7537,9 @@ export default
         "animationframes": 1
       },
       "10XX/100X/1004.png": {
+        "animationframes": 8
+      },
+      "10XX/100X/1004s.png": {
         "animationframes": 8
       },
       "10XX/100X/1005.png": {
