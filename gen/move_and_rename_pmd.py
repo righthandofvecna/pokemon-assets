@@ -127,7 +127,7 @@ def main():
                             if anim.find("Name").text == file.replace("-Anim.png", ""):
                                 frames = len(anim.find("Durations"))
                     pmdImages = spritesheetSettings[foundryPathA]["images"]
-                    if foundryPathB not in pmdImages or pmdImages[foundryPathB]["animationframes"] != frames:
+                    if foundryPathB not in pmdImages: # or pmdImages[foundryPathB]["animationframes"] != frames:
                         newPath = os.path.join(newDirpath, fileName)
                         if os.path.exists(newPath):
                             os.remove(newPath)
