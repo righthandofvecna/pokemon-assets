@@ -4232,6 +4232,9 @@ export default
       "05XX/051X/0512.png": {
         "animationframes": 9
       },
+      "05XX/051X/0512s.png": {
+        "animationframes": 4
+      },
       "05XX/051X/0513.png": {
         "animationframes": 4
       },
@@ -7323,6 +7326,9 @@ export default
       },
       "09XX/095X/0955.png": {
         "animationframes": 7
+      },
+      "09XX/095X/0955s.png": {
+        "animationframes": 8
       },
       "09XX/095X/0957.png": {
         "animationframes": 4
