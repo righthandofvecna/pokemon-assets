@@ -1,5 +1,6 @@
 
 import { isTheGM, MODULENAME } from "./utils.mjs";
+import { RefreshTokenIndicators } from "./scripts.mjs";
 import { SpritesheetGenerator } from "./spritesheets.mjs"; 
 
 
@@ -83,15 +84,15 @@ function OnUpdateActor(actor, updates) {
   if (!updates?.ownership && !updates?.["==ownership"]) return;
   if (!actor.hasPlayerOwner) return;
   const logic = game?.modules?.get(MODULENAME)?.api?.logic;
-  const catchKey = logic?.ActorCatchKey(actor);
-  if (!catchKey) return;
-  const caughtPokemon = game.settings.get(MODULENAME, "caughtPokemon");
-  if (caughtPokemon.has(catchKey)) {
-    // still update the token on the current scene
-    canvas?.tokens?.objects?.children?.find(t => t?.document?.actor?.id === actor.id)?._drawIndicators?.();
-    return;
+  if (logic?.ActorCaught === null) {
+    const catchKey = logic?.ActorCatchKey(actor);
+    if (!catchKey) return;
+    const caughtPokemon = game.settings.get(MODULENAME, "caughtPokemon");
+    if (!caughtPokemon.has(catchKey)) {
+      game.settings.set(MODULENAME, "caughtPokemon", new Set([...caughtPokemon, catchKey]));
+    }
   }
-  game.settings.set(MODULENAME, "caughtPokemon", new Set([...caughtPokemon, catchKey]));
+  RefreshTokenIndicators();
 }
 
 function OnReady() {
@@ -99,6 +100,7 @@ function OnReady() {
   if (!game.settings.get(MODULENAME, "showCaughtIndicator")) return;
   // build up the list of all caught pokemon
   const logic = game?.modules?.get(MODULENAME)?.api?.logic;
+  if (logic?.ActorCaught !== null) return;
   const caughtPokemon = new Set([...game.settings.get(MODULENAME, "caughtPokemon")]);
   let added = false;
   for (const actor of game.actors) {

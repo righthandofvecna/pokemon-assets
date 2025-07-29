@@ -1,6 +1,7 @@
 import { early_isGM, isTheGM, sleep, tokenScene, MODULENAME } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
+import { RefreshTokenIndicators } from "../scripts.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
 /**
@@ -409,7 +410,8 @@ function ActorCry(actor) {
 function ActorCatchable(actor) {
   if (!actor) return false;
   if (actor.type !== "pokemon") return false;
-  if (actor.party?.owner !== undefined) return false;
+  if (actor.hasPlayerOwner) return false;
+  if (actor.party?.owner !== undefined) return game.settings.get(MODULENAME, "ownedPokemonCatchable");
   return true;
 }
 
@@ -430,6 +432,26 @@ function ActorCatchKey(actor) {
   if (!form) return `${slug}`;
   return `${slug}:${form}`;
 }
+
+/**
+ * Whether or not the actor's species been caught
+ * @param {*} actor 
+ */
+function ActorCaught(actor) {
+  const slug = actor?.species?.slug;
+  if (!slug) return null;
+  return !!game.actors.find(a=>a.hasPlayerOwner && ["caught", "shiny"].includes(a.system.details.dex.get(slug)?.state));
+}
+
+/**
+ * 
+ */
+function OnUpdateActor(actor, update) {
+  if (!game.user.isActiveGM) return;
+  if (update?.system?.details?.dex === undefined) return;
+  RefreshTokenIndicators();
+}
+
 
 // re-apply PTR2e's "_onUpdate" extension. Copied/modified from ptr2e.mjs
 function Token_onUpdate(wrapped, e, t, s) {
@@ -535,6 +557,7 @@ export function register() {
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateActor", OnPreCreateActor);
   Hooks.on("createToken", OnCreateToken);
+  Hooks.on("updateActor", OnUpdateActor);
   libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Token.objectClass.prototype._onUpdate", Token_onUpdate, "WRAPPER");
 
@@ -572,6 +595,7 @@ export function register() {
   api.logic.ActorCry ??= ActorCry;
   api.logic.ActorCatchable ??= ActorCatchable;
   api.logic.ActorCatchKey ??= ActorCatchKey;
+  api.logic.ActorCaught ??= ActorCaught;
   api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
 
   api.scripts ??= {};

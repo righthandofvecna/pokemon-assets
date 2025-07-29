@@ -1232,6 +1232,10 @@ async function ShowGMPopup(message) {
   return socket.current().executeAsGM("showPopup", game.user.name, message);
 }
 
+export async function RefreshTokenIndicators() {
+  return socket.current().executeForEveryone("refreshTokenIndicators");
+}
+
 
 
 export function register() {
@@ -1262,6 +1266,7 @@ export function register() {
     TriggerWhirlpool,
     PickUpItem,
     ShowGMPopup,
+    RefreshTokenIndicators,
   };
 
   socket.registerSocket("deleteTile", DeleteTile);
@@ -1270,4 +1275,5 @@ export function register() {
   socket.registerSocket("triggerWhirlpool", async (tileId)=>TriggerWhirlpool(await fromUuid(tileId)));
 
   socket.registerSocket("showPopup", async (username, message)=>ShowPopup(await fromUuid(tileId)));
+  socket.registerSocket("refreshTokenIndicators", async ()=>canvas?.tokens?.objects?.children?.forEach(t=>t._drawIndicators()));
 }

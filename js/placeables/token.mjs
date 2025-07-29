@@ -686,18 +686,22 @@ export function register() {
         const logic = game?.modules?.get(MODULENAME)?.api?.logic;
         // if the pokemon is uncaught, draw the "uncaught" effect
         const catchable = logic?.ActorCatchable(this?.document?.actor);
-        const catchKey = logic?.ActorCatchKey(this?.document?.actor);
-        if (catchable && catchKey) {
-          const caught = game.settings.get(MODULENAME, "caughtPokemon")?.has(catchKey);
-          if (caught === true) {
-            const tex = await loadTexture(`modules/${MODULENAME}/img/ui/caught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
-            const icon = new PIXI.Sprite(tex);
-            this.indicators.addChild(icon);
-          } else if (caught === false) {
-            const tex = await loadTexture(`modules/${MODULENAME}/img/ui/uncaught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
-            const icon = new PIXI.Sprite(tex);
-            this.indicators.addChild(icon);
+        let caught = catchable ? logic?.ActorCaught?.(this?.document?.actor) ?? null : null;
+        if (catchable && caught === null) {
+          const catchKey = logic?.ActorCatchKey(this?.document?.actor);
+          if (catchable && catchKey) {
+            caught = game.settings.get(MODULENAME, "caughtPokemon")?.has(catchKey);
           }
+        }
+        // add the indicator
+        if (caught === true) {
+          const tex = await loadTexture(`modules/${MODULENAME}/img/ui/caught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
+          const icon = new PIXI.Sprite(tex);
+          this.indicators.addChild(icon);
+        } else if (caught === false) {
+          const tex = await loadTexture(`modules/${MODULENAME}/img/ui/uncaught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
+          const icon = new PIXI.Sprite(tex);
+          this.indicators.addChild(icon);
         }
       }
 

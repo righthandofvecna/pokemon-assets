@@ -371,6 +371,7 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 		"tokenCollisionAllied",
 		"tokenCollisionHidden",
 		"showCaughtIndicator",
+		"ownedPokemonCatchable"
 	]
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
@@ -510,6 +511,16 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "Show a caught indicator on wild Pokemon tokens whose species/form have been caught, and an uncaught indicator on other wild Pokemon tokens which are catchable. This is determined by if a non-GM user ever had owner access to a matching actor."
+		});
+
+		game.settings.register(MODULENAME, "ownedPokemonCatchable", {
+			name: "Owned Pokemon Catchable",
+			default: false,
+			type: Boolean,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Whether the Pokemon of other trainers count as catchable for the purposes of the catch indicators."
 		});
 	}
 }
