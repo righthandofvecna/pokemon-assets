@@ -8190,5 +8190,14 @@ export default
     },
     "scale": 1.5,
     "sheetstyle": "trainer3"
+  },
+  "modules/pokemon-assets/img/trainers-overworld/custom_": {
+    "anchor": 0.63,
+    "animationframes": 3,
+    "images": {
+      "acetrainer_f_xy.png": {},
+    },
+    "scale": 1.1,
+    "sheetstyle": "trainer3"
   }
 }
