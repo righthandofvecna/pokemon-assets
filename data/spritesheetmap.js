@@ -4562,6 +4562,9 @@ export default
       "05XX/056X/0569.png": {
         "animationframes": 4
       },
+      "05XX/056X/0569_Gigantamax.png": {
+        "animationframes": 1
+      },
       "05XX/056X/0569s.png": {
         "animationframes": 4
       },
@@ -4858,6 +4861,9 @@ export default
       },
       "06XX/061X/0615s.png": {
         "animationframes": 8
+      },
+      "06XX/061X/0616.png": {
+        "animationframes": 6
       },
       "06XX/061X/0618.png": {
         "animationframes": 1
@@ -7770,6 +7776,15 @@ export default
     },
     "sheetstyle": "trainer"
   },
+  "modules/pokemon-assets/img/trainers-overworld/custom_": {
+    "anchor": 0.63,
+    "animationframes": 3,
+    "images": {
+      "acetrainer_f_xy.png": {}
+    },
+    "scale": 1.1,
+    "sheetstyle": "trainer3"
+  },
   "modules/pokemon-assets/img/trainers-overworld/trainer_": {
     "anchor": 0.65,
     "animationframes": 3,
@@ -8189,15 +8204,6 @@ export default
       "youngster_m_pe_01u2uyla.webp": {}
     },
     "scale": 1.5,
-    "sheetstyle": "trainer3"
-  },
-  "modules/pokemon-assets/img/trainers-overworld/custom_": {
-    "anchor": 0.63,
-    "animationframes": 3,
-    "images": {
-      "acetrainer_f_xy.png": {},
-    },
-    "scale": 1.1,
     "sheetstyle": "trainer3"
   }
 }
