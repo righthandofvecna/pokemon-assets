@@ -1,4 +1,5 @@
 import { MODULENAME } from "./utils.mjs";
+import { SpritesheetGenerator } from "./spritesheets.mjs";
 
 export function register() {
 
@@ -51,6 +52,20 @@ export function register() {
 		type: AudioSettings,
 	});
 	AudioSettings.initSettings();
+
+	game.settings.registerMenu(MODULENAME, "homebrew", {
+		name: "Homebrew",
+		label: "Homebrew Settings",
+		icon: "fa-solid fa-cog",
+		hint: "World settings to control homebrew Pokemon.",
+		restricted: true,
+		type: HomebrewSettings,
+	});
+	HomebrewSettings.initSettings();
+
+	//
+	// Non-Menu Settings
+	//
 
   game.settings.register(MODULENAME, "preloadAssets", {
 		name: "Preload Assets",
@@ -170,6 +185,11 @@ export class ArbitrarySettingsMenu extends foundry.applications.api.HandlebarsAp
 					label: setting.label ?? setting.name,
 					hint: setting.hint,
 				});
+			} else if (setting.type === String) {
+				settings[k].field = new foundry.data.fields.StringField({
+					label: setting.label ?? setting.name,
+					hint: setting.hint,
+				});
 			} else if (setting.type instanceof foundry.data.fields.DataField) {
 				settings[k].field = new setting.type.constructor({
 					...(setting.type.toObject() ?? Object.fromEntries(Object.entries(setting.type))),
@@ -183,7 +203,6 @@ export class ArbitrarySettingsMenu extends foundry.applications.api.HandlebarsAp
 				settings[k].field.name = k;
 			}
 		}
-		console.log(settings)
     return {
 			settings,
     }
@@ -371,6 +390,7 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 		"tokenCollisionAllied",
 		"tokenCollisionHidden",
 		"showCaughtIndicator",
+		"ownedPokemonCatchable"
 	]
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
@@ -511,6 +531,16 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 			config: false,
 			hint: "Show a caught indicator on wild Pokemon tokens whose species/form have been caught, and an uncaught indicator on other wild Pokemon tokens which are catchable. This is determined by if a non-GM user ever had owner access to a matching actor."
 		});
+
+		game.settings.register(MODULENAME, "ownedPokemonCatchable", {
+			name: "Owned Pokemon Catchable",
+			default: false,
+			type: Boolean,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Whether the Pokemon of other trainers count as catchable for the purposes of the catch indicators."
+		});
 	}
 }
 
@@ -523,7 +553,6 @@ export class AudioSettings extends ArbitrarySettingsMenu {
 		"playPokemonCryOnTurn",
 		"playCollisionSound",
 		"playInteractSound",
-		"homebrewCryFolder",
 	];
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
@@ -583,16 +612,6 @@ export class AudioSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "When you interact with a Scene Region with a \"Token Interaction\" trigger, play the Pokemon \"interact\" sound."
-		});
-
-		game.settings.register(MODULENAME, "homebrewCryFolder", {
-			name: "Homebrew Cry Folder",
-			default: "",
-			type: String,
-			scope: "world",
-			requiresReload: false,
-			config: true,
-			hint: "The folder where cries for unofficial Pokemon are stored. They must be stored in that folder as '<custom dex number>.mp3'."
 		});
 	}
 }
@@ -694,6 +713,153 @@ export class ArtSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "The default fallback Pokeball image to use if a Pokeball image is not set or cannot be found."
+		});
+	}
+}
+
+/**
+ * A settings menu for managing settings for homebrew Pokemon
+ */
+export class HomebrewSettings extends ArbitrarySettingsMenu {
+	static SHEET_SETTINGS = [
+		{ key: "sheetstyle", default: null, getter: "value" },
+		{ key: "animationframes", default: 4, getter: "valueAsNumber" },
+		{ key: "separateidle", default: false, getter: "checked" },
+		{ key: "anchor", default: 0.5, getter: "valueAsNumber" },
+		{ key: "scale", default: 1.0, getter: "valueAsNumber" },
+	];
+
+	static SETTINGS_TO_INCLUDE = [
+		"homebrewCryFolder",
+		"homebrewSpritesheetFolder",
+	];
+
+	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+		super.DEFAULT_OPTIONS,
+		{
+			classes: [...(super.DEFAULT_OPTIONS?.classes ?? []), "homebrew-settings"],
+			window: {
+				title: "Homebrew Settings",
+			},
+			form: {
+				handler: HomebrewSettings.#submit,
+			},
+			actions: {
+				"configureHSS": HomebrewSettings.#configureHSS,
+			}
+		},
+		{ inplace: false }
+	);
+
+	static PARTS = {
+		modifiers: {
+				id: "generic-settings",
+				template: "modules/pokemon-assets/templates/homebrew-settings.hbs",
+		},
+	};
+
+	async _prepareContext() {
+		const context = await super._prepareContext();
+		// get all spritesheets
+		const src = game.settings.get(MODULENAME, "homebrewSpritesheetFolder");
+		const srcFiles = (await foundry.applications.apps.FilePicker.browse("data", src).catch(()=>null))?.files;
+		context.hss = {};
+		if (srcFiles) {
+			const hssSettingsOld = game.settings.get(MODULENAME, "homebrewSpritesheetSettings");
+			const hssSettings = Object.fromEntries(srcFiles
+				.map(f=>f.substring(src.length+1))
+				.map(f=>[f, hssSettingsOld[f]])
+				.map(([f,s])=>[f, {
+					configured: s !== undefined,
+					...s
+				}]));
+			context.hss = hssSettings;
+		}
+
+		return context;
+	}
+
+	static async #submit(event, form, formData) {
+		let needsReload = false;
+		for (const [key, value] of Object.entries(formData?.object ?? {})) {
+			const oldValue = game.settings.get(MODULENAME, key);
+			if (oldValue === value) continue; // No change, skip
+			const setting = game.settings.settings.get(`${MODULENAME}.${key}`);
+			if (setting?.requiresReload)  needsReload = true; // If the setting requires a reload, mark it
+			await game.settings.set(MODULENAME, key, value);
+		}
+		if (needsReload) {
+			foundry.applications.settings.SettingsConfig.reloadConfirm({ world: true });
+		}
+	}
+
+	static async #configureHSS(event, formElement) {
+		const hssKey = formElement.dataset.hss;
+
+		console.log("configureHSS", this, ...arguments, hssKey);
+		const oldHss = game.settings.get(MODULENAME, "homebrewSpritesheetSettings")?.[hssKey] ?? {};
+		const data = {
+			showframes: true,
+			showidle: false,
+			...Object.fromEntries(HomebrewSettings.SHEET_SETTINGS.map(s=>[s.key, oldHss[s.key] ?? s.default])),
+		};
+		// Populate the dropdown for the types of spritesheet layouts available
+		data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
+			return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${label}</option>`;
+		}, "");
+		const content = await foundry.applications.handlebars.renderTemplate("modules/pokemon-assets/templates/hss-dialog.hbs", data)
+		const result = await foundry.applications.api.DialogV2.wait({
+			window: {
+				title: `Default Sprite Settings - ${hssKey}`,
+			},
+			content,
+			buttons: [
+				{
+					action: "submit",
+					label: "Save",
+					icon: "fa-solid fa-save",
+					default: true,
+					callback: (event, button, dialog)=>Object.fromEntries([...button.form.elements].map(e=>[e.name, e]).filter(([n,v])=>!!n))}
+			]
+		});
+		if (!result) return;
+		const hss = Object.fromEntries(Object.entries(result).map(([k,v])=>[k.substring(k.lastIndexOf(".")+1),v]))
+		HomebrewSettings.SHEET_SETTINGS.forEach(s=>hss[s.key] = hss[s.key]?.[s.getter] ?? null);
+		const allHss = foundry.utils.deepClone(game.settings.get(MODULENAME, "homebrewSpritesheetSettings"));
+		allHss[hssKey] = hss;
+		await game.settings.set(MODULENAME, "homebrewSpritesheetSettings", allHss);
+	}
+
+
+	static initSettings() {
+		game.settings.register(MODULENAME, "homebrewCryFolder", {
+			name: "Homebrew Cry Folder",
+			default: "pokemon/cries",
+			type: String,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "The folder where cries for homebrew Pokemon are stored. They must be stored in that folder as '<custom dex number>.mp3'."
+		});
+
+		game.settings.register(MODULENAME, "homebrewSpritesheetFolder", {
+			name: "Homebrew Spritesheet Folder",
+			default: "pokemon/spritesheets",
+			type: String,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "The folder where spritesheets for homebrew Pokemon are stored. They must be stored in that folder as '<custom dex number><variants>.png'."
+		});
+
+		game.settings.register(MODULENAME, "homebrewSpritesheetSettings", {
+			name: "Homebrew Spritesheet Settings",
+			default: {},
+			type: Object,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "The settings for homebrew spritesheets."
 		});
 	}
 }

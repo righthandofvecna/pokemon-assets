@@ -1,0 +1,19 @@
+<article class="standard-form h-100">
+  <section class="scrollable">
+    {{#each settings as |setting k|}}
+      {{formField setting.field value=setting.value localize=true}}
+    {{/each}}
+  </section>
+  
+  <fieldset class="scrollable spritesheet-settings">
+    <legend>Homebrew Pokemon Spritesheet Settings</legend>
+    <ul>
+    {{#each hss as |setting k|}}
+      <li class="{{#if setting.configured}}configured{{/if}}"><a data-action="configureHSS" data-hss="{{k}}"><i class="fa-solid fa-gear"></i></a> {{k}}</li>
+    {{/each}}
+    </ul>
+  </fieldset>
+  <footer class="form-footer">
+    <button type="submit" class="standard-button">{{localize "Save Changes"}}</button>
+  </footer>
+</article>

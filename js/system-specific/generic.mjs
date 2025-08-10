@@ -18,6 +18,7 @@ export function register() {
   api.logic.ActorCry ??= (actor)=>null;
   api.logic.ActorCatchable ??= (actor)=>true;
   api.logic.ActorCatchKey ??= (actor)=>null;
+  api.logic.ActorCaught ??= null;
   api.logic.isPokemon ??= (token)=>token?.texture?.src?.includes("/pmd-overworld/") ?? false;
   
   api.scripts ??= {};

@@ -1,4 +1,3 @@
-import { default as SPRITESHEET_MAP } from "../data/spritesheetmap.js";
 
 export class SpritesheetGenerator {
 
@@ -20,45 +19,6 @@ export class SpritesheetGenerator {
     upleft:    { x: -1, y: -1 },
     upright:   { x:  1, y: -1 },
   };
-
-  static CONFIGURED_SHEET_SETTINGS = SPRITESHEET_MAP;
-
-  static getSheetSettings(src) {
-    const direct = SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS[src];
-    if (direct) return direct;
-    
-    for (const [key, value] of Object.entries(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) {
-      if (src.startsWith(key)) {
-        const { images, ...flags } = value;
-        // check the subimages
-        const subimage = images[src.substring(key.length)];
-        if (subimage) return {
-          ...subimage,
-          ...flags,
-        };
-      }
-    }
-  }
-
-  static hasSheetSettings(src) {
-    return !!SpritesheetGenerator.getSheetSettings(src);
-  }
-
-  static allSheetKeys() {
-    if (SpritesheetGenerator._allSheetKeys) return SpritesheetGenerator._allSheetKeys;
-    SpritesheetGenerator._allSheetKeys = new Set();
-    for (const [key, value] of Object.entries(SpritesheetGenerator.CONFIGURED_SHEET_SETTINGS)) {
-      if (value.images !== undefined) {
-        for (const image of Object.keys(value.images)) {
-          SpritesheetGenerator._allSheetKeys.add(key + image);
-        }
-      } else {
-        SpritesheetGenerator._allSheetKeys.add(key);
-      }
-    }
-    return SpritesheetGenerator._allSheetKeys;
-  }
-
 
   spritesheets;
 

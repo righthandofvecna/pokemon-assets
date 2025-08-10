@@ -10,6 +10,7 @@ import * as placeables from "./placeables/index.mjs";
 import * as spritesheets from "./spritesheets.mjs";
 import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
+import * as pokemonSheets from "./pokemon-sheets.mjs";
 import * as regionEvents from "./region-events.mjs";
 import * as canvas from "./canvas.mjs";
 import * as filePicker from "./file-picker.mjs";
@@ -29,6 +30,7 @@ Hooks.on("init", ()=>{
     spritesheets,
     scripts,
     pixelate,
+    pokemonSheets,
     regionEvents,
     canvas,
     filePicker,

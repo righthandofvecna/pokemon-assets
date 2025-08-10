@@ -1,5 +1,5 @@
 import { MODULENAME, tokenScene } from "../utils.mjs";
-import { SpritesheetGenerator } from "../spritesheets.mjs"; 
+import { PokemonSheets } from "../pokemon-sheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
@@ -11,21 +11,21 @@ function isActorPokemon(actor, data={}) {
 }
 
 function _getPokemonSprite(actor, data={}) {
-  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return { img: null, settings: null };
 
-  const dexNum = data?.system?.pokedexId ?? actor?.system?.pokedexId ?? 0;
+  const dex = data?.system?.pokedexId ?? actor?.system?.pokedexId ?? 0;
   const name = data.name ?? actor.name;
-  const regionalVariant = (()=>{
-    if (name.includes("Alolan ")) return "_alolan";
-    if (name.includes("Galarian ")) return "_galarian";
-    if (name.includes("Hisuian ")) return "_hisuian";
-    if (name.includes("Paldean ")) return "_paldean";
+  const region = (()=>{
+    if (name.includes("Alolan ")) return "alolan";
+    if (name.includes("Galarian ")) return "galarian";
+    if (name.includes("Hisuian ")) return "hisuian";
+    if (name.includes("Paldean ")) return "paldean";
     return "";
   })();
   const mega = (()=>{
     if (name.includes("Mega X ")) return "MEGA_X";
-    if (name.includes("Mega Y ")) return "_MEGA_Y";
-    if (name.includes("Mega ")) return "_MEGA";
+    if (name.includes("Mega Y ")) return "MEGA_Y";
+    if (name.includes("Mega ")) return "MEGA";
     return "";
   })();
   // const shiny = config.shiny ? "s" : "";
@@ -34,26 +34,11 @@ function _getPokemonSprite(actor, data={}) {
   //   if (config.gender == "female") return "f";
   //   return "";
   // })();
-  const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
-  const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
-  const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
-  const dexString = `${dexNum}`.padStart(4, "0");
-
-  // check if everything is populated!
-  for (const testSrc of [
-    // `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
-    // `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
-    // `${pmdPath}${dexString}${gender}${regionalVariant}.png`,
-    `${pmdPath}${dexString}${mega}${regionalVariant}.png`,
-    `${pmdPath}${dexString}${mega}.png`,
-    `${pmdPath}${dexString}${regionalVariant}.png`,
-    `${pmdPath}${dexString}.png`,
-  ]) {
-    if (SpritesheetGenerator.hasSheetSettings(testSrc)) {
-      return testSrc;
-    }
-  }
-  return null;
+  return PokemonSheets.getPokemon({
+    dex,
+    mega,
+    region,
+  });
 }
 
 function OnPreCreateActor(actor, data) {
@@ -61,7 +46,7 @@ function OnPreCreateActor(actor, data) {
     if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
 
     const name = data.name ?? actor.name;
-    const img = _getPokemonSprite(actor, data);
+    const { img, settings } = _getPokemonSprite(actor, data);
     if (img) {
       const updates = {
         flags: {
@@ -69,7 +54,7 @@ function OnPreCreateActor(actor, data) {
             originalName: name,
           }
         },
-        prototypeToken: _getTokenChangesForSpritesheet(img)
+        prototypeToken: settings,
       };
       foundry.utils.mergeObject(data, foundry.utils.deepClone(updates));
       actor.updateSource(updates);
@@ -79,7 +64,7 @@ function OnPreCreateActor(actor, data) {
     if (!game.settings.get(MODULENAME, "autoTrainerImage")) return;
     if (!(data.img ?? actor.img).includes("icons/svg/mystery-man.svg")) return;
     const img = (()=>{
-      let possibleImages = SpritesheetGenerator.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+      let possibleImages = PokemonSheets.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
       // const gender = (()=>{
       //   const genderSet = (data?.system?.sex ?? actor?.system?.sex ?? "genderless").toLowerCase().trim();
       //   if (genderSet === "genderless") return "";
@@ -108,14 +93,11 @@ function OnPreCreateActor(actor, data) {
 
 function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
-  if ((!src || !SpritesheetGenerator.hasSheetSettings(src)) && isActorPokemon(token.actor) && token.actor?.prototypeToken?.flags?.[MODULENAME]?.spritesheet === undefined) {
-    src = _getPokemonSprite(token.actor, {}) ?? src;
+  if ((!src || !PokemonSheets.hasSheetSettings(src)) && isActorPokemon(token.actor) && token.actor?.prototypeToken?.flags?.[MODULENAME]?.spritesheet === undefined) {
+    const { img, settings } = _getPokemonSprite(token.actor, {});
+    if (!img) return;
+    token.updateSource(settings);
   }
-
-  if (!src || !SpritesheetGenerator.hasSheetSettings(src)) return;
-
-  const updates = _getTokenChangesForSpritesheet(src);
-  token.updateSource(updates);
 }
 
 function OnPreUpdateActor(actor, updates, options) {
