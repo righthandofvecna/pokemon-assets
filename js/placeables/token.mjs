@@ -1,6 +1,7 @@
 import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene, angleDiff } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
+import { PokemonSheets } from "../pokemon-sheets.mjs";
 import { NonPrivateTokenMixin } from "../foundry/token.mjs";
 
 /**
@@ -25,7 +26,7 @@ async function OnRenderTokenConfig(config, html, context) {
       }
       return rawSrc;
     })();
-    const predefinedSheetSettings = SpritesheetGenerator.getSheetSettings(src);
+    const predefinedSheetSettings = PokemonSheets.getSheetSettings(src);
     const isPredefined = predefinedSheetSettings !== undefined;
 
     const data = {

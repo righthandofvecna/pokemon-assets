@@ -1,5 +1,5 @@
 import { early_isGM, isTheGM, sleep, tokenScene, MODULENAME } from "../utils.mjs";
-import { SpritesheetGenerator } from "../spritesheets.mjs"; 
+import { PokemonSheets } from "../pokemon-sheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { RefreshTokenIndicators } from "../scripts.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
@@ -92,37 +92,27 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
   const result = await wrapped(config, ...args);
   const forms = new Set((config.forms ?? []).map(f=>f.toLowerCase()));
   if (forms.has("token")) {
-    const dexNum = config.dexId;
     const regionalVariant = (()=>{
-      if (forms.has("alolan")) return "_alolan";
-      if (forms.has("galarian")) return "_galarian";
-      if (forms.has("hisuian")) return "_hisuian";
-      if (forms.has("paldean")) return "_paldean";
+      if (forms.has("alolan")) return "alolan";
+      if (forms.has("galarian")) return "galarian";
+      if (forms.has("hisuian")) return "hisuian";
+      if (forms.has("paldean")) return "paldean";
       return "";
     })();
-    const shiny = config.shiny ? "s" : "";
     const gender = (()=>{
       if (config.gender == "male") return "m";
       if (config.gender == "female") return "f";
       return "";
     })();
-    const f1 = `${~~(dexNum/100)}`.padStart(2, "0") + "XX";
-    const f2 = `${~~(dexNum/10)}`.padStart(3, "0") + "X";
-    const pmdPath = `modules/pokemon-assets/img/pmd-overworld/${f1}/${f2}/`;
-    const dexString = `${dexNum}`.padStart(4, "0");
-  
-    // check if everything is populated!
-    for (const testSrc of [
-      `${pmdPath}${dexString}${gender}${shiny}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${shiny}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${gender}${regionalVariant}.png`,
-      `${pmdPath}${dexString}${regionalVariant}.png`,
-      `${pmdPath}${dexString}.png`,
-    ]) {
-      if (SpritesheetGenerator.hasSheetSettings(testSrc)) {
-        result.result = testSrc;
-        return result;
-      }
+    const { img } = PokemonSheets.getPokemon({
+      dex: config.dexId,
+      shiny: config.shiny,
+      gender,
+      region: regionalVariant,
+    });
+    if (img != null) {
+      result.result = img;
+      return result;
     }
   }
   return result;
@@ -131,7 +121,7 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
 
 function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
-  if (!src || !SpritesheetGenerator.hasSheetSettings(src)) return;
+  if (!src || !PokemonSheets.hasSheetSettings(src)) return;
 
   const updates = _getTokenChangesForSpritesheet(src);
   token.updateSource(updates);
@@ -143,7 +133,7 @@ function OnPreCreateActor(actor, data) {
   if (!(data.img ?? actor.img).includes("icons/svg/mystery-man.svg")) return;
 
   const img = (()=>{
-    let possibleImages = SpritesheetGenerator.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+    let possibleImages = PokemonSheets.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
     const gender = (()=>{
       const genderSet = (data?.system?.sex ?? actor?.system?.sex ?? "genderless").toLowerCase().trim();
       if (genderSet === "genderless") return "";
@@ -480,7 +470,7 @@ function TokenAlterations_apply(wrapped, ...args) {
     if (!basename) return false;
 
     const src = (()=>{
-      for (const src of SpritesheetGenerator.allSheetKeys()) {
+      for (const src of PokemonSheets.allSheetKeys()) {
         if (src.toLowerCase().includes(basename.toLowerCase())) return src;
       }
     })();

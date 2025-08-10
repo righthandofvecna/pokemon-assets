@@ -1,5 +1,5 @@
 import { MODULENAME, tokenScene } from "../utils.mjs";
-import { SpritesheetGenerator } from "../spritesheets.mjs"; 
+import { PokemonSheets } from "../pokemon-sheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
@@ -79,7 +79,7 @@ function OnPreCreateActor(actor, data) {
     if (!game.settings.get(MODULENAME, "autoTrainerImage")) return;
     if (!(data.img ?? actor.img).includes("icons/svg/mystery-man.svg")) return;
     const img = (()=>{
-      let possibleImages = SpritesheetGenerator.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
+      let possibleImages = PokemonSheets.allSheetKeys().filter(k=>k.startsWith("modules/pokemon-assets/img/trainers-overworld/trainer_")).map(k=>k.substring(46));
       // const gender = (()=>{
       //   const genderSet = (data?.system?.sex ?? actor?.system?.sex ?? "genderless").toLowerCase().trim();
       //   if (genderSet === "genderless") return "";
@@ -108,11 +108,11 @@ function OnPreCreateActor(actor, data) {
 
 function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
-  if ((!src || !SpritesheetGenerator.hasSheetSettings(src)) && isActorPokemon(token.actor) && token.actor?.prototypeToken?.flags?.[MODULENAME]?.spritesheet === undefined) {
+  if ((!src || !PokemonSheets.hasSheetSettings(src)) && isActorPokemon(token.actor) && token.actor?.prototypeToken?.flags?.[MODULENAME]?.spritesheet === undefined) {
     src = _getPokemonSprite(token.actor, {}) ?? src;
   }
 
-  if (!src || !SpritesheetGenerator.hasSheetSettings(src)) return;
+  if (!src || !PokemonSheets.hasSheetSettings(src)) return;
 
   const updates = _getTokenChangesForSpritesheet(src);
   token.updateSource(updates);
