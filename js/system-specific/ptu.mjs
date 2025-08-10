@@ -106,7 +106,7 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
   })();
   const form = formOverride || actor.system.form || "";
 
-  const { img } = PokemonSheets.getPokemon({
+  const { img, settings } = PokemonSheets.getPokemon({
     dex: dexNum,
     shiny: actor.system.shiny,
     gender,
@@ -116,7 +116,7 @@ function _getPrototypeTokenUpdates(actor, species, formOverride=null) {
   if (img == null) return {};
 
   const updates = {
-    "prototypeToken": _getTokenChangesForSpritesheet(img),
+    "prototypeToken": settings,
   };
   return updates;
 }
