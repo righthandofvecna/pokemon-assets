@@ -4502,6 +4502,9 @@ export default
       "05XX/055X/0557.png": {
         "animationframes": 4
       },
+      "05XX/055X/0557s.png": {
+        "animationframes": 4
+      },
       "05XX/055X/0558.png": {
         "animationframes": 4
       },
@@ -5238,6 +5241,9 @@ export default
         "animationframes": 12
       },
       "06XX/066X/0666s_Garden.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_HighPlains.png": {
         "animationframes": 12
       },
       "06XX/066X/0666s_IcySnow.png": {
@@ -7642,6 +7648,9 @@ export default
         "animationframes": 4
       },
       "10XX/101X/1016.png": {
+        "animationframes": 4
+      },
+      "10XX/101X/1016s.png": {
         "animationframes": 4
       },
       "10XX/101X/1017.png": {
