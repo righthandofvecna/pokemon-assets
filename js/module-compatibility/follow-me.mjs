@@ -101,7 +101,7 @@ function getFollowerUpdates(leaderToken, movement, followers) {
         ...new_pos,
       });
     }
-    // TODO set final/etc on waypoints
+    myMovement.method = "api";
 
     followerUpdates.push({
       _id: follower.id,
