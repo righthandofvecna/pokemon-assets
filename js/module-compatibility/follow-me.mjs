@@ -67,53 +67,49 @@ export function getAllInFollowChain(token) {
   return followChain;
 }
 
-
-function getFollowerUpdates(tPos, followers) {
+function getFollowerUpdates(leaderToken, movement, followers) {
+  if (!movement) return [];
   const followerUpdates = [];
 
-  let p = tPos;
   for (const follower of followers) {
     const desc = foundry.utils.deepClone(follower.getFlag(MODULENAME, FLAG_FOLLOWING));
-    desc.positions.push(p);
-    const followPath = new SimpleSpline(desc.positions);
-    let data = {
-      _id: follower.id,
+    const leaderMovement = foundry.utils.deepClone(movement[leaderToken.id]);
+    if (!leaderMovement) break; // leader didn't move, so we stop here
+    leaderMovement.waypoints.unshift({
+      ...leaderMovement.waypoints.at(0),
+      x: leaderToken.x,
+      y: leaderToken.y,
+    });
+    const wp = leaderMovement.waypoints.pop();
+    const myMovement = movement[follower.id] = {
+      ...foundry.utils.deepClone(leaderMovement),
+      waypoints: leaderMovement.waypoints,
     };
-
-    let param = followPath.plen-desc.dist;
-    let new_pos = followPath.parametricPosition(param);
+    const oldPosition = myMovement.waypoints.at(-1);
+    const stayBehind = canvas.grid.size; // how far behind the leader we want to stay
+    let dx = wp.x - oldPosition.x;
+    let dy = wp.y - oldPosition.y;
+    dx = Math.sign(dx) * Math.max(0, Math.abs(dx) - stayBehind);
+    dy = Math.sign(dy) * Math.max(0, Math.abs(dy) - stayBehind);
+    let new_pos = { x: oldPosition.x + dx, y: oldPosition.y + dy };
     // Snap the new position to the grid
     new_pos = canvas.grid.getSnappedPoint( new_pos, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX } );
-    // if new_pos is further away from the target than it is currently, don't move
-    if (Math.abs(new_pos.x - p.x) + Math.abs(new_pos.y - p.y) > Math.abs(follower.x - p.x) + Math.abs(follower.y - p.y)) {
-      new_pos = { x: follower.x, y: follower.y };
+    if (new_pos.x !== oldPosition.x || new_pos.y !== oldPosition.y) {
+      // Only add new_pos if it is different from the last waypoint
+      myMovement.waypoints.push({
+        ...wp,
+        ...new_pos,
+      });
     }
-    data.x = new_pos.x;
-    data.y = new_pos.y;
+    myMovement.method = "api";
 
-    // don't need to reorient, this module already does it
-
-    // check for collisions
-    const grid = tokenScene(follower)?.grid;
-    const width = (follower.width ?? 1) * (grid?.sizeX ?? grid?.size ?? 100);
-    const height = (follower.height ?? 1) * (grid?.sizeY ?? grid?.size ?? 100);
-    if (!follower.object || follower.object.checkCollision(
-      vAdd(new_pos, { x: width / 2, y: height / 2 } ),
-      {type: "move", mode: "any", follow: true})) {
-      // Do not apply this update or any further ones
-      break;
-    }
-
-    p = { x: data.x, y: data.y }; // update for the next follower
-    if (data.x == follower.x) delete data.x;
-    if (data.y == follower.y) delete data.y;
-
-    followPath.prune(param);
-    desc.positions = followPath.p;
-    data[`flags.${MODULENAME}.${FLAG_FOLLOWING}`] = desc;
-    if (!(!data.x && !data.y)) {
-      followerUpdates.push(data);
-    }
+    followerUpdates.push({
+      _id: follower.id,
+      x: myMovement.waypoints.at(-1).x,
+      y: myMovement.waypoints.at(-1).y,
+      [`flags.${MODULENAME}.${FLAG_FOLLOWING}`]: desc,
+    });
+    leaderToken = follower; // update leader for the next follower
   }
   return followerUpdates;
 }
@@ -407,7 +403,7 @@ function OnFollowKey() {
   canvas.scene.updateEmbeddedDocuments("Token", updates, { follower_updates });
 }
 
-function OnManualMove(token, update, follower_updates) {
+function OnManualMove(token, update, operation, follower_updates) {
   if (getCombatsForScene(tokenScene(token)?.uuid).length > 0) return;
   const followers = getAllFollowing(token);
 
@@ -422,10 +418,20 @@ function OnManualMove(token, update, follower_updates) {
       stroke: "#FF0000"
     });
   }
-  follower_updates.push(...getFollowerUpdates({
-    x: update.x ?? token.x,
-    y: update.y ?? token.y
-  }, followers));
+  follower_updates.push(...getFollowerUpdates(token, operation?.movement, followers));
+  operation.animation ??= {};
+  operation.animation.follower_speed_modifiers = {};
+  // figure out the length of the original's movement
+  const mvdist = (t)=>operation?.movement?.[t.id]?.waypoints?.reduce((acc, p)=>({
+    dist: acc.dist + Math.hypot(p.x - acc.x, p.y - acc.y),
+    x: p.x,
+    y: p.y,
+  }), { dist: 0, x: t.x, y: t.y})?.dist ?? 0;
+  const originalMovement = mvdist(token);
+  for (const follower of followers) {
+    console.log(originalMovement);
+    operation.animation.follower_speed_modifiers[follower.id] = mvdist(follower) / originalMovement;
+  };
 }
 
 function OnUpdateToken(token, change, options, userId) {
@@ -465,115 +471,4 @@ export function register() {
     restricted: false,
     precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
   });
-}
-
-
-/* ------------ UTILITIES ---------------- */
-
-
-function vNeg(p){ // Return -1*v
-  return {x:-p.x, y:-p.y};
-}
-function vAdd(p1, p2){ // Return the sum, p1 + p2
-  return {x:p1.x+p2.x, y:p1.y+p2.y };
-}
-function vSub(p1, p2){// Return the difference, p1-p2
-  return {x:p1.x-p2.x, y:p1.y-p2.y };
-}
-function vMult(p,v){ // Multiply vector p with value v
-  return {x:p.x*v, y: p.y*v};  
-}
-function vDot(p1, p2){ // Return the dot product of p1 and p2
-  return p1.x*p2.x + p1.y*p2.y;
-}
-function vLen(p){ // Return the length of the vector p
-  return Math.sqrt(p.x**2 + p.y**2);
-}
-function vNorm(p){ // Normalize the vector p, p/||p||
-  return vMult(p, 1.0/vLen(p));
-}
-function vAngle(p){ // The foundry compatible 'rotation angle' to point along the vector p
-  return 90+Math.toDegrees(Math.atan2(p.y, p.x));
-}
-
-// An implementation of hermite-like interpolation. The derivative is hermite-like, whereas the position is linearly interpolated
-class SimpleSpline{
-  constructor(points, smoothness=0.0){
-    this.p = points;
-    this.smoothness = smoothness;
-    this.lengths = [];
-    for (let i = 1; i < this.len; ++i){
-      this.lengths.push( vLen(vSub(this.p[i-1], this.p[i])) );
-    }
-  }
-  parametricLength(){
-    return this.lengths.reduce((p, a)=>p+a,0);
-  }
-  get len (){
-    return this.p.length;
-  }
-  get plen(){
-    return this.parametricLength();
-  }
-
-  // Position at parametric position t
-  parametricPosition( t ){
-    if (this.len<2){return this.p[0];}    
-    let len = 0;
-    for (let i = 1; i < this.len; ++i){
-      let nlen = this.lengths[i-1];
-      if (len+nlen >= t){
-        let nfrac = (t-len)/(nlen);//normalized fraction
-        // returning (1-nt)*prev + nt*cur
-        return vAdd(vMult(this.p[i-1], 1-nfrac), vMult(this.p[i], nfrac) );
-      }
-      len += nlen;
-    }
-    // we have gone past our parametric length, clamp at last point
-    return this.p[this.len-1];
-  }
-
-  #iNorm(i){
-    if(i<1){
-      return vNorm(vSub(this.p[0], this.p[1]));
-    }
-    if(i > (this.len-2)){
-      // last (or past last) point, return (last - next to last)
-      return vNorm(vSub(this.p[this.len-2], this.p[this.len-1]));
-    }
-    return vNorm( vSub(this.p[i-1], this.p[i+1]));
-  }
-
-  prune(before){
-      if (this.len<=2)return;
-      let cumsum = 0;
-      let i = 0;
-      for(;cumsum < before; ++i){
-          cumsum+=this.lengths[i];
-      }
-      --i;
-      if (i>0){
-          this.lengths = this.lengths.slice(i);
-          this.p = this.p.slice(i);
-      }
-  }
-
-  // Derivative at parametric position t
-  derivative(t){
-    if (t<=0){ 
-      return this.#iNorm(0);
-    }
-    let len = 0;
-    for (let i = 1; i < this.len; ++i){
-      let nlen = this.lengths[i-1];
-      if ((len+nlen) >= t){
-        let nfrac = (t-len)/(nlen);//normalized fraction
-        let p = this.#iNorm(i-1);
-        let n = this.#iNorm(i);
-        return vNorm( vAdd(vMult(p,1-nfrac), vMult(n,nfrac)) );
-      }
-      len += nlen;
-    }
-    return this.#iNorm(this.len);
-  }
 }

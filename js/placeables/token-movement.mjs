@@ -41,7 +41,7 @@ function Scene_updateEmbeddedDocuments(wrapped, embeddedName, updates=[], operat
   for (const update of updates) {
     const token = this.tokens.get(update._id);
     if (!token) continue;
-    Hooks.call("pokemon-assets.manualMove", token, update, follower_updates);
+    Hooks.call("pokemon-assets.manualMove", token, update, operation, follower_updates);
   };
 
   // add all the "follower updates" that we have access to update

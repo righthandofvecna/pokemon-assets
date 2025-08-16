@@ -1266,7 +1266,7 @@ export function NonPrivateTokenMixin(TokenClass) {
    * The result of this function must not be affected by the animation of this Token.
    * @param {TokenConstrainMovementPathWaypoint[]} waypoints    The waypoints of movement
    * @param {TokenConstrainMovementPathOptions} [options]       Additional options
-   * @returns {[constrainedPath: TokenMovementWaypoint[], wasConstrained: boolean]}
+   * @returns {[constrainedPath: TokenConstrainedMovementWaypoint[], wasConstrained: boolean]}
    *   The (constrained) path of movement and a boolean that is true if and only if the path was constrained.
    *   If it wasn't constrained, then a copy of the path of all given waypoints with all default values filled in
    *   is returned.
@@ -1281,11 +1281,12 @@ export function NonPrivateTokenMixin(TokenClass) {
     const source = this.document._source;
     let {x=source.x, y=source.y, elevation=source.elevation, width=source.width, height=source.height,
       shape=source.shape, action=this.document.movementAction, terrain=null, snapped=false, explicit=false,
-      checkpoint=false} = waypoints[0];
+      checkpoint=false, intermediate=false} = waypoints[0];
     x = Math.round(x);
     y = Math.round(y);
     if ( terrain ) terrain = terrain.clone();
-    let waypoint = {x, y, elevation, width, height, shape, action, terrain, snapped, explicit, checkpoint};
+    let waypoint = {x, y, elevation, width, height, shape, action, terrain, snapped, explicit, checkpoint,
+      intermediate};
     result.path.push(waypoint);
 
     // Compute adjusted origin
@@ -1304,11 +1305,11 @@ export function NonPrivateTokenMixin(TokenClass) {
       const priorWaypoint = waypoint;
       let {x=waypoint.x, y=waypoint.y, elevation=waypoint.elevation, width=waypoint.width, height=waypoint.height,
         shape=waypoint.shape, action=waypoint.action, terrain=null, snapped=false, explicit=false,
-        checkpoint=false} = waypoints[i];
+        checkpoint=false, intermediate=false} = waypoints[i];
       x = Math.round(x);
       y = Math.round(y);
       if ( terrain ) terrain = terrain.clone();
-      waypoint = {x, y, elevation, width, height, shape, action, terrain, snapped, explicit, checkpoint};
+      waypoint = {x, y, elevation, width, height, shape, action, terrain, snapped, explicit, checkpoint, intermediate};
 
       // Test scene bounds
       const priorCenter = center;
@@ -1352,7 +1353,15 @@ export function NonPrivateTokenMixin(TokenClass) {
           // Get the collision waypoint
           const collisionWaypoint = this._PRIVATE_getCollisionWaypoint(waypoint, collision, origin, center, offsetX, offsetY,
             wallType, preview);
-          if ( !collisionWaypoint ) break;
+          if ( !collisionWaypoint ) {
+
+            // The last waypoint must not be intermediate
+            if ( priorWaypoint.intermediate ) {
+              priorWaypoint.intermediate = false;
+              priorWaypoint.explicit = false;
+            }
+            break;
+          }
 
           // Skip if collision waypoint is almost the same as the origin waypoint
           if ( Math.max(Math.abs(collisionWaypoint.x - priorWaypoint.x),
@@ -1386,8 +1395,8 @@ export function NonPrivateTokenMixin(TokenClass) {
    * @param {number} offsetY                  The current y-offset
    * @param {string} type                     The wall type
    * @param {boolean} preview                 Is this a preview?
-   * @returns {TokenMovementWaypoint|void}    The collision waypoint, or undefined if the movement
-   *                                          should stop at the origin
+   * @returns {TokenConstrainedMovementWaypoint|void}    The collision waypoint, or undefined if the movement
+   *                                                     should stop at the origin
    */
   _PRIVATE_getCollisionWaypoint(waypoint, collision, origin, center, offsetX, offsetY, type, preview) {
     const priorOffsetX = offsetX;
@@ -1404,7 +1413,8 @@ export function NonPrivateTokenMixin(TokenClass) {
           y: Math.round(Math.mix(collision.y, origin.y, t)),
           elevation: Math.mix(collision.elevation, origin.elevation, t),
           width: waypoint.width, height: waypoint.height, shape: waypoint.shape,
-          action: waypoint.action, terrain: waypoint.terrain, snapped: false, explicit: false, checkpoint: false
+          action: waypoint.action, terrain: waypoint.terrain, snapped: false, explicit: false, checkpoint: false,
+          intermediate: false
         };
         const c = this.document.getCenterPoint(p);
         const ox = Math.sign(c.x - center.x);
@@ -1449,6 +1459,7 @@ export function NonPrivateTokenMixin(TokenClass) {
           p.snapped = true;
           p.explicit = false;
           p.checkpoint = false;
+          p.intermediate = false;
           return p;
         }
         offsetX = priorOffsetX;
@@ -1503,7 +1514,7 @@ export function NonPrivateTokenMixin(TokenClass) {
     const previous = history.at(-1);
     if ( previous ) {
       const origin = result.path[0];
-      if ( TokenDocument.MOVEMENT_FIELDS.some(k => previous[k] !== origin[k]) ) {
+      if ( !TokenDocument.arePositionsEqual(previous, origin) ) {
         const {x, y, elevation, width, height, shape} = origin;
         history = [...history, {x, y, elevation, width, height, shape, action: "displace", cost: 0}];
       }
@@ -1516,6 +1527,15 @@ export function NonPrivateTokenMixin(TokenClass) {
     while ( (n < measurement.waypoints.length) && (measurement.waypoints[n].backward?.cost !== Infinity) ) n++;
     n -= history.length;
     if ( result.path.length === n ) return;
+    if ( n > 0 ) {
+
+      // The last waypoint must not be intermediate
+      const last = result.path[n - 1];
+      if ( last.intermediate ) {
+        last.intermediate = false;
+        last.explicit = false;
+      }
+    }
     result.path.length = n;
     result.constrained = true;
   };
@@ -1550,7 +1570,6 @@ export function NonPrivateTokenMixin(TokenClass) {
       }
     }
 
-    let previousRegions = initialRegions;
     const distancePixels = this.scene.dimensions.distancePixels;
     for ( let i = 0; i < passedWaypoints.length; i++ ) {
       const to = passedWaypoints[i];
@@ -1567,6 +1586,7 @@ export function NonPrivateTokenMixin(TokenClass) {
           const dz = (center.elevation - previousCenter.elevation) * distancePixels;
           const t = (dx * dx) + (dy * dy) + (dz * dz);
           regionWaypoints.push({t, x: from.x, y: from.y, elevation: from.elevation,
+            width: from.width, height: from.height, shape: from.shape,
             crosses: type !== REGION_MOVEMENT_SEGMENTS.MOVE, state, regions: null});
         }
       }
@@ -1584,7 +1604,7 @@ export function NonPrivateTokenMixin(TokenClass) {
           const w1 = regionWaypoints[j + 1];
 
           // Same position: combine them
-          if ( (w0.x === w1.x) && (w0.y === w1.y) && (w0.elevation === w1.elevation) ) {
+          if ( TokenDocument.arePositionsEqual(w0, w1) ) {
             k++;
             d++;
             continue;
@@ -1633,25 +1653,26 @@ export function NonPrivateTokenMixin(TokenClass) {
 
         // Skip the first region waypoint if it matches the previous movement waypoint
         const first = regionWaypoints[0];
-        if ( (first.x === from.x) && (first.y === from.y) && (first.elevation === from.elevation) ) j = 1;
+        if ( TokenDocument.arePositionsEqual(first, from) ) j = 1;
 
         // Skip the last region waypoint if it matches the current movement waypoint
         const last = regionWaypoints[n - 1];
-        if ( (last.x === to.x) && (last.y === to.y) && (last.elevation === to.elevation) ) {
+        if ( TokenDocument.arePositionsEqual(last, to) ) {
           n -= 1;
           regions = last.regions;
         }
       }
 
+      let previousRegions;
+
       // Add the region waypoints between the previous and the current movement waypoint
       while ( j < n ) {
-        const {x, y, elevation, regions} = regionWaypoints[j++];
+        const {x, y, elevation, width, height, shape, regions} = regionWaypoints[j++];
 
         // Remove redundant region waypoints
-        if ( previousRegions.equals(regions) ) path.pop();
+        if ( previousRegions?.equals(regions) ) path.pop();
 
-        path.push({x, y, elevation, width: to.width, height: to.height, shape: to.shape, action: to.action,
-          terrain: to.terrain, regions, ray: null});
+        path.push({x, y, elevation, width, height, shape, action: to.action, terrain: to.terrain, regions, ray: null});
         previousRegions = regions;
       }
 
@@ -1663,12 +1684,11 @@ export function NonPrivateTokenMixin(TokenClass) {
       }
 
       // Remove redundant region waypoint
-      if ( previousRegions.equals(regions) ) path.pop();
+      if ( previousRegions?.equals(regions) ) path.pop();
 
       // Add the current movement waypoint
       path.push({x: to.x, y: to.y, elevation: to.elevation, width: to.width, height: to.height, shape: to.shape,
         action: to.action, terrain: to.terrain, regions, ray: null});
-      previousRegions = regions;
 
       if ( !to.intermediate ) {
         const center = this.document.getCenterPoint(to);
@@ -1929,7 +1949,8 @@ export function NonPrivateTokenMixin(TokenClass) {
             if ( ray.distance > 0 ) {
               const rotation = Math.toDegrees(ray.angle) + (movement.method === "undo" ? 90 : -90);
               movementAnimationPromise = this.animate({rotation}, {
-                name: this.movementAnimationName,
+                ...(options.animation ?? {}),
+          name: this.movementAnimationName,
                 chain: true,
                 action: waypoint.action,
                 movementSpeed: rotationSpeed
@@ -1956,6 +1977,7 @@ export function NonPrivateTokenMixin(TokenClass) {
           height: waypoint.height,
           shape: waypoint.shape
         }, {
+          ...(options.animation ?? {}),
           name: this.movementAnimationName,
           chain: true,
           action: waypoint.action,
@@ -1970,6 +1992,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       }
       if ( movement.autoRotate ) {
         movementAnimationPromise = this.animate({rotation: animationData.rotation}, {
+          ...(options.animation ?? {}),
           name: this.movementAnimationName,
           chain: true,
           action: animationPath.at(-1).action,
@@ -2143,7 +2166,7 @@ export function NonPrivateTokenMixin(TokenClass) {
           });
         }
       };
-      const promiseIn = runningAnimations[i].end;
+      const promiseIn = i > 0 ? runningAnimations[i - 1].end : undefined;
       if ( promiseIn ) promiseIn.finally(handleRegionEventsIn);
       else handleRegionEventsIn();
       from = to;
@@ -2386,7 +2409,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       context.waypoints.push(waypoint);
 
       const lastWaypoint = context.waypoints.at(-2) ?? context.origin;
-      if ( TokenDocument.MOVEMENT_FIELDS.some(k => lastWaypoint[k] !== waypoint[k]) ) {
+      if ( !TokenDocument.arePositionsEqual(lastWaypoint, waypoint) ) {
         NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
         redundantWaypoint = false;
       } else if ( lastWaypoint.snapped !== waypoint.snapped ) {
@@ -2420,7 +2443,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       // Recalculate path if the waypoints change
       const previousWaypoint = context.waypoints.at(-2) ?? context.origin;
       const lastWaypoint = context.waypoints.pop();
-      if ( TokenDocument.MOVEMENT_FIELDS.some(k => lastWaypoint[k] !== previousWaypoint[k]) ) {
+      if ( !TokenDocument.arePositionsEqual(lastWaypoint, previousWaypoint) ) {
         NonPrivateToken._PRIVATE_recalculatePlannedMovementPath(context);
       }
     }
@@ -2467,7 +2490,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       const elevation = (context.destination.elevation + (delta * interval)).toNearest(interval, delta > 0 ? "floor" : "ceil");
       const destination = context.token._getDragWaypointPosition(context.destination, {elevation},
         {snap: context.destination.snap});
-      if ( TokenDocument.MOVEMENT_FIELDS.every(k => context.destination[k] === destination[k]) ) continue;
+      if ( TokenDocument.arePositionsEqual(context.destination, destination) ) continue;
       for ( const k of TokenDocument.MOVEMENT_FIELDS ) context.destination[k] = destination[k];
 
       // Update the destination of the preview token
@@ -2569,7 +2592,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       action, snapped, explicit, checkpoint} of [...context.waypoints, destination] ) {
       const waypoint = {x, y, elevation, width, height, shape, action, snapped, explicit, checkpoint};
       const lastWaypoint = explicitWaypoints.at(-1);
-      if ( TokenDocument.MOVEMENT_FIELDS.every(k => lastWaypoint[k] === waypoint[k]) ) continue;
+      if ( TokenDocument.arePositionsEqual(lastWaypoint, waypoint) ) continue;
       explicitWaypoints.push(waypoint);
     }
 
@@ -2579,7 +2602,7 @@ export function NonPrivateTokenMixin(TokenClass) {
     for ( let i = 0; (i < context.foundPath.length) && (reachableWaypoints < explicitWaypoints.length); i++ ) {
       const waypoint = context.foundPath[i];
       const explicitWaypoint = explicitWaypoints[reachableWaypoints];
-      if ( TokenDocument.MOVEMENT_FIELDS.every(k => explicitWaypoint[k] === waypoint[k]) ) {
+      if ( TokenDocument.arePositionsEqual(explicitWaypoint, waypoint) ) {
         reachableWaypoints++;
         lastReachedWaypointIndex = i;
       }
@@ -2633,7 +2656,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       let reachableWaypoints = 0;
       for ( const waypoint of foundPath ) {
         const explicitWaypoint = explicitWaypoints[reachableWaypoints];
-        if ( TokenDocument.MOVEMENT_FIELDS.every(k => explicitWaypoint[k] === waypoint[k]) ) reachableWaypoints++;
+        if ( TokenDocument.arePositionsEqual(explicitWaypoint, waypoint) ) reachableWaypoints++;
       }
       context.foundPath = foundPath;
       context.unreachableWaypoints = explicitWaypoints.slice(reachableWaypoints);
@@ -2689,7 +2712,7 @@ export function NonPrivateTokenMixin(TokenClass) {
     // Configure the origin of the found path based on the last recorded waypoint
     const current = this.document.movementHistory.at(-1);
     const origin = foundPath[0];
-    origin.action = (current !== undefined) && TokenDocument.MOVEMENT_FIELDS.some(k => current[k] !== origin[k])
+    origin.action = (current !== undefined) && !TokenDocument.arePositionsEqual(current, origin)
       ? "displace" : (current?.action ?? foundPath[0].action);
     origin.terrain = null;
     origin.snapped = false;

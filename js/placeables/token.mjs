@@ -538,13 +538,21 @@ export function register() {
       let from = this._PRIVATE_animationData;
       from.frame = 0;
       options.movementSpeed ??= (()=>{
-        if (this.document._sliding) return game.settings.get(MODULENAME, "walkSpeed") ?? 4;
-        const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
-        const manhattan = (Math.abs((to.x ?? from.x) - from.x) / sizeX) + (Math.abs((to.y ?? from.y) - from.y) / sizeY);
-        if (manhattan < (game.settings.get(MODULENAME, "runDistance") ?? 5)) {
-          return game.settings.get(MODULENAME, "walkSpeed") ?? 4;
+        let desiredSpeed = 4; // default walk speed
+
+        if (this.document._sliding) {
+          desiredSpeed = game.settings.get(MODULENAME, "walkSpeed") ?? 4;
+        } else {
+          const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
+          const manhattan = (Math.abs((to.x ?? from.x) - from.x) / sizeX) + (Math.abs((to.y ?? from.y) - from.y) / sizeY);
+          if (manhattan < (game.settings.get(MODULENAME, "runDistance") ?? 5)) {
+            desiredSpeed = game.settings.get(MODULENAME, "walkSpeed") ?? 4;
+          } else {
+            desiredSpeed = game.settings.get(MODULENAME, "runSpeed") ?? 8;
+          }
         }
-        return game.settings.get(MODULENAME, "runSpeed") ?? 8;
+        const multiplier = options.follower_speed_modifiers?.[this.document.id] ?? 1;
+        return desiredSpeed * multiplier;
       })();
 
       this._origin = {
