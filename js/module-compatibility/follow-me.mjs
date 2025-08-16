@@ -67,53 +67,59 @@ export function getAllInFollowChain(token) {
   return followChain;
 }
 
-
-function getFollowerUpdates(tPos, followers) {
+function getFollowerUpdates(movement, followers) {
+  if (!movement) return [];
   const followerUpdates = [];
+  let leader = followers.at(0)?.getFlag(MODULENAME, FLAG_FOLLOWING)?.who;
+  if (!leader) return followerUpdates;
 
-  let p = tPos;
   for (const follower of followers) {
     const desc = foundry.utils.deepClone(follower.getFlag(MODULENAME, FLAG_FOLLOWING));
-    desc.positions.push(p);
-    const followPath = new SimpleSpline(desc.positions);
-    let data = {
-      _id: follower.id,
+    const leaderMovement = movement[leader];
+    if (!leaderMovement) break; // leader didn't move, so we stop here
+    const myMovement = movement[follower.id] = {
+      ...foundry.utils.deepClone(leaderMovement),
+      waypoints: [],
     };
+    const oldPosition = { x: follower.x, y: follower.y };
+    for (const wp of leaderMovement.waypoints) {
+      desc.positions.push({ x: wp.x, y: wp.y });
+      const followPath = new SimpleSpline(desc.positions);
+      let data = {};
 
-    let param = followPath.plen-desc.dist;
-    let new_pos = followPath.parametricPosition(param);
-    // Snap the new position to the grid
-    new_pos = canvas.grid.getSnappedPoint( new_pos, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX } );
-    // if new_pos is further away from the target than it is currently, don't move
-    if (Math.abs(new_pos.x - p.x) + Math.abs(new_pos.y - p.y) > Math.abs(follower.x - p.x) + Math.abs(follower.y - p.y)) {
-      new_pos = { x: follower.x, y: follower.y };
+      let param = followPath.plen-desc.dist;
+      let new_pos = followPath.parametricPosition(param);
+      // Snap the new position to the grid
+      new_pos = canvas.grid.getSnappedPoint( new_pos, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX } );
+      // if new_pos is further away from the target than it is currently, don't move
+      if (Math.abs(new_pos.x - wp.x) + Math.abs(new_pos.y - wp.y) > Math.abs(follower.x - wp.x) + Math.abs(follower.y - wp.y)) {
+        new_pos = oldPosition;
+      }
+      data.x = new_pos.x;
+      data.y = new_pos.y;
+
+      // don't need to reorient, this module already does it
+
+      followPath.prune(param);
+      desc.positions = followPath.p;
+
+      myMovement.waypoints.push({
+        ...wp,
+        x: data.x,
+        y: data.y,
+      });
+
+      // update oldPosition
+      oldPosition.x = data.x ?? oldPosition.x;
+      oldPosition.y = data.y ?? oldPosition.y;
     }
-    data.x = new_pos.x;
-    data.y = new_pos.y;
-
-    // don't need to reorient, this module already does it
-
-    // check for collisions
-    const grid = tokenScene(follower)?.grid;
-    const width = (follower.width ?? 1) * (grid?.sizeX ?? grid?.size ?? 100);
-    const height = (follower.height ?? 1) * (grid?.sizeY ?? grid?.size ?? 100);
-    if (!follower.object || follower.object.checkCollision(
-      vAdd(new_pos, { x: width / 2, y: height / 2 } ),
-      {type: "move", mode: "any", follow: true})) {
-      // Do not apply this update or any further ones
-      break;
-    }
-
-    p = { x: data.x, y: data.y }; // update for the next follower
-    if (data.x == follower.x) delete data.x;
-    if (data.y == follower.y) delete data.y;
-
-    followPath.prune(param);
-    desc.positions = followPath.p;
-    data[`flags.${MODULENAME}.${FLAG_FOLLOWING}`] = desc;
-    if (!(!data.x && !data.y)) {
-      followerUpdates.push(data);
-    }
+    followerUpdates.push({
+      _id: follower.id,
+      x: myMovement.waypoints.at(-1).x,
+      y: myMovement.waypoints.at(-1).y,
+      [`flags.${MODULENAME}.${FLAG_FOLLOWING}`]: desc,
+    });
+    leader = follower.id; // update leader for the next follower
   }
   return followerUpdates;
 }
@@ -407,7 +413,7 @@ function OnFollowKey() {
   canvas.scene.updateEmbeddedDocuments("Token", updates, { follower_updates });
 }
 
-function OnManualMove(token, update, follower_updates) {
+function OnManualMove(token, update, operation, follower_updates) {
   if (getCombatsForScene(tokenScene(token)?.uuid).length > 0) return;
   const followers = getAllFollowing(token);
 
@@ -422,10 +428,12 @@ function OnManualMove(token, update, follower_updates) {
       stroke: "#FF0000"
     });
   }
-  follower_updates.push(...getFollowerUpdates({
-    x: update.x ?? token.x,
-    y: update.y ?? token.y
-  }, followers));
+  follower_updates.push(...getFollowerUpdates(operation?.movement, followers));
+  // for (const follower of followers) {
+  //   if (operation.movement[follower.id]) continue;
+  //   operation.movement[follower.id] = foundry.utils.deepClone(operation.movement[token.id] ?? {});
+  // };
+  console.log("OnManualMove", token, update, operation, follower_updates);
 }
 
 function OnUpdateToken(token, change, options, userId) {
