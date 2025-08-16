@@ -67,59 +67,49 @@ export function getAllInFollowChain(token) {
   return followChain;
 }
 
-function getFollowerUpdates(movement, followers) {
+function getFollowerUpdates(leaderToken, movement, followers) {
   if (!movement) return [];
   const followerUpdates = [];
-  let leader = followers.at(0)?.getFlag(MODULENAME, FLAG_FOLLOWING)?.who;
-  if (!leader) return followerUpdates;
 
   for (const follower of followers) {
     const desc = foundry.utils.deepClone(follower.getFlag(MODULENAME, FLAG_FOLLOWING));
-    const leaderMovement = movement[leader];
+    const leaderMovement = foundry.utils.deepClone(movement[leaderToken.id]);
     if (!leaderMovement) break; // leader didn't move, so we stop here
+    leaderMovement.waypoints.unshift({
+      ...leaderMovement.waypoints.at(0),
+      x: leaderToken.x,
+      y: leaderToken.y,
+    });
+    const wp = leaderMovement.waypoints.pop();
     const myMovement = movement[follower.id] = {
       ...foundry.utils.deepClone(leaderMovement),
-      waypoints: [],
+      waypoints: leaderMovement.waypoints,
     };
-    const oldPosition = { x: follower.x, y: follower.y };
-    for (const wp of leaderMovement.waypoints) {
-      desc.positions.push({ x: wp.x, y: wp.y });
-      const followPath = new SimpleSpline(desc.positions);
-      let data = {};
-
-      let param = followPath.plen-desc.dist;
-      let new_pos = followPath.parametricPosition(param);
-      // Snap the new position to the grid
-      new_pos = canvas.grid.getSnappedPoint( new_pos, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX } );
-      // if new_pos is further away from the target than it is currently, don't move
-      if (Math.abs(new_pos.x - wp.x) + Math.abs(new_pos.y - wp.y) > Math.abs(follower.x - wp.x) + Math.abs(follower.y - wp.y)) {
-        new_pos = oldPosition;
-      }
-      data.x = new_pos.x;
-      data.y = new_pos.y;
-
-      // don't need to reorient, this module already does it
-
-      followPath.prune(param);
-      desc.positions = followPath.p;
-
+    const oldPosition = myMovement.waypoints.at(-1);
+    const stayBehind = canvas.grid.size; // how far behind the leader we want to stay
+    let dx = wp.x - oldPosition.x;
+    let dy = wp.y - oldPosition.y;
+    dx = Math.sign(dx) * Math.max(0, Math.abs(dx) - stayBehind);
+    dy = Math.sign(dy) * Math.max(0, Math.abs(dy) - stayBehind);
+    let new_pos = { x: oldPosition.x + dx, y: oldPosition.y + dy };
+    // Snap the new position to the grid
+    new_pos = canvas.grid.getSnappedPoint( new_pos, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX } );
+    if (new_pos.x !== oldPosition.x || new_pos.y !== oldPosition.y) {
+      // Only add new_pos if it is different from the last waypoint
       myMovement.waypoints.push({
         ...wp,
-        x: data.x,
-        y: data.y,
+        ...new_pos,
       });
-
-      // update oldPosition
-      oldPosition.x = data.x ?? oldPosition.x;
-      oldPosition.y = data.y ?? oldPosition.y;
     }
+    // TODO set final/etc on waypoints
+
     followerUpdates.push({
       _id: follower.id,
       x: myMovement.waypoints.at(-1).x,
       y: myMovement.waypoints.at(-1).y,
       [`flags.${MODULENAME}.${FLAG_FOLLOWING}`]: desc,
     });
-    leader = follower.id; // update leader for the next follower
+    leaderToken = follower; // update leader for the next follower
   }
   return followerUpdates;
 }
@@ -428,7 +418,7 @@ function OnManualMove(token, update, operation, follower_updates) {
       stroke: "#FF0000"
     });
   }
-  follower_updates.push(...getFollowerUpdates(operation?.movement, followers));
+  follower_updates.push(...getFollowerUpdates(token, operation?.movement, followers));
   operation.animation ??= {};
   operation.animation.follower_speed_modifiers = {};
   // figure out the length of the original's movement
