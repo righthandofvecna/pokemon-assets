@@ -429,11 +429,19 @@ function OnManualMove(token, update, operation, follower_updates) {
     });
   }
   follower_updates.push(...getFollowerUpdates(operation?.movement, followers));
-  // for (const follower of followers) {
-  //   if (operation.movement[follower.id]) continue;
-  //   operation.movement[follower.id] = foundry.utils.deepClone(operation.movement[token.id] ?? {});
-  // };
-  console.log("OnManualMove", token, update, operation, follower_updates);
+  operation.animation ??= {};
+  operation.animation.follower_speed_modifiers = {};
+  // figure out the length of the original's movement
+  const mvdist = (t)=>operation?.movement?.[t.id]?.waypoints?.reduce((acc, p)=>({
+    dist: acc.dist + Math.hypot(p.x - acc.x, p.y - acc.y),
+    x: p.x,
+    y: p.y,
+  }), { dist: 0, x: t.x, y: t.y})?.dist ?? 0;
+  const originalMovement = mvdist(token);
+  for (const follower of followers) {
+    console.log(originalMovement);
+    operation.animation.follower_speed_modifiers[follower.id] = mvdist(follower) / originalMovement;
+  };
 }
 
 function OnUpdateToken(token, change, options, userId) {

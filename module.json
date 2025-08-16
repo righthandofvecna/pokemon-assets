@@ -11,7 +11,7 @@
   "version": "0.6.1",
   "compatibility": {
     "minimum": "13",
-    "verified": "13.345"
+    "verified": "13.347"
   },
   "relationships": {
     "requires": [
@@ -28,7 +28,7 @@
         "type": "module",
         "compatibility": {
           "minimum": "3.6.0",
-          "verified": "3.6.1"
+          "verified": "3.6.9"
         }
       },
 		  {

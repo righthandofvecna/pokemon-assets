@@ -163,6 +163,7 @@ def generate_token_class():
     replace_in_members("offsetX ??= this._PRIVATE_centerOffset.x", "offsetX ??= this._PRIVATE_centerOffset?.x || 0")
     replace_in_members("offsetY ??= this._PRIVATE_centerOffset.y", "offsetY ??= this._PRIVATE_centerOffset?.y || 0")
     replace_in_members("super._onUpdate(", "PlaceableObject.prototype._onUpdate.call(this, ")
+    replace_in_members("name: this.movementAnimationName,", "...(options.animation ?? {}),\n          name: this.movementAnimationName,")
 
     with open(TOKEN_MJS_PATH, "w", encoding="utf-8") as outfile:
         outfile.write("""const { PointMovementSource } = foundry.canvas.sources;
