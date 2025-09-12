@@ -1826,6 +1826,9 @@ export default
       "02XX/020X/0208s.png": {
         "animationframes": 4
       },
+      "02XX/020X/0208s_MEGA.png": {
+        "animationframes": 4
+      },
       "02XX/020X/0209.png": {
         "animationframes": 4
       },
@@ -2099,6 +2102,9 @@ export default
       "02XX/024X/0248.png": {
         "animationframes": 4
       },
+      "02XX/024X/0248_MEGA.png": {
+        "animationframes": 4
+      },
       "02XX/024X/0248s.png": {
         "animationframes": 4
       },
@@ -2292,6 +2298,12 @@ export default
         "animationframes": 8
       },
       "02XX/027X/0274.png": {
+        "animationframes": 4
+      },
+      "02XX/027X/0274f.png": {
+        "animationframes": 4
+      },
+      "02XX/027X/0274fs.png": {
         "animationframes": 4
       },
       "02XX/027X/0274s.png": {
@@ -2492,6 +2504,9 @@ export default
       "03XX/030X/0303s.png": {
         "animationframes": 4
       },
+      "03XX/030X/0303s_MEGA.png": {
+        "animationframes": 4
+      },
       "03XX/030X/0304.png": {
         "animationframes": 4
       },
@@ -2594,6 +2609,12 @@ export default
       "03XX/031X/0317.png": {
         "animationframes": 6
       },
+      "03XX/031X/0317f.png": {
+        "animationframes": 6
+      },
+      "03XX/031X/0317fs.png": {
+        "animationframes": 6
+      },
       "03XX/031X/0317s.png": {
         "animationframes": 6
       },
@@ -2622,6 +2643,9 @@ export default
         "animationframes": 12
       },
       "03XX/032X/0322.png": {
+        "animationframes": 4
+      },
+      "03XX/032X/0322f.png": {
         "animationframes": 4
       },
       "03XX/032X/0322s.png": {
@@ -2707,6 +2731,9 @@ export default
       },
       "03XX/033X/0334.png": {
         "animationframes": 4
+      },
+      "03XX/033X/0334_MEGA.png": {
+        "animationframes": 10
       },
       "03XX/033X/0334s.png": {
         "animationframes": 4
@@ -3041,6 +3068,9 @@ export default
       "03XX/038X/0380s.png": {
         "animationframes": 14
       },
+      "03XX/038X/0380s_MEGA.png": {
+        "animationframes": 12
+      },
       "03XX/038X/0381.png": {
         "animationframes": 12
       },
@@ -3048,6 +3078,9 @@ export default
         "animationframes": 12
       },
       "03XX/038X/0381s.png": {
+        "animationframes": 12
+      },
+      "03XX/038X/0381s_MEGA.png": {
         "animationframes": 12
       },
       "03XX/038X/0382.png": {
@@ -3866,6 +3899,12 @@ export default
       "04XX/047X/0479_Drone.png": {
         "animationframes": 6
       },
+      "04XX/047X/0479_Frost.png": {
+        "animationframes": 6
+      },
+      "04XX/047X/0479_Heat.png": {
+        "animationframes": 6
+      },
       "04XX/047X/0479_Mow.png": {
         "animationframes": 6
       },
@@ -4205,8 +4244,14 @@ export default
       "05XX/051X/0511.png": {
         "animationframes": 4
       },
+      "05XX/051X/0511s.png": {
+        "animationframes": 4
+      },
       "05XX/051X/0512.png": {
         "animationframes": 9
+      },
+      "05XX/051X/0512s.png": {
+        "animationframes": 4
       },
       "05XX/051X/0513.png": {
         "animationframes": 4
@@ -4215,6 +4260,9 @@ export default
         "animationframes": 4
       },
       "05XX/051X/0515.png": {
+        "animationframes": 4
+      },
+      "05XX/051X/0515s.png": {
         "animationframes": 4
       },
       "05XX/051X/0517.png": {
@@ -4296,6 +4344,9 @@ export default
         "animationframes": 4
       },
       "05XX/053X/0531.png": {
+        "animationframes": 4
+      },
+      "05XX/053X/0531_MEGA.png": {
         "animationframes": 4
       },
       "05XX/053X/0531s.png": {
@@ -4400,6 +4451,9 @@ export default
       "05XX/054X/0549s.png": {
         "animationframes": 4
       },
+      "05XX/054X/0549s_hisuian.png": {
+        "animationframes": 4
+      },
       "05XX/055X/0550.png": {
         "animationframes": 4
       },
@@ -4466,6 +4520,12 @@ export default
       "05XX/055X/0557.png": {
         "animationframes": 4
       },
+      "05XX/055X/0557s.png": {
+        "animationframes": 4
+      },
+      "05XX/055X/0558.png": {
+        "animationframes": 4
+      },
       "05XX/055X/0559.png": {
         "animationframes": 4
       },
@@ -4487,7 +4547,13 @@ export default
       "05XX/056X/0562.png": {
         "animationframes": 8
       },
+      "05XX/056X/0562_galarian.png": {
+        "animationframes": 8
+      },
       "05XX/056X/0562s.png": {
+        "animationframes": 8
+      },
+      "05XX/056X/0562s_galarian.png": {
         "animationframes": 8
       },
       "05XX/056X/0563.png": {
@@ -4495,6 +4561,9 @@ export default
       },
       "05XX/056X/0563s.png": {
         "animationframes": 4
+      },
+      "05XX/056X/0564.png": {
+        "animationframes": 8
       },
       "05XX/056X/0566.png": {
         "animationframes": 4
@@ -4516,6 +4585,9 @@ export default
       },
       "05XX/056X/0569.png": {
         "animationframes": 4
+      },
+      "05XX/056X/0569_Gigantamax.png": {
+        "animationframes": 1
       },
       "05XX/056X/0569s.png": {
         "animationframes": 4
@@ -4595,6 +4667,9 @@ export default
       "05XX/058X/0581.png": {
         "animationframes": 4
       },
+      "05XX/058X/0581s.png": {
+        "animationframes": 4
+      },
       "05XX/058X/0582.png": {
         "animationframes": 6
       },
@@ -4652,6 +4727,15 @@ export default
       "05XX/058X/0586s.png": {
         "animationframes": 4
       },
+      "05XX/058X/0586s_Autumn.png": {
+        "animationframes": 6
+      },
+      "05XX/058X/0586s_Summer.png": {
+        "animationframes": 6
+      },
+      "05XX/058X/0586s_Winter.png": {
+        "animationframes": 6
+      },
       "05XX/058X/0587.png": {
         "animationframes": 4
       },
@@ -4673,6 +4757,12 @@ export default
       "05XX/059X/0590s.png": {
         "animationframes": 4
       },
+      "05XX/059X/0592.png": {
+        "animationframes": 9
+      },
+      "05XX/059X/0592f.png": {
+        "animationframes": 9
+      },
       "05XX/059X/0593.png": {
         "animationframes": 7
       },
@@ -4684,6 +4774,9 @@ export default
       },
       "05XX/059X/0593s.png": {
         "animationframes": 7
+      },
+      "05XX/059X/0594.png": {
+        "animationframes": 12
       },
       "05XX/059X/0595.png": {
         "animationframes": 4
@@ -4710,6 +4803,9 @@ export default
         "animationframes": 5
       },
       "06XX/060X/0602.png": {
+        "animationframes": 4
+      },
+      "06XX/060X/0602s.png": {
         "animationframes": 4
       },
       "06XX/060X/0603.png": {
@@ -4790,6 +4886,9 @@ export default
       "06XX/061X/0615s.png": {
         "animationframes": 8
       },
+      "06XX/061X/0616.png": {
+        "animationframes": 6
+      },
       "06XX/061X/0618.png": {
         "animationframes": 1
       },
@@ -4837,6 +4936,9 @@ export default
       },
       "06XX/062X/0625s.png": {
         "animationframes": 4
+      },
+      "06XX/062X/0626.png": {
+        "animationframes": 7
       },
       "06XX/062X/0627.png": {
         "animationframes": 5
@@ -5162,6 +5264,9 @@ export default
       "06XX/066X/0666s_Garden.png": {
         "animationframes": 12
       },
+      "06XX/066X/0666s_HighPlains.png": {
+        "animationframes": 12
+      },
       "06XX/066X/0666s_IcySnow.png": {
         "animationframes": 12
       },
@@ -5366,6 +5471,9 @@ export default
       "06XX/068X/0683.png": {
         "animationframes": 1
       },
+      "06XX/068X/0683s.png": {
+        "animationframes": 1
+      },
       "06XX/068X/0684.png": {
         "animationframes": 4
       },
@@ -5563,8 +5671,20 @@ export default
       "07XX/071X/0711.png": {
         "animationframes": 10
       },
+      "07XX/071X/0711_Super.png": {
+        "animationframes": 6
+      },
       "07XX/071X/0711s.png": {
         "animationframes": 10
+      },
+      "07XX/071X/0711s_Super.png": {
+        "animationframes": 6
+      },
+      "07XX/071X/0712.png": {
+        "animationframes": 4
+      },
+      "07XX/071X/0712s.png": {
+        "animationframes": 4
       },
       "07XX/071X/0714.png": {
         "animationframes": 8
@@ -5625,6 +5745,9 @@ export default
       },
       "07XX/071X/0719s.png": {
         "animationframes": 5
+      },
+      "07XX/071X/0719s_MEGA.png": {
+        "animationframes": 9
       },
       "07XX/072X/0720.png": {
         "animationframes": 8
@@ -5703,6 +5826,12 @@ export default
       },
       "07XX/073X/0730s.png": {
         "animationframes": 7
+      },
+      "07XX/073X/0733.png": {
+        "animationframes": 1
+      },
+      "07XX/073X/0733s.png": {
+        "animationframes": 1
       },
       "07XX/073X/0736.png": {
         "animationframes": 4
@@ -5798,6 +5927,9 @@ export default
         "animationframes": 4
       },
       "07XX/074X/0749s.png": {
+        "animationframes": 4
+      },
+      "07XX/075X/0750.png": {
         "animationframes": 4
       },
       "07XX/075X/0751.png": {
@@ -6292,6 +6424,9 @@ export default
       "08XX/081X/0812.png": {
         "animationframes": 4
       },
+      "08XX/081X/0812s.png": {
+        "animationframes": 4
+      },
       "08XX/081X/0813.png": {
         "animationframes": 4
       },
@@ -6319,11 +6454,17 @@ export default
       "08XX/081X/0817.png": {
         "animationframes": 4
       },
+      "08XX/081X/0817s.png": {
+        "animationframes": 4
+      },
       "08XX/081X/0818.png": {
         "animationframes": 4
       },
       "08XX/081X/0818s.png": {
         "animationframes": 4
+      },
+      "08XX/081X/0819.png": {
+        "animationframes": 8
       },
       "08XX/082X/0821.png": {
         "animationframes": 5
@@ -6397,6 +6538,12 @@ export default
       "08XX/083X/0833s.png": {
         "animationframes": 4
       },
+      "08XX/083X/0834.png": {
+        "animationframes": 4
+      },
+      "08XX/083X/0834s.png": {
+        "animationframes": 4
+      },
       "08XX/083X/0835.png": {
         "animationframes": 7
       },
@@ -6460,6 +6607,9 @@ export default
       "08XX/084X/0849s.png": {
         "animationframes": 4
       },
+      "08XX/084X/0849s_Lowkey.png": {
+        "animationframes": 4
+      },
       "08XX/085X/0850.png": {
         "animationframes": 4
       },
@@ -6479,6 +6629,9 @@ export default
         "animationframes": 5
       },
       "08XX/085X/0853.png": {
+        "animationframes": 4
+      },
+      "08XX/085X/0853s.png": {
         "animationframes": 4
       },
       "08XX/085X/0854.png": {
@@ -6791,6 +6944,9 @@ export default
         "animationframes": 4
       },
       "08XX/087X/0871.png": {
+        "animationframes": 4
+      },
+      "08XX/087X/0871s.png": {
         "animationframes": 4
       },
       "08XX/087X/0872.png": {
@@ -7153,6 +7309,9 @@ export default
       "09XX/092X/0929s.png": {
         "animationframes": 1
       },
+      "09XX/093X/0930.png": {
+        "animationframes": 4
+      },
       "09XX/093X/0932.png": {
         "animationframes": 8
       },
@@ -7227,6 +7386,9 @@ export default
       },
       "09XX/095X/0955.png": {
         "animationframes": 7
+      },
+      "09XX/095X/0955s.png": {
+        "animationframes": 8
       },
       "09XX/095X/0957.png": {
         "animationframes": 4
@@ -7330,6 +7492,9 @@ export default
         "animationframes": 17
       },
       "09XX/097X/0975.png": {
+        "animationframes": 4
+      },
+      "09XX/097X/0975s.png": {
         "animationframes": 4
       },
       "09XX/097X/0976.png": {
@@ -7485,6 +7650,9 @@ export default
       "10XX/100X/1004.png": {
         "animationframes": 8
       },
+      "10XX/100X/1004s.png": {
+        "animationframes": 8
+      },
       "10XX/100X/1005.png": {
         "animationframes": 6
       },
@@ -7524,10 +7692,22 @@ export default
       "10XX/101X/1011s.png": {
         "animationframes": 4
       },
+      "10XX/101X/1013.png": {
+        "animationframes": 8
+      },
+      "10XX/101X/1014.png": {
+        "animationframes": 4
+      },
       "10XX/101X/1015.png": {
         "animationframes": 4
       },
+      "10XX/101X/1015s.png": {
+        "animationframes": 4
+      },
       "10XX/101X/1016.png": {
+        "animationframes": 4
+      },
+      "10XX/101X/1016s.png": {
         "animationframes": 4
       },
       "10XX/101X/1017.png": {
@@ -7607,6 +7787,12 @@ export default
       },
       "10XX/102X/1025s.png": {
         "animationframes": 10
+      },
+      "26XX/262X/2626.png": {
+        "animationframes": 4
+      },
+      "26XX/262X/2627.png": {
+        "animationframes": 4
       }
     },
     "sheetstyle": "pmd"
@@ -7655,6 +7841,15 @@ export default
       "youngster.png": {}
     },
     "sheetstyle": "trainer"
+  },
+  "modules/pokemon-assets/img/trainers-overworld/custom_": {
+    "anchor": 0.63,
+    "animationframes": 3,
+    "images": {
+      "acetrainer_f_xy.png": {}
+    },
+    "scale": 1.1,
+    "sheetstyle": "trainer3"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_": {
     "anchor": 0.65,
