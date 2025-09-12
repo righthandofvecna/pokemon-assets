@@ -1826,6 +1826,9 @@ export default
       "02XX/020X/0208s.png": {
         "animationframes": 4
       },
+      "02XX/020X/0208s_MEGA.png": {
+        "animationframes": 4
+      },
       "02XX/020X/0209.png": {
         "animationframes": 4
       },
@@ -2501,6 +2504,9 @@ export default
       "03XX/030X/0303s.png": {
         "animationframes": 4
       },
+      "03XX/030X/0303s_MEGA.png": {
+        "animationframes": 4
+      },
       "03XX/030X/0304.png": {
         "animationframes": 4
       },
@@ -2639,6 +2645,9 @@ export default
       "03XX/032X/0322.png": {
         "animationframes": 4
       },
+      "03XX/032X/0322f.png": {
+        "animationframes": 4
+      },
       "03XX/032X/0322s.png": {
         "animationframes": 4
       },
@@ -2722,6 +2731,9 @@ export default
       },
       "03XX/033X/0334.png": {
         "animationframes": 4
+      },
+      "03XX/033X/0334_MEGA.png": {
+        "animationframes": 10
       },
       "03XX/033X/0334s.png": {
         "animationframes": 4
@@ -3887,6 +3899,12 @@ export default
       "04XX/047X/0479_Drone.png": {
         "animationframes": 6
       },
+      "04XX/047X/0479_Frost.png": {
+        "animationframes": 6
+      },
+      "04XX/047X/0479_Heat.png": {
+        "animationframes": 6
+      },
       "04XX/047X/0479_Mow.png": {
         "animationframes": 6
       },
@@ -4533,6 +4551,9 @@ export default
         "animationframes": 8
       },
       "05XX/056X/0562s.png": {
+        "animationframes": 8
+      },
+      "05XX/056X/0562s_galarian.png": {
         "animationframes": 8
       },
       "05XX/056X/0563.png": {
@@ -5450,6 +5471,9 @@ export default
       "06XX/068X/0683.png": {
         "animationframes": 1
       },
+      "06XX/068X/0683s.png": {
+        "animationframes": 1
+      },
       "06XX/068X/0684.png": {
         "animationframes": 4
       },
@@ -5647,10 +5671,19 @@ export default
       "07XX/071X/0711.png": {
         "animationframes": 10
       },
+      "07XX/071X/0711_Super.png": {
+        "animationframes": 6
+      },
       "07XX/071X/0711s.png": {
         "animationframes": 10
       },
+      "07XX/071X/0711s_Super.png": {
+        "animationframes": 6
+      },
       "07XX/071X/0712.png": {
+        "animationframes": 4
+      },
+      "07XX/071X/0712s.png": {
         "animationframes": 4
       },
       "07XX/071X/0714.png": {
@@ -5712,6 +5745,9 @@ export default
       },
       "07XX/071X/0719s.png": {
         "animationframes": 5
+      },
+      "07XX/071X/0719s_MEGA.png": {
+        "animationframes": 9
       },
       "07XX/072X/0720.png": {
         "animationframes": 8
@@ -6388,6 +6424,9 @@ export default
       "08XX/081X/0812.png": {
         "animationframes": 4
       },
+      "08XX/081X/0812s.png": {
+        "animationframes": 4
+      },
       "08XX/081X/0813.png": {
         "animationframes": 4
       },
@@ -6423,6 +6462,9 @@ export default
       },
       "08XX/081X/0818s.png": {
         "animationframes": 4
+      },
+      "08XX/081X/0819.png": {
+        "animationframes": 8
       },
       "08XX/082X/0821.png": {
         "animationframes": 5
@@ -6497,6 +6539,9 @@ export default
         "animationframes": 4
       },
       "08XX/083X/0834.png": {
+        "animationframes": 4
+      },
+      "08XX/083X/0834s.png": {
         "animationframes": 4
       },
       "08XX/083X/0835.png": {
@@ -7264,6 +7309,9 @@ export default
       "09XX/092X/0929s.png": {
         "animationframes": 1
       },
+      "09XX/093X/0930.png": {
+        "animationframes": 4
+      },
       "09XX/093X/0932.png": {
         "animationframes": 8
       },
@@ -7444,6 +7492,9 @@ export default
         "animationframes": 17
       },
       "09XX/097X/0975.png": {
+        "animationframes": 4
+      },
+      "09XX/097X/0975s.png": {
         "animationframes": 4
       },
       "09XX/097X/0976.png": {
@@ -7641,10 +7692,16 @@ export default
       "10XX/101X/1011s.png": {
         "animationframes": 4
       },
+      "10XX/101X/1013.png": {
+        "animationframes": 8
+      },
       "10XX/101X/1014.png": {
         "animationframes": 4
       },
       "10XX/101X/1015.png": {
+        "animationframes": 4
+      },
+      "10XX/101X/1015s.png": {
         "animationframes": 4
       },
       "10XX/101X/1016.png": {
