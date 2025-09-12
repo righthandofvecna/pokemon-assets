@@ -52,7 +52,7 @@ async function OnRenderTokenConfig(config, html, context) {
 
     // check that the anchoring fields exist
     for (const [tf,tfInput] of Object.entries({
-      "fit": new foundry.data.fields.StringField({ label: "Fit", choices: ()=>({"contain": "Contain", "cover": "Cover", "width": "Width", "height": "Height", "none": "None"}) }),
+      "fit": new foundry.data.fields.StringField({ label: "Fit", choices: ()=>({"fill": "Fill", "contain": "Contain", "cover": "Cover", "width": "Width", "height": "Height"}) }),
       "anchorX": new foundry.data.fields.NumberField({ label: "Anchor X" }),
       "anchorY": new foundry.data.fields.NumberField({ label: "Anchor Y" })
     })) {
