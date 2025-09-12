@@ -50,6 +50,20 @@ async function OnRenderTokenConfig(config, html, context) {
     form.querySelector("[name='flags.pokemon-assets.spritesheet']").checked = data.spritesheet;
     form.querySelector("[name='flags.pokemon-assets.spritesheet']").readonly = isPredefined;
 
+    // check that the anchoring fields exist
+    for (const [tf,tfInput] of Object.entries({
+      "fit": new foundry.data.fields.StringField({ label: "Fit", choices: ()=>({"contain": "Contain", "cover": "Cover", "width": "Width", "height": "Height", "none": "None"}) }),
+      "anchorX": new foundry.data.fields.NumberField({ label: "Anchor X" }),
+      "anchorY": new foundry.data.fields.NumberField({ label: "Anchor Y" })
+    })) {
+      if (!form.querySelector(`[name='texture.${tf}']`)) {
+        // place to put it
+        let spot = $(form).find("fieldset.size");
+        if (!spot.length) spot = $(form);
+        $(spot).append(`<div class="form-group ${tf}"><label>${tfInput.label}</label><div class="form-fields">${tfInput.toInput({ name: "texture." + tf, value: token?.texture?.[tf] }).outerHTML}</div></div>`);
+      }
+    }
+
     // locks for "unlockedanchor" and "unlockedfit"
     $(form).find(".toggle-link-anchor-to-sheet").remove();
     const unlockedAnchorLink = $(`<a class="toggle-link-anchor-to-sheet" title="${data.unlockedanchor ? "Base Anchors on Sheet" : "Manual Anchors"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedanchor ? "fa-lock-open" : "fa-lock"}"></i></a>`);
@@ -58,8 +72,8 @@ async function OnRenderTokenConfig(config, html, context) {
       token.setFlag("pokemon-assets", "unlockedanchor", !data.unlockedanchor);
     });
     if (!data.unlockedanchor) {
-      $(form).find('[name="texture.anchorX"]').prop("disabled", true);
-      $(form).find('[name="texture.anchorY"]').prop("disabled", true);
+      $(form).find('[name="texture.anchorX"]').prop("readonly", true);
+      $(form).find('[name="texture.anchorY"]').prop("readonly", true);
     }
 
     $(form).find(".toggle-link-fit-to-sheet").remove();
@@ -69,7 +83,7 @@ async function OnRenderTokenConfig(config, html, context) {
       token.setFlag("pokemon-assets", "unlockedfit", !data.unlockedfit);
     });
     if (!data.unlockedfit) {
-      $(form).find('[name="texture.fit"]').prop("disabled", true);
+      $(form).find('[name="texture.fit"]').prop("readonly", true);
     }
 
     // additional spritesheet-specific configurations
@@ -82,13 +96,6 @@ async function OnRenderTokenConfig(config, html, context) {
       $(form).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
     };
     form.querySelector(".spritesheet-config").replaceWith(rendered);
-
-    // check that the anchoring fields exist
-    for (const tf of ["fit", "anchorX", "anchorY"]) {
-      if (!form.querySelector(`[name='texture.${tf}']`)) {
-        $(form).append(`<input name="texture.${tf}" value="${token?.texture?.[tf]}" hidden />`);
-      }
-    }
 
     // update the anchors
     if (!data.spritesheet) {
