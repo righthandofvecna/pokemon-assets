@@ -362,6 +362,7 @@ export function register() {
 
     /** @override */
     async _draw(options) {
+      console.log(`[${MODULENAME}] Drawing token ${this.document.name}`);
       // check if this token has a spritesheet configured
       if (!this.isSpritesheet) {
         await super._draw(options);
@@ -711,11 +712,11 @@ export function register() {
         }
         // add the indicator
         if (caught === true) {
-          const tex = await loadTexture(`modules/${MODULENAME}/img/ui/caught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
+          const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/caught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
           const icon = new PIXI.Sprite(tex);
           this.indicators.addChild(icon);
         } else if (caught === false) {
-          const tex = await loadTexture(`modules/${MODULENAME}/img/ui/uncaught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
+          const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/uncaught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
           const icon = new PIXI.Sprite(tex);
           this.indicators.addChild(icon);
         }
@@ -972,6 +973,10 @@ export function register() {
       }
       if ("hidden" in changed && !changed.hidden) {
         this.#localOpacity = 1;
+      }
+      if (changed.flags?.[MODULENAME]?.spritesheet !== undefined) {
+        this.renderable = true;
+        this.initializeSources();
       }
     }
 
