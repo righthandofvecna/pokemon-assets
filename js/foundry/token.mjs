@@ -920,9 +920,11 @@ export function NonPrivateTokenMixin(TokenClass) {
    * @param {DatabaseUpdateOperation} operation    The update operation
    * @param {TokenPosition} origin                 The origin
    * @param {TokenMovementWaypoint[]} waypoints    The candidante waypoints
+   * @param {TokenDocument} document               The token document
    * @internal
    */
-  static _configureAnimationMovementSpeed(operation, origin, waypoints) {
+  static _configureAnimationMovementSpeed(operation, origin, waypoints, document) {
+    if ( !document.rendered ) return;
     const animationDuration = operation.animation?.duration;
     if ( (animationDuration === undefined) || (operation.animation.movementSpeed !== undefined) ) return;
     if ( animationDuration === 0 ) operation.animation.movementSpeed = Number.MAX_VALUE;
@@ -930,7 +932,7 @@ export function NonPrivateTokenMixin(TokenClass) {
       let normalizedDuration = 0;
       let previousWaypoint = origin;
       for ( const waypoint of waypoints ) {
-        if ( CONFIG.Token.movement.actions[waypoint.action].getAnimationOptions().duration !== 0 ) {
+        if ( CONFIG.Token.movement.actions[waypoint.action].getAnimationOptions(document.object).duration !== 0 ) {
           normalizedDuration += this._PRIVATE_getMovementAnimationDuration(previousWaypoint, waypoint, 1);
         }
         previousWaypoint = waypoint;
