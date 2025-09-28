@@ -248,6 +248,199 @@
     transform: translateY(0px);
   }
 }
+.pokemon-assets .meter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-bottom: 0.8em;
+  position: relative;
+}
+.pokemon-assets .meter-group + .meter-group {
+  margin-block-start: 0.25rem;
+}
+.pokemon-assets .meter {
+  border: 1px solid var(--border-theme-color);
+  border-radius: 4px;
+  background: var(--meter-background);
+  font-weight: bold;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.25);
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  cursor: var(--cursor-text);
+}
+.pokemon-assets .meter.progress,
+.pokemon-assets .meter .progress {
+  --bar-percentage: 0%;
+  --border-width: 3px;
+  overflow: hidden;
+}
+.pokemon-assets .meter.progress::before,
+.pokemon-assets .meter .progress::before {
+  content: "";
+  position: absolute;
+  block-size: 100%;
+  inline-size: var(--bar-percentage);
+  box-shadow: 0 0 6px var(--appv2-background-opaque);
+  clip-path: polygon(0 0, calc(100% + 6px) 0, calc(100% + 6px) 100%, 0 100%);
+}
+.pokemon-assets .meter .label {
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  position: relative;
+  padding-inline-start: 8px;
+  padding-inline-end: 12px;
+  color: var(--color-text-light-0);
+}
+.pokemon-assets .meter .label[hidden] {
+  display: none;
+}
+.pokemon-assets .meter .label .value,
+.pokemon-assets .meter .label .max {
+  text-shadow: 0 0 4px var(--border-theme-color);
+}
+.pokemon-assets .meter .label .separator {
+  color: var(--border-theme-color);
+}
+.pokemon-assets .meter .label .bonus {
+  margin-inline-start: auto;
+  font-size: var(--font-size-14);
+  opacity: 0.8;
+}
+.pokemon-assets .meter + .label > span {
+  position: absolute;
+  bottom: -0.8em;
+  font-weight: bold;
+  width: min-content;
+  right: 0.5em;
+  color: var(--border-theme-color);
+  background: var(--appv2-background);
+  padding: 2px;
+  border-radius: 5px;
+  border: 1px solid var(--border-theme-color);
+  line-height: 0.8em;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar {
+  padding: 4px;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .hit-points {
+  --pa-barcolor-1: #005c00;
+  --pa-barcolor-2: #00b300;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .power-points {
+  --pa-barcolor-1: #003f5c;
+  --pa-barcolor-2: #0054b3;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .exp-bar {
+  --pa-barcolor-1: #005c57;
+  --pa-barcolor-2: #009eb3;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter {
+  --meter-background: var(--table-header-bg-color);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter .progress::before {
+  block-size: unset;
+  clip-path: unset;
+  box-shadow: inset 0 1px 0 1px var(--dnd5e-highlight-40);
+  inset: 1px auto 1px 1px;
+  inline-size: calc(var(--bar-percentage) - 2px);
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--pa-barcolor-1) 0%, var(--pa-barcolor-2) 100%);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.hit-points {
+  height: 32px;
+  font-size: var(--font-size-16);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.hit-points .progress::before {
+  border-inline-end: none;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.sectioned > .progress {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.sectioned input {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  border: none;
+  font-weight: bold;
+  background: none;
+  color: var(--color-text-light-0);
+  position: relative;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.sectioned input:hover,
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.sectioned input:focus {
+  box-shadow: 0 0 8px var(--border-theme-color);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.sectioned > div {
+  height: 100%;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.sectioned > .shield {
+  flex: none;
+  width: 50px;
+  border-inline-start: 1px dashed var(--border-theme-color);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .meter.sectioned > .shield > input {
+  color: cornflowerblue;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage i {
+  margin-right: 8px;
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage .label {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage .value {
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: right;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage.positive {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage.positive i {
+  color: #22c55e;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage.positive .value {
+  color: #16a34a;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage.negative {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage.negative i {
+  color: #ef4444;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .sidebar .stages .stage.negative .value {
+  color: #dc2626;
+}
 .pokerole.actor .pokeball-field {
   display: flex;
   align-items: center;

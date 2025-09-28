@@ -4,6 +4,8 @@ import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { RefreshTokenIndicators } from "../scripts.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
+import * as ptr2eSheet from "./ptr2e/sheet.mjs";
+
 /**
  * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
@@ -598,4 +600,6 @@ export function register() {
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
+
+  ptr2eSheet.register();
 }

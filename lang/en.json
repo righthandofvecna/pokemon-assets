@@ -150,6 +150,19 @@
                 "label": "Pokéball",
                 "hint": "The image used for this actor's Pokéball."
             }
+        },
+        "FIELDS.shield.short": "SH",
+        "FIELDS.experience.short": "EXP",
+        "SheetClassCharacter": "PA Character Sheet",
+        "Stages": {
+            "atk.Label": "ATK",
+            "def.Label": "DEF",
+            "spa.Label": "SPA",
+            "spd.Label": "SPD",
+            "spe.Label": "SPE",
+            "accuracy.Label": "ACC",
+            "evasion.Label": "EVA",
+            "critRate.Label": "CRIT"
         }
     },
     "SCENE.TABS.SHEET.puzzle": "Puzzle",
