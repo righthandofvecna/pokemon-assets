@@ -532,6 +532,16 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 			hint: "Show a caught indicator on wild Pokemon tokens whose species/form have been caught, and an uncaught indicator on other wild Pokemon tokens which are catchable. This is determined by if a non-GM user ever had owner access to a matching actor."
 		});
 
+		game.settings.register(MODULENAME, "showShinyIndicator", {
+			name: "Show Shiny Indicator",
+			default: true,
+			type: Boolean,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Show a shiny indicator on wild Pokemon tokens if they are shiny",
+		});
+
 		game.settings.register(MODULENAME, "ownedPokemonCatchable", {
 			name: "Owned Pokemon Catchable",
 			default: false,

@@ -659,6 +659,7 @@ export function register() {
   module.api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
 
   module.api.logic.ActorCry ??= ActorCry;
+  module.api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny;
 
   module.api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
 

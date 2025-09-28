@@ -593,6 +593,7 @@ export function register() {
   api.logic.ActorCatchable ??= ActorCatchable;
   api.logic.ActorCatchKey ??= ActorCatchKey;
   api.logic.ActorCaught ??= ActorCaught;
+  api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny;
   api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
 
   api.scripts ??= {};

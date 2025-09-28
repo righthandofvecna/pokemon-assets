@@ -721,6 +721,18 @@ export function register() {
           this.indicators.addChild(icon);
         }
       }
+      
+      if (game.settings.get(MODULENAME, "showShinyIndicator")) {
+        const logic = game?.modules?.get(MODULENAME)?.api?.logic;
+        // if the pokemon is uncaught, draw the "uncaught" effect
+        const shiny = logic?.ActorShiny(this?.document?.actor);
+        // add the indicator
+        if (shiny) {
+          const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/shiny-indicator.png`, {fallback: "icons/svg/explosion.svg"});
+          const icon = new PIXI.Sprite(tex);
+          this.indicators.addChild(icon);
+        }
+      }
 
       this.indicators.sortChildren();
       this.indicators.renderable = true;
