@@ -1,9 +1,9 @@
 import { MODULENAME } from "../utils.mjs"
 
 
-function OnCreateToken(tokenDocument, data, userId) {
+async function OnCreateToken(tokenDocument, data, userId) {
   try {
-    const cry = game.modules.get(MODULENAME).api.logic.ActorCry(tokenDocument.actor)
+    const cry = await game.modules.get(MODULENAME).api.logic.ActorCry(tokenDocument.actor);
     if (cry) {
       tokenDocument.actor.setFlag('monks-sound-enhancements', 'sound-effect', cry)
     }

@@ -839,7 +839,7 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 			scope: "world",
 			requiresReload: false,
 			config: false,
-			hint: "The folder where cries for homebrew Pokemon are stored. They must be stored in that folder as '<custom dex number>.mp3'."
+			hint: "The folder where cries for homebrew Pokemon are stored. They must be stored in that folder as '<custom dex number>.mp3', or optionally for ptr2e, '<slug>.mp3'."
 		});
 
 		game.settings.register(MODULENAME, "homebrewSpritesheetFolder", {

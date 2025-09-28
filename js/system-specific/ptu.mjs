@@ -232,9 +232,9 @@ function OnCreateToken(token, options) {
         sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
       }
 
-      sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
+      sequence = await game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
     } else {
-      sequence = game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
+      sequence = await game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
     }
     sequence.play();
   })();
@@ -278,7 +278,7 @@ function OnCreateItem(species, metadata, userId) {
  * @param {*} actor 
  * @returns the path to the cry file
  */
-function ActorCry(actor) {
+async function ActorCry(actor) {
   const species = actor?.species;
   if (!actor || !species) return null;
 
