@@ -64,37 +64,13 @@
       <span>{{localize "POKEMON-ASSETS.FIELDS.experience.short"}}</span>
     </div>
   </div>
-  <div class="experience">
-    {{!-- <div class="xp-current">
-      <label for="system.advancement.experience.value">{{localize
-        fields.advancement.fields.experience.fields.current.label}}</label>
-      {{formInput fields.advancement.fields.experience.fields.current value=actor.system.advancement.experience.current
-      localized=true}}
-    </div>
-    <div class="xp-diff">
-      <label for="system.advancement.experience.diff">{{localize
-        fields.advancement.fields.experience.fields.diff.label}}</label>
-      {{formInput fields.advancement.fields.experience.fields.diff value=actor.system.advancement.experience.diff
-      localized=true disabled=true}}
-    </div>
-    <div class="xp-next">
-      <label for="system.advancement.experience.next">{{localize
-        fields.advancement.fields.experience.fields.next.label}}</label>
-      {{formInput fields.advancement.fields.experience.fields.next value=actor.system.advancement.experience.next
-      localized=true disabled=true}}
-    </div> --}}
-    <div class="level">
-      <label for="system.advancement.level">{{localize fields.advancement.fields.level.label}}</label>
-      {{formInput fields.advancement.fields.level value=actor.system.advancement.level localized=true disabled=true}}
-    </div>
-  </div>
-  <div class="stages">
-    {{#each stages as |stage|}}
-    <div class="stage {{stage.classes}}">
-      <i class="{{stage.icon}}"></i>
-      <span class="label">{{localize stage.label}}</span>
-      <span class="value">{{stage.value}}</span>
-    </div>
+  {{!-- TYPES --}}
+  <div class="types">
+    {{#each types as |type|}}
+      <span class="pokemon-type {{type.slug}}" style="--type-color: var(--{{type.slug}}-color, --untyped-color);">
+        <img class="icon" src="{{type.icon}}" alt="{{localize type.label}}">
+        <span class="label trait" data-trait="{{type.slug}}" data-tooltip="{{type.label}}">{{localize type.label}}</span>
+      </span>
     {{/each}}
   </div>
   <div class="nature-dropdown">
@@ -110,6 +86,17 @@
         data-type="Item" data-tooltip="Species Item"><i class="fas fa-paw"></i>{{species.name}}</a>
     </span>
   </div>
+  {{!-- STAGES --}}
+  <div class="stages">
+    {{#each stages as |stage|}}
+    <div class="stage {{stage.classes}}">
+      <i class="{{stage.icon}}"></i>
+      <span class="label">{{localize stage.label}}</span>
+      <span class="value">{{stage.value}}</span>
+    </div>
+    {{/each}}
+  </div>
+  <hr/>
   <div class="perk-web-button">
     <button type="button" class="perk-web-button" data-action="open-perk-web">
       <i class="fas fa-sitemap"></i>

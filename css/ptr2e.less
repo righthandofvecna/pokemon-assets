@@ -87,10 +87,69 @@
       line-height: 0.8em;
     }
   }
+
+  .pokemon-type {
+    background-color: var(--type-color, --untyped-color);
+    border-radius: 4px;
+    border: 2px solid color-mix(in srgb, var(--type-color, --untyped-color) 50%, black);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 1px 7px 1px 3px;
+    text-shadow: 0 0 2px black;
+    > * {
+      margin-left: 0.25em;
+    }
+
+    img {
+      height: 1em;
+      width: 1em;
+      margin-left: 0;
+    }
+    .label {
+      flex: 1;
+      color: white;
+    }
+    .multiplier {
+      font-weight: bold;
+    }
+  }
+
+  .pills {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.25em;
+    margin: 0;
+    padding: 0;
+    margin-top: 0.125em;
+    >* {
+      margin-bottom: 0;
+    }
+  }
 }
 
 
 .application.sheet.ptr2e.actor.pokemon-assets {
+  .actor-header {
+    .profile-img {
+      grid-row: 1 / 3;
+    }
+    .level {
+      justify-self: flex-end;
+      align-self: center;
+      margin: 0 0.5rem;
+
+      label {
+        color: var(--border-theme-color);
+      }
+      input {
+        width: 2em;
+        padding: 0;
+      }
+    }
+  }
   .sidebar {
     padding: 4px;
 
@@ -167,7 +226,6 @@
       }
     }
 
-
     .stages {
       display: flex;
       flex-direction: column;
@@ -233,5 +291,26 @@
         }
       }
     }
+
+    .types {
+      display: flex;
+      gap: 0.5em;
+      margin-top: 0.35em;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+  .tab.active[data-tab=overview] {
+    .effectiveness h3 {
+      margin: 0;
+      font-size: 1rem;
+      border-bottom: 1px solid var(--border-theme-color);
+    }
+  }
+
+  .tab.active[data-tab=actions] section.active[data-tab=actionsCombat] {
+    flex-direction: column;
+    overflow-y: scroll;
+    overflow-x: auto;
   }
 }

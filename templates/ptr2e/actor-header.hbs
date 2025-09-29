@@ -1,0 +1,10 @@
+<aside class="actor-header">
+  <img class="profile-img" src="{{actor.img}}" alt="{{actor.name}}" data-edit="img">
+  <div class="title">
+    {{formInput baseFields.name value=actor.name localized=true}}
+  </div>
+  <div class="level">
+    <label for="system.advancement.level">{{localize fields.advancement.fields.level.label}}</label>
+    {{formInput fields.advancement.fields.level value=actor.system.advancement.level localized=true disabled=true}}
+  </div>
+</aside>

@@ -11,7 +11,15 @@ export function register() {
       sidebar: {
         id: "sidebar",
         template: `modules/${MODULENAME}/templates/ptr2e/actor-sidebar.hbs`,
-      }
+      },
+      overview: {
+        id: "overview",
+        template: `modules/${MODULENAME}/templates/ptr2e/actor-overview.hbs`,
+      },
+      header: {
+        id: "header",
+        template: `modules/${MODULENAME}/templates/ptr2e/actor-header.hbs`,
+      },
     }
 
     async _preparePartContext(partId, context) {
@@ -53,6 +61,35 @@ export function register() {
           icon: stage.value > 0 ? "fas fa-angles-up" : "fas fa-angles-down",
           label: `POKEMON-ASSETS.Stages.${stage.key}.Label`,
           value: stage.value > 0 ? `+${stage.value}` : stage.value,
+        }));
+
+        // Creature Types
+        context.types = (this.actor.system.traits?.contents ?? []).filter(trait=>this.actor.system.type.types.has(trait.slug)).map(trait=>({
+          slug: trait.slug,
+          label: trait.label,
+          icon: `systems/ptr2e/img/icons/${trait.slug}_icon.png`,
+          hint: trait.description,
+        }));
+
+        // Natures
+        context.natures = Object.fromEntries(Object.entries(context.natures).map(([key, value])=>([key, {
+          label: key.capitalize(),
+          hint: value,
+        }])));
+
+        console.log(context);
+      }
+
+      //
+      // Overview
+      //
+      if (partId === "overview") {
+        Object.values(context.effectiveness).forEach(list=>list.forEach(entry=>{
+          entry.slug = entry.name;
+          const trait = CONFIG.PTR.data.traits.find(t=>t.slug==entry.slug);
+          entry.label = trait?.label ?? entry.name;
+          entry.icon = `systems/ptr2e/img/icons/${entry.slug}_icon.png`;
+          entry.multiplier = entry.value <= 0.25 ? "¼" : entry.value === 0.5 ? "½" : entry.value;
         }));
       }
 
