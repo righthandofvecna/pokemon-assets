@@ -85,7 +85,7 @@ export async function getFiles(path) {
 	if (path.startsWith("/")) path = path.slice(1);
 	if (path.endsWith("/")) path = path.slice(0, -1);
 	// The Forge needs `foundry.applications.apps.FilePicker.implementation`
-	return (await foundry.applications.apps.FilePicker.implementation.browse("data", folder).catch(()=>null))?.files ?? [];
+	return (await foundry.applications.apps.FilePicker.implementation.browse("data", path).catch(()=>null))?.files ?? [];
 }
 
 export function getCombatsForScene(sceneId) {
