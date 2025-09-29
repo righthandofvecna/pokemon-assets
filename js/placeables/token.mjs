@@ -362,7 +362,6 @@ export function register() {
 
     /** @override */
     async _draw(options) {
-      console.log(`[${MODULENAME}] Drawing token ${this.document.name}`);
       // check if this token has a spritesheet configured
       if (!this.isSpritesheet) {
         await super._draw(options);
