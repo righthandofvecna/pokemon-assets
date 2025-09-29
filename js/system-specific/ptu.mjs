@@ -284,6 +284,7 @@ async function ActorCry(actor) {
 
   const dn = species.system.number;
   if (!dn) return null;
+  const slug = species?.system?.slug;
   
   if (dn >= 0 && dn <= 1025) {
     // Official Pokemon
@@ -327,7 +328,13 @@ async function ActorCry(actor) {
     // Custom Pokemon
     const folder = game.settings.get(MODULENAME, "homebrewCryFolder");
     if (!folder) return null;
-    return `${folder}/${dn}.mp3`;
+    // check if the file exists
+    const homebrewCries = (await foundry.applications.apps.FilePicker.browse("data", folder).catch(()=>null))?.files ?? [];
+    if (homebrewCries.includes(`${folder}/${dn}.mp3`)) {
+      return `${folder}/${dn}.mp3`;
+    } else if (slug && homebrewCries.includes(`${folder}/${slug}.mp3`)) {
+      return `${folder}/${slug}.mp3`;
+    }
   }
 }
 
