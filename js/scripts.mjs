@@ -618,12 +618,12 @@ function CatchPokemon(target, img, shakes, caught, extendSequence=null) {
  * @param {*} extendSequence 
  * @returns 
  */
-function SummonPokemon(target, shiny, extendSequence=null) {
+async function SummonPokemon(target, shiny, extendSequence=null) {
   const scene = tokenScene(target);
   const sceneVisible = scene?.id === canvas?.scene?.id;
   if (!sceneVisible) return extendSequence;
 
-  const cry = game.modules.get(MODULENAME)?.api?.logic?.ActorCry(target?.actor);
+  const cry = await game.modules.get(MODULENAME)?.api?.logic?.ActorCry(target?.actor);
   const preloads = ["modules/pokemon-assets/audio/bgs/pokeball-escape.mp3"];
   if (cry) preloads.push(cry);
   Sequencer.Preloader.preload(preloads);
@@ -685,12 +685,12 @@ function SummonPokemon(target, shiny, extendSequence=null) {
  * @param {*} shiny 
  * @param {*} extendSequence 
  */
-function SummonWildPokemon(target, shiny, extendSequence=null) {
+async function SummonWildPokemon(target, shiny, extendSequence=null) {
   const scene = tokenScene(target);
   const sceneVisible = scene?.id === canvas?.scene?.id;
   if (!sceneVisible) return extendSequence;
 
-  const cry = game.modules.get(MODULENAME)?.api?.logic?.ActorCry(target?.actor);
+  const cry = await game.modules.get(MODULENAME)?.api?.logic?.ActorCry(target?.actor);
   const preloads = ["modules/pokemon-assets/audio/bgs/grass-shake.mp3"];
   if (cry) preloads.push(cry);
   Sequencer.Preloader.preload(preloads);

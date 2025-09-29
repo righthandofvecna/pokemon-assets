@@ -15,10 +15,11 @@ export function register() {
   api.logic.CanUseWaterfall ??= (actor)=>true;
   api.logic.CanUseWhirlpool ??= (actor)=>true;
 
-  api.logic.ActorCry ??= (actor)=>null;
+  api.logic.ActorCry ??= async (actor)=>null;
   api.logic.ActorCatchable ??= (actor)=>true;
   api.logic.ActorCatchKey ??= (actor)=>null;
   api.logic.ActorCaught ??= null;
+  api.logic.ActorShiny ??= (actor)=>false;
   api.logic.isPokemon ??= (token)=>token?.texture?.src?.includes("/pmd-overworld/") ?? false;
   
   api.scripts ??= {};

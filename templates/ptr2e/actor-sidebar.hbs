@@ -1,0 +1,108 @@
+<aside class="sidebar">
+  {{!-- HP and Shields --}}
+  <div class="meter-group">
+    <div class="meter sectioned hit-points">
+      {{#with actor.system.health}}
+      <div class="progress hit-points" role="meter" aria-valuemin="0" aria-valuenow="{{ value }}"
+        aria-valuemax="{{ max }}" style="--bar-percentage: {{ percent }}%">
+        <div class="label">
+          <span class="value">{{ value }}</span>
+          <span class="separator">&sol;</span>
+          <span class="max">{{ max }}</span>
+        </div>
+        <input type="text" name="system.health.value" data-dtype="Number" placeholder="0" value="{{ value }}" hidden>
+      </div>
+      {{/with}}
+      {{#with actor.system.shield}}
+      <div class="shield">
+        <input type="text" name="system.shield.value" data-dtype="Number" placeholder="{{localize
+          "POKEMON-ASSETS.FIELDS.shield.short"}}" value="{{#if value}}{{ value }}{{/if}}">
+      </div>
+      {{/with}}
+    </div>
+    <div class="label">
+      <span>{{localize "PTR2E.FIELDS.health.short"}}</span>
+    </div>
+  </div>
+  {{!-- PP --}}
+  <div class="meter-group">
+    <div class="meter sectioned power-points">
+      {{#with actor.system.powerPoints}}
+      <div class="progress power-points" role="meter" aria-valuemin="0" aria-valuenow="{{ value }}"
+        aria-valuemax="{{ max }}" style="--bar-percentage: {{ percent }}%">
+        <div class="label">
+          <span class="value">{{ value }}</span>
+          <span class="separator">&sol;</span>
+          <span class="max">{{ max }}</span>
+        </div>
+        <input type="text" name="system.powerPoints.value" data-dtype="Number" placeholder="0" value="{{ value }}"
+          hidden>
+      </div>
+      {{/with}}
+    </div>
+    <div class="label">
+      <span>{{localize "PTR2E.FIELDS.powerPoints.short"}}</span>
+    </div>
+  </div>
+  {{!-- XP --}}
+  <div class="meter-group">
+    <div class="meter sectioned exp-bar">
+      {{#with experience}}
+      <div class="progress exp-bar" role="meter" aria-valuemin="0" aria-valuenow="{{ value }}"
+        aria-valuemax="{{ max }}" style="--bar-percentage: {{ percent }}%">
+        <div class="label">
+          <span class="value">{{ value }}</span>
+          <span class="separator">&sol;</span>
+          <span class="max">{{ max }}</span>
+        </div>
+        <input type="text" name="system.advancement.experience.current" data-dtype="Number" placeholder="0"
+          value="{{ value }}" hidden>
+      </div>
+      {{/with}}
+    </div>
+    <div class="label">
+      <span>{{localize "POKEMON-ASSETS.FIELDS.experience.short"}}</span>
+    </div>
+  </div>
+  {{!-- TYPES --}}
+  <div class="types">
+    {{#each types as |type|}}
+      <span class="pokemon-type {{type.slug}}" style="--type-color: var(--{{type.slug}}-color, --untyped-color);">
+        <img class="icon" src="{{type.icon}}" alt="{{localize type.label}}">
+        <span class="label trait" data-trait="{{type.slug}}" data-tooltip="{{type.label}}">{{localize type.label}}</span>
+      </span>
+    {{/each}}
+  </div>
+  <div class="nature-dropdown">
+    <label for="system.nature">{{localize fields.nature.label}}</label>
+    <select name="system.nature" id="system.nature" data-dtype="String">
+      {{selectOptions natures selected=actor.system.nature localize=true}}
+    </select>
+  </div>
+  <div class="species-link">
+    <label for="species">{{localize "TYPES.Item.species"}}</label>
+    <span class="species">
+      <a class="content-link" draggable="true" data-link="" data-uuid="{{species.uuid}}" data-id="actorspeciesitem"
+        data-type="Item" data-tooltip="Species Item"><i class="fas fa-paw"></i>{{species.name}}</a>
+    </span>
+  </div>
+  {{!-- STAGES --}}
+  <div class="stages">
+    {{#each stages as |stage|}}
+    <div class="stage {{stage.classes}}">
+      <i class="{{stage.icon}}"></i>
+      <span class="label">{{localize stage.label}}</span>
+      <span class="value">{{stage.value}}</span>
+    </div>
+    {{/each}}
+  </div>
+  <hr/>
+  <div class="perk-web-button">
+    <button type="button" class="perk-web-button" data-action="open-perk-web">
+      <i class="fas fa-sitemap"></i>
+      <label>{{localize "PTR2E.ActorSheet.Buttons.perkWeb"}} {{#if shouldPerkFlash}}<small
+          class="ml-1 unspent">({{localize "PTR2E.ActorSheet.Unspent"
+          num=actor.system.advancement.advancementPoints.available}})</small>{{/if}}</label>
+    </button>
+  </div>
+</aside>

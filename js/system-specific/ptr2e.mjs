@@ -4,6 +4,8 @@ import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { RefreshTokenIndicators } from "../scripts.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
+import * as ptr2eSheet from "./ptr2e/sheet.mjs";
+
 /**
  * A Chat Message listener, that should be run on EVERY client
  * @param {*} message 
@@ -181,9 +183,9 @@ async function OnCreateToken(token, options) {
       sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
     }
 
-    sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
+    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
   } else {
-    sequence = game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
+    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
   }
   await sequence.play();
 }
@@ -339,11 +341,12 @@ function HasMoveFunction(slug) {
  * @param {*} actor 
  * @returns the path to the cry file
  */
-function ActorCry(actor) {
+async function ActorCry(actor) {
   if (!actor) return null;
 
   const dn = actor.species?.number;
   if (dn === undefined) return null;
+  const slug = actor.species?.slug;
 
   const form = ((form)=>{
     if (!form) return "";
@@ -390,7 +393,13 @@ function ActorCry(actor) {
     // Custom Pokemon
     const folder = game.settings.get(MODULENAME, "homebrewCryFolder");
     if (!folder) return null;
-    return `${folder}/${dn}.mp3`;
+    // check if the file exists
+    const homebrewCries = (await foundry.applications.apps.FilePicker.browse("data", folder).catch(()=>null))?.files ?? [];
+    if (homebrewCries.includes(`${folder}/${dn}.mp3`)) {
+      return `${folder}/${dn}.mp3`;
+    } else if (slug && homebrewCries.includes(`${folder}/${slug}.mp3`)) {
+      return `${folder}/${slug}.mp3`;
+    }
   }
 }
 
@@ -586,8 +595,11 @@ export function register() {
   api.logic.ActorCatchable ??= ActorCatchable;
   api.logic.ActorCatchKey ??= ActorCatchKey;
   api.logic.ActorCaught ??= ActorCaught;
+  api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny;
   api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
+
+  ptr2eSheet.register();
 }

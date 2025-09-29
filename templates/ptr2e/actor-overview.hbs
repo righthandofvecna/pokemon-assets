@@ -1,0 +1,48 @@
+<section class="tab sheet-body {{tabs.overview.cssClass}}" data-tab="overview" data-group="sheet">
+  {{> actor-skills-component favouriteOnly=true}}
+  {{> stats-chart fieldset=true}}
+  {{> actor-movement-component}}
+
+  <aside class="effectiveness">
+    <fieldset style="gap: 0;">
+      <legend>Effectiveness</legend>
+      {{#if effectiveness.effective.length}}
+      <h3>Super Effective</h3>
+      <ul class="types pills">
+        {{#each effectiveness.effective}}
+          <li class="effectiveness pokemon-type {{slug}}" style="--type-color: var(--{{slug}}-color, --untyped-color);">
+            <img class="icon" src="{{icon}}" alt="{{localize label}}">
+            <span class="label">{{localize label}}</span>
+            <span class="label multiplier">&times;{{multiplier}}</span>
+          </li>
+        {{/each}}
+      </ul>
+      {{/if}}
+
+      {{#if effectiveness.immune.length}}
+      <h3>Immune</h3>
+      <ul class="types pills">
+        {{#each effectiveness.immune}}
+          <li class="effectiveness pokemon-type {{slug}}" style="--type-color: var(--{{slug}}-color, --untyped-color);">
+            <img class="icon" src="{{icon}}" alt="{{localize label}}">
+            <span class="label">{{localize label}}</span>
+          </li>
+        {{/each}}
+      </ul>
+      {{/if}}
+
+      {{#if effectiveness.ineffective.length}}
+      <h3>Not Very Effective</h3>
+      <ul class="types pills">
+        {{#each effectiveness.ineffective}}
+          <li class="effectiveness pokemon-type {{slug}}" style="--type-color: var(--{{slug}}-color, --untyped-color);">
+            <img class="icon" src="{{icon}}" alt="{{localize label}}">
+            <span class="label">{{localize label}}</span>
+            <span class="label multiplier">&times;{{multiplier}}</span>
+          </li>
+        {{/each}}
+      </ul>
+      {{/if}}
+    </fieldset>
+  </aside>
+</section>

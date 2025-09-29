@@ -174,6 +174,7 @@ const { Ray } = foundry.canvas.geometry;
 const { CanvasAnimation } = foundry.canvas.animation;
 const { PrimaryCanvasGroup } = foundry.canvas.groups;
 const { InvisibilityFilter } = foundry.canvas.rendering.filters;
+const { loadTexture } = foundry.canvas;
 const { REGION_MOVEMENT_SEGMENTS } = CONST;\n\n""")
         outfile.write("export function NonPrivateTokenMixin(TokenClass) {\n  return class NonPrivateToken extends TokenClass {")
         for member in transformed_members:

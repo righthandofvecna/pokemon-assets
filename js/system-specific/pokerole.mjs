@@ -125,7 +125,7 @@ function OnUpdateActor(actor, updates, options) {
  * @param {*} actor 
  * @returns the path to the cry file
  */
-function ActorCry(actor) {
+async function ActorCry(actor) {
   if (!actor) return null;
 
   const dn = actor?.system?.pokedexId ?? 0;
@@ -202,9 +202,9 @@ async function OnCreateToken(token, options) {
       })();
       sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
     }
-    sequence = game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, shiny, sequence);
+    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, shiny, sequence);
   } else {
-    sequence = game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, shiny, sequence);
+    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, shiny, sequence);
   }
   await sequence.play();
 }
