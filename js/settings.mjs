@@ -1,4 +1,4 @@
-import { MODULENAME } from "./utils.mjs";
+import { MODULENAME, getFiles } from "./utils.mjs";
 import { SpritesheetGenerator } from "./spritesheets.mjs";
 
 export function register() {
@@ -772,7 +772,7 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 		const context = await super._prepareContext();
 		// get all spritesheets
 		const src = game.settings.get(MODULENAME, "homebrewSpritesheetFolder");
-		const srcFiles = (await foundry.applications.apps.FilePicker.browse("data", src).catch(()=>null))?.files;
+		const srcFiles = await getFiles(src);
 		context.hss = {};
 		if (srcFiles) {
 			const hssSettingsOld = game.settings.get(MODULENAME, "homebrewSpritesheetSettings");

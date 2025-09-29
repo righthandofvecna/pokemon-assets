@@ -80,6 +80,13 @@ export function listenFilepickerChange(filepicker, onChange) {
   })
 }
 
+export async function getFiles(path) {
+	if (!path) return [];
+	if (path.startsWith("/")) path = path.slice(1);
+	if (path.endsWith("/")) path = path.slice(0, -1);
+	// The Forge needs `foundry.applications.apps.FilePicker.implementation`
+	return (await foundry.applications.apps.FilePicker.implementation.browse("data", folder).catch(()=>null))?.files ?? [];
+}
 
 export function getCombatsForScene(sceneId) {
 	const combats = game.combats.filter(c=>c?.active && c?.scene?.uuid === sceneId) ?? [];

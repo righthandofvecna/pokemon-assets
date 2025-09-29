@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, sleep, tokenScene, MODULENAME } from "../utils.mjs";
+import { early_isGM, sleep, tokenScene, getFiles, MODULENAME } from "../utils.mjs";
 import { PokemonSheets } from "../pokemon-sheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { RefreshTokenIndicators } from "../scripts.mjs";
@@ -394,12 +394,8 @@ async function ActorCry(actor) {
     const folder = game.settings.get(MODULENAME, "homebrewCryFolder");
     if (!folder) return null;
     // check if the file exists
-    const homebrewCries = (await foundry.applications.apps.FilePicker.browse("data", folder).catch(()=>null))?.files ?? [];
-    if (homebrewCries.includes(`${folder}/${dn}.mp3`)) {
-      return `${folder}/${dn}.mp3`;
-    } else if (slug && homebrewCries.includes(`${folder}/${slug}.mp3`)) {
-      return `${folder}/${slug}.mp3`;
-    }
+    const homebrewCries = await getFiles(folder);
+    return homebrewCries.find(f=>f.endsWith(`/${dn}.mp3`)) ?? homebrewCries.find(f=>f.endsWith(`/${slug}.mp3`));
   }
 }
 
