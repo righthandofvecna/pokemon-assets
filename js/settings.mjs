@@ -390,7 +390,8 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 		"tokenCollisionAllied",
 		"tokenCollisionHidden",
 		"showCaughtIndicator",
-		"ownedPokemonCatchable"
+		"ownedPokemonCatchable",
+		"showShinyIndicator",
 	]
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
