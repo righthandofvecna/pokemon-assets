@@ -92,6 +92,7 @@ async function OnCreateChatMessage(message) {
 
 async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
   const result = await wrapped(config, ...args);
+  if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return result;
   const forms = new Set((config.forms ?? []).map(f=>f.toLowerCase()));
   if (forms.has("token")) {
     const regionalVariant = (()=>{
