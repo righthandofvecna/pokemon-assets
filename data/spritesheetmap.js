@@ -7809,10 +7809,22 @@ export default
       "10XX/102X/1025s.png": {
         "animationframes": 10
       },
+      "26XX/262X/2621.png": {
+        "animationframes": 4
+      },
+      "26XX/262X/2624.png": {
+        "animationframes": 4
+      },
+      "26XX/262X/2625.png": {
+        "animationframes": 4
+      },
       "26XX/262X/2626.png": {
         "animationframes": 4
       },
       "26XX/262X/2627.png": {
+        "animationframes": 4
+      },
+      "26XX/262X/2628.png": {
         "animationframes": 4
       }
     },
