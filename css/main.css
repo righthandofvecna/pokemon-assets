@@ -506,6 +506,17 @@
   font-size: 1rem;
   border-bottom: 1px solid var(--border-theme-color);
 }
+.application.sheet.ptr2e.actor.pokemon-assets .tab.active[data-tab=actions] {
+  grid-template-areas: "subnav body";
+  grid-template-columns: 30px auto;
+  grid-template-rows: unset;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .tab.active[data-tab=actions] .sub-tabs {
+  flex-direction: column;
+  background: var(--sidebar-background);
+  border-bottom: unset;
+  border-right: 1px solid var(--border-theme-color);
+}
 .application.sheet.ptr2e.actor.pokemon-assets .tab.active[data-tab=actions] section.active[data-tab=actionsCombat] {
   flex-direction: column;
   overflow-y: scroll;
