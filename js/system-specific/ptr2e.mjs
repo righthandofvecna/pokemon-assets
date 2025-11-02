@@ -5,6 +5,7 @@ import { RefreshTokenIndicators } from "../scripts.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
 import * as ptr2eSheet from "./ptr2e/sheet.mjs";
+import * as ptr2eFixes from "./ptr2e/fixes.mjs";
 
 /**
  * A Chat Message listener, that should be run on EVERY client
@@ -605,4 +606,5 @@ export function register() {
   api.scripts.HasMoveFunction ??= HasMoveFunction;
 
   ptr2eSheet.register();
+  ptr2eFixes.register();
 }
