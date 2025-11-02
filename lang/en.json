@@ -161,7 +161,9 @@
             "spd.Label": "SPD",
             "spe.Label": "SPE",
             "accuracy.Label": "ACC",
+            "acc.Label": "ACC",
             "evasion.Label": "EVA",
+            "eva.Label": "EVA",
             "critRate.Label": "CRIT"
         }
     },
