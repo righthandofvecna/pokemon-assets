@@ -488,16 +488,22 @@ function TokenAlterations_apply(wrapped, ...args) {
   })();
   if (foundMegaEvo) return;
 
-  // if we're updating the texture to {actor|img}, such as in the glow automation, undo it
-  if (this.texture == "{actor|img}") {
+  // if we're updating the texture to {actor|img}, or updating it to what it already is, such as in the glow automation, undo it
+  if (this.texture == "{actor|img}" || this.texture == preUpdatedTexture?.src) {
     this.actor.synthetics.tokenOverrides.texture = preUpdatedTexture;
+    return;
+  }
+
+  // if we're updating the texture to something defined in pokemon-assets, do that
+  if (PokemonSheets.hasSheetSettings(this.texture)) {
+    this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, _getTokenChangesForSpritesheet(this.texture));
     return;
   }
 
   // if not, disable spritesheet processing
   this.actor.synthetics.tokenOverrides.flags ??= {};
   this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= { spritesheet: false };
-  this.actor.synthetics.tokenOverrides.rotation ??= 0; // force rotation to be 0
+  this.actor.synthetics.tokenOverrides.lockRotation ??= true; // force lock rotation
 }
 
 
@@ -513,8 +519,8 @@ function TokenDocument_prepareDerivedData(wrapped, ...args) {
     this.flags = foundry.utils.mergeObject(this.flags, tokenOverrides.flags);
   }
 
-  if (tokenOverrides.rotation !== undefined) {
-    this.rotation = tokenOverrides.rotation;
+  if (tokenOverrides.lockRotation !== undefined) {
+    this.lockRotation = tokenOverrides.lockRotation;
   }
 
   // check if we need a redraw
