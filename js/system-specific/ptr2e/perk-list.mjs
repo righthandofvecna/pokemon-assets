@@ -513,7 +513,7 @@ export class PerkListManager {
     }
 
     /**
-     * Check if prerequisites are met
+     * Check if prerequisites are met, or can be met with available skill points
      */
     _meetsPrerequisites(perk, tierInfo) {
         if (!this.actor) return true;
@@ -538,11 +538,147 @@ export class PerkListManager {
             
             // Create a Predicate and test it against actor's roll options
             const predicate = new Predicate(resolvedPredicate);
-            return predicate.test(this.actor.getRollOptions());
+            const met = predicate.test(this.actor.getRollOptions());
+            
+            // If prerequisites are already met, return true
+            if (met) return true;
+            
+            // Check if prerequisites can be met with available skill points
+            return this._canMeetPrerequisitesWithSkillPoints(predicate, perk.name);
         } catch (e) {
             console.warn(`Error evaluating prerequisites for ${perk.name}:`, e);
             return true;
         }
+    }
+    
+    /**
+     * Check if skill-based prerequisites can be met with available skill points
+     * @param {Predicate} predicate - The predicate to check
+     * @returns {boolean} - True if prerequisites can be met with available skill points
+     */
+    _canMeetPrerequisitesWithSkillPoints(predicate, name="") {
+        if (!this.actor) return false;
+        
+        const availableRVs = this.actor.system?.advancement?.rvs?.available || 0;
+        if (availableRVs === 0) return false;
+        
+        // Parse the predicate to find skill requirements
+        const skillRequirements = this._parseSkillRequirements(predicate);
+
+        console.log(`[${name} - Skill Prerequisites] Predicate:`, predicate);
+        console.log(`[${name} - Skill Prerequisites] Parsed requirements:`, skillRequirements);
+        console.log(`[${name} - Skill Prerequisites] Available RVs:`, availableRVs);
+
+        if (skillRequirements.length === 0) return false;
+        
+        // Calculate total RVs needed to meet all skill requirements
+        let totalNeeded = 0;
+        for (const { slug, required } of skillRequirements) {
+            const skill = this.actor.system?.skills?.get(slug);
+            if (!skill) {
+                console.log(`[${name} - Skill Prerequisites] Skill not found: ${slug}`);
+                continue;
+            }
+            
+            const currentValue = skill.total || 0;
+            const currentRVs = skill.rvs || 0;
+
+            console.log(`[${name} - Skill Prerequisites] ${slug}: current=${currentValue}, required=${required}, currentRVs=${currentRVs}`);
+
+            if (currentValue >= required) continue; // Already meets this requirement
+            
+            const neededIncrease = required - currentValue;
+            const maxPossibleIncrease = (this.actor.level === 1 ? 90 : 100) - currentRVs;
+
+            console.log(`[${name} - Skill Prerequisites] ${slug}: needsIncrease=${neededIncrease}, maxPossible=${maxPossibleIncrease}`);
+
+            // Can't meet this requirement even with all available points
+            if (neededIncrease > maxPossibleIncrease) {
+                console.log(`[${name} - Skill Prerequisites] Cannot meet ${slug} requirement (needs ${neededIncrease}, max possible ${maxPossibleIncrease})`);
+                return false;
+            }
+            
+            totalNeeded += neededIncrease;
+        }
+
+        console.log(`[${name} - Skill Prerequisites] Total RVs needed: ${totalNeeded}, available: ${availableRVs}`);
+
+        // Check if we have enough available RVs to meet all requirements
+        const canMeet = totalNeeded <= availableRVs && totalNeeded > 0;
+        console.log(`[${name} - Skill Prerequisites] Can meet: ${canMeet}`);
+        return canMeet;
+    }
+    
+    /**
+     * Parse a predicate to extract skill requirements
+     * @param {Predicate} predicate - The predicate to parse
+     * @returns {Array} - Array of {slug, required} objects
+     */
+    _parseSkillRequirements(predicate) {
+        const requirements = [];
+        
+        // Predicates are arrays of predicate statements
+        for (const statement of predicate) {
+            if (typeof statement === 'string') {
+                // Check for skill:value pattern (e.g., "skill:acrobatics:5")
+                const skillMatch = statement.match(/^skill:([^:]+):(\d+)$/);
+                if (skillMatch) {
+                    requirements.push({
+                        slug: skillMatch[1],
+                        required: parseInt(skillMatch[2], 10)
+                    });
+                }
+            } else if (typeof statement === 'object') {
+                // Handle comparison operators like { "gte": ["{actor|skills.fast-talk.mod}", 55] }
+                if (statement.gte && Array.isArray(statement.gte)) {
+                    const [skillKey, value] = statement.gte;
+                    
+                    // Try to extract skill slug from actor|skills.slug.mod pattern
+                    const actorSkillMatch = skillKey?.match(/^\{actor\|skills\.([^.]+)\.mod\}$/);
+                    if (actorSkillMatch && typeof value === 'number') {
+                        requirements.push({
+                            slug: actorSkillMatch[1],
+                            required: value
+                        });
+                        continue;
+                    }
+                    
+                    // Fallback to old skill:slug pattern
+                    const skillMatch = skillKey?.match(/^skill:([^:]+)$/);
+                    if (skillMatch && typeof value === 'number') {
+                        requirements.push({
+                            slug: skillMatch[1],
+                            required: value
+                        });
+                    }
+                }
+                // Handle other comparison operators similarly
+                else if (statement.gt && Array.isArray(statement.gt)) {
+                    const [skillKey, value] = statement.gt;
+                    
+                    // Try actor|skills pattern
+                    const actorSkillMatch = skillKey?.match(/^\{actor\|skills\.([^.]+)\.mod\}$/);
+                    if (actorSkillMatch && typeof value === 'number') {
+                        requirements.push({
+                            slug: actorSkillMatch[1],
+                            required: value + 1 // gt means greater than, so we need value + 1
+                        });
+                        continue;
+                    }
+                    
+                    // Fallback to skill:slug pattern
+                    const skillMatch = skillKey?.match(/^skill:([^:]+)$/);
+                    if (skillMatch && typeof value === 'number') {
+                        requirements.push({
+                            slug: skillMatch[1],
+                            required: value + 1
+                        });
+                    }
+                }
+            }
+        }
+        
+        return requirements;
     }
 
     /**
@@ -705,15 +841,16 @@ export class PerkListManager {
      * Build HTML for displaying a perk list
      * @param {Array} perks - Array of perk entries
      * @param {string} category - Category name for styling
+     * @param {number} apAvailable - Available AP to check affordability
      * @returns {string} HTML string
      */
-    static buildPerkListHTML(perks, category) {
+    static buildPerkListHTML(perks, category, apAvailable = 0) {
         if (perks.length === 0) {
             return `<p class="empty-category"><em>No perks in this category</em></p>`;
         }
         
         return `
-            <ul class="perk-list ${category}">
+            <ul class="perk-list">
                 ${perks.map(entry => {
                     const stateClass = {
                         0: 'unavailable',
@@ -728,22 +865,23 @@ export class PerkListManager {
                     const tierInfo = entry.tierInfo ? `<span class="tier-badge">Tier ${entry.tierInfo.tier}/${entry.tierInfo.maxTier}</span>` : '';
                     
                     // Determine if we should show a purchase button
-                    const canPurchase = entry.state === 2; // PerkState.available
-                    const canAfford = entry.state === 2; // They can only be state 2 if they can afford it
+                    const isAvailableLater = entry.pathToReach && entry.pathToReach.length > 0;
                     
-                    const purchaseButton = canPurchase 
-                        ? `<button type="button" class="purchase-perk" data-slug="${entry.slug}" data-uuid="${entry.uuid}">
-                             <i class="fas fa-cart-plus"></i> Purchase
+                    // Available Now perks have state 2, Available Later perks have state 1
+                    const canPurchase = entry.state === 2 || (isAvailableLater && entry.state === 1);
+                    
+                    // For "Available Later" perks, check if we can afford the total path cost
+                    const costToCheck = isAvailableLater ? (entry.displayCost ?? entry.cost) : entry.cost;
+                    const canAfford = canPurchase && costToCheck <= apAvailable;
+                    
+                    const purchaseButton = canAfford 
+                        ? `<button type="button" class="purchase-perk${isAvailableLater ? ' purchase-path' : ''}" 
+                             data-slug="${entry.slug}" 
+                             data-uuid="${entry.uuid}"
+                             data-is-path="${isAvailableLater}">
+                             <i class="fas fa-${isAvailableLater ? 'route' : 'cart-plus'}"></i> Purchase${isAvailableLater ? ' Path' : ''}
                            </button>`
                         : '';
-                    
-                    // Escape the description for use in HTML attribute
-                    const escapedDescription = (entry.enrichedDescription || entry.description || entry.name)
-                        .replace(/&/g, '&amp;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#39;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;');
                     
                     // Build path information for "Available Later" perks
                     let pathInfo = '';
@@ -853,6 +991,12 @@ export class PerkListManager {
             .purchase-perk:hover { background: #00a854; }
             .purchase-perk:active { background: #008844; }
             .purchase-perk i { font-size: 1em; }
+            .purchase-path {
+                background: #ff8c00;
+                width: 160px;
+            }
+            .purchase-path:hover { background: #ff7700; }
+            .purchase-path:active { background: #ff6600; }
         `;
     }
 
@@ -863,6 +1007,7 @@ export class PerkListManager {
     buildDialogContent() {
         const summary = this.getSummary();
         const apAvailable = this.actor?.system?.advancement?.advancementPoints?.available || 0;
+        const rvsAvailable = this.actor?.system?.advancement?.rvs?.available || 0;
         
         return `
             <style>
@@ -870,7 +1015,7 @@ export class PerkListManager {
             </style>
             <div class="perk-list-dialog">
                 <div class="ap-display">
-                    <strong>Available AP:</strong> ${apAvailable}
+                    <strong>Available AP:</strong> ${apAvailable} | <strong>Available RVs:</strong> ${rvsAvailable}
                 </div>
                 <div class="perk-summary">
                     <div class="perk-summary-item">
@@ -893,22 +1038,22 @@ export class PerkListManager {
                 
                 <div class="perk-category">
                     <h3>✓ Purchased (${this.purchased.length})</h3>
-                    ${PerkListManager.buildPerkListHTML(this.purchased, 'purchased')}
+                    ${PerkListManager.buildPerkListHTML(this.purchased, 'purchased', apAvailable)}
                 </div>
                 
                 <div class="perk-category">
                     <h3>→ Available Now (${this.availableNow.length})</h3>
-                    ${PerkListManager.buildPerkListHTML(this.availableNow, 'available-now')}
+                    ${PerkListManager.buildPerkListHTML(this.availableNow, 'available-now', apAvailable)}
                 </div>
                 
                 <div class="perk-category">
                     <h3>⏳ Available Later (${this.availableLater.length})</h3>
-                    ${PerkListManager.buildPerkListHTML(this.availableLater, 'available-later')}
+                    ${PerkListManager.buildPerkListHTML(this.availableLater, 'available-later', apAvailable)}
                 </div>
                 
                 <div class="perk-category">
                     <h3>🔒 Locked (${this.locked.length})</h3>
-                    ${PerkListManager.buildPerkListHTML(this.locked, 'locked')}
+                    ${PerkListManager.buildPerkListHTML(this.locked, 'locked', apAvailable)}
                 </div>
             </div>
         `;
@@ -957,13 +1102,18 @@ export class PerkListManager {
                     const button = this;
                     const slug = button.dataset.slug;
                     const uuid = button.dataset.uuid;
+                    const isPath = button.dataset.isPath === 'true';
                     
                     // Disable button during purchase
                     button.disabled = true;
                     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Purchasing...';
                     
                     try {
-                        await manager._purchasePerk(slug, uuid);
+                        if (isPath) {
+                            await manager._purchasePerkPath(slug, uuid);
+                        } else {
+                            await manager._purchasePerk(slug, uuid);
+                        }
                         
                         // Close and reopen the dialog with refreshed data
                         dialog.close();
@@ -977,7 +1127,7 @@ export class PerkListManager {
                         console.error('Error purchasing perk:', error);
                         ui.notifications.error(`Failed to purchase perk: ${error.message}`);
                         button.disabled = false;
-                        button.innerHTML = '<i class="fas fa-cart-plus"></i> Purchase';
+                        button.innerHTML = `<i class="fas fa-${isPath ? 'route' : 'cart-plus'}"></i> Purchase${isPath ? ' Path' : ''}`;
                     }
                 });
             }
@@ -1097,6 +1247,124 @@ export class PerkListManager {
         }
         
         ui.notifications.info(`Purchased ${perk.name} for ${perk.system.cost} AP`);
+    }
+
+    /**
+     * Purchase a perk and all its prerequisites in the path, allocating skill points as needed
+     * @param {string} slug - The target perk slug
+     * @param {string} uuid - The target perk UUID
+     */
+    async _purchasePerkPath(slug, uuid) {
+        if (!this.actor) {
+            throw new Error('No actor available for perk purchase');
+        }
+        
+        // Find the perk entry in Available Later
+        const perkEntry = this.availableLater.find(p => p.slug === slug);
+        if (!perkEntry) {
+            throw new Error('Perk not found in Available Later perks');
+        }
+        
+        if (!perkEntry.pathToReach || perkEntry.pathToReach.length === 0) {
+            throw new Error('No path found for this perk');
+        }
+        
+        // Collect all skill requirements from the entire path (including the target perk)
+        const allSkillRequirements = new Map(); // slug -> required value
+        
+        // Check each perk in the path for skill requirements
+        const perksToCheck = [...perkEntry.pathToReach.map(p => p.perk), perkEntry.perk];
+        for (const perk of perksToCheck) {
+            const prerequisites = perk.system?.prerequisites;
+            if (!prerequisites || prerequisites.length === 0) continue;
+            
+            try {
+                // Resolve prerequisites using the game's SummonStatistic resolver
+                let resolvedPredicate = game.ptr.SummonStatistic?.resolveValue?.(
+                    prerequisites,
+                    prerequisites,
+                    { actor: this.actor, item: perk },
+                    { evaluate: true, resolvables: { actor: this.actor, item: perk } }
+                );
+                
+                // If resolveValue returns undefined, use the raw prerequisites
+                if (!resolvedPredicate) {
+                    resolvedPredicate = prerequisites;
+                }
+                
+                const predicate = new Predicate(resolvedPredicate);
+                const skillRequirements = this._parseSkillRequirements(predicate);
+                
+                for (const { slug: skillSlug, required } of skillRequirements) {
+                    const current = allSkillRequirements.get(skillSlug) || 0;
+                    allSkillRequirements.set(skillSlug, Math.max(current, required));
+                }
+            } catch (e) {
+                console.warn(`Error parsing prerequisites for ${perk.name}:`, e);
+            }
+        }
+        
+        // Allocate skill points if needed
+        if (allSkillRequirements.size > 0) {
+            await this._allocateSkillPoints(allSkillRequirements);
+        }
+        
+        // Purchase each perk in the path in order
+        for (const { perk, cost } of perkEntry.pathToReach) {
+            await this._purchaseSinglePerk(perk, cost);
+        }
+        
+        // Purchase the target perk
+        await this._purchaseSinglePerk(perkEntry.perk, perkEntry.cost);
+        
+        const totalCost = perkEntry.displayCost ?? perkEntry.cost;
+        ui.notifications.info(`Purchased path to ${perkEntry.name} for ${totalCost} AP (${perkEntry.pathToReach.length + 1} perks)`);
+    }
+    
+    /**
+     * Allocate skill points to meet requirements
+     * @param {Map} skillRequirements - Map of skill slug to required value
+     */
+    async _allocateSkillPoints(skillRequirements) {
+        const actorUpdates = {};
+        const skills = this.actor.system.toObject().skills;
+        
+        for (const [skillSlug, requiredValue] of skillRequirements) {
+            const skill = skills.find(s => s.slug === skillSlug);
+            if (!skill) continue;
+            
+            // Get the current skill from the actor (not the plain object) to get accurate total
+            const currentSkill = this.actor.system.skills.get(skillSlug);
+            const currentValue = currentSkill?.total || 0;
+            
+            if (currentValue >= requiredValue) continue; // Already meets requirement
+            
+            const delta = requiredValue - currentValue;
+            skill.rvs = (skill.rvs || 0) + delta;
+        }
+        
+        actorUpdates["system.skills"] = skills;
+        
+        if (Object.keys(actorUpdates).length > 0) {
+            await this.actor.update(actorUpdates);
+            ui.notifications.info(`Allocated skill points to meet prerequisites`);
+        }
+    }
+    
+    /**
+     * Purchase a single perk without checking prerequisites (used by path purchase)
+     * @param {Object} perk - The perk to purchase
+     * @param {number} cost - The cost of the perk
+     */
+    async _purchaseSinglePerk(perk, cost) {
+        await CONFIG.Item.documentClass.create(perk.clone({
+            system: {
+                cost: cost,
+                originSlug: perk.slug
+            }
+        }).toObject(), {
+            parent: this.actor
+        });
     }
 }
 
