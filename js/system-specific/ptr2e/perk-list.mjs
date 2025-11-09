@@ -1,0 +1,1143 @@
+/**
+ * Perk List System - Efficient alternative to the perk web visualization
+ * 
+ * This module provides a list-based view of perks categorized by availability:
+ * - Purchased: Perks the actor already owns
+ * - Available Now: Perks that can be purchased (connected, AP available, prerequisites met)
+ * - Available Later: Perks with prerequisites met but missing direct connections
+ * - Locked: Everything else
+ */
+
+import { Predicate } from './predicate.mjs';
+
+export const PerkState = {
+    unavailable: 0,
+    connected: 1,
+    available: 2,
+    purchased: 3,
+    invalid: 4,
+    autoUnlocked: 5
+};
+
+/**
+ * Main class for managing perk lists
+ */
+export class PerkListManager {
+    constructor({ perks = [], actor = null, web = 'combined' } = {}) {
+        this.perks = perks;
+        this.actor = actor;
+        this.web = web;
+        
+        // Categorized perk lists
+        this.purchased = [];
+        this.availableNow = [];
+        this.availableLater = [];
+        this.locked = [];
+        
+        // Internal state tracking
+        this._perkMap = new Map(); // slug -> perk data
+        this._connectionMap = new Map(); // slug -> Set of connected slugs
+        this._purchasedSlugs = new Set();
+        this._reachableSlugs = new Set(); // Reachable from purchased perks
+        this._seenUuids = new Set(); // Track UUIDs to avoid duplicates
+        this._seenPositions = new Set(); // Track positions (x:y) for global perks to avoid duplicates
+        this._initialized = false;
+    }
+
+    /**
+     * Initialize and categorize all perks
+     */
+    async initialize() {
+        if (this._initialized) return;
+        
+        // Step 1: Build perk map and connection graph
+        this._buildPerkMap();
+        
+        // Step 2: Identify purchased perks
+        this._identifyPurchasedPerks();
+        
+        // Step 3: Calculate reachable perks (breadth-first from purchased)
+        this._calculateReachability();
+        
+        // Step 4: Categorize all perks
+        this._categorizePerks();
+        
+        this._initialized = true;
+    }
+
+    /**
+     * Build internal maps for fast lookup
+     */
+    _buildPerkMap() {
+        for (const perk of this.perks) {
+            // Filter by web if needed
+            if (!this._isInCurrentWeb(perk)) continue;
+            
+            // Check if this is a global perk or species-specific
+            const isGlobalPerk = perk.system?.global === true;
+            const isEvolutionPerk = perk.flags?.ptr2e?.evolution;
+            
+            // Skip if we've already seen this UUID (avoid duplicates)
+            // But allow evolution perks even if they have the same UUID as another evolution perk
+            if (!isEvolutionPerk) {
+                if (this._seenUuids.has(perk.uuid)) continue;
+                this._seenUuids.add(perk.uuid);
+            }
+            
+            // Handle multi-variant perks (perks with multiple nodes)
+            if (perk.system?.variant === 'multi') {
+                for (let i = 0; i < perk.system.nodes.length; i++) {
+                    const node = perk.system.nodes[i];
+                    if (!node.x || !node.y) continue;
+                    
+                    // For global perks, check if we've already seen this position
+                    const positionKey = `${node.x}:${node.y}`;
+                    if (isGlobalPerk && !isEvolutionPerk) {
+                        if (this._seenPositions.has(positionKey)) continue;
+                        this._seenPositions.add(positionKey);
+                    }
+                    
+                    const slug = i > 0 ? `${perk.slug}-${i}` : perk.slug;
+                    this._perkMap.set(slug, {
+                        perk,
+                        node,
+                        slug,
+                        nodeIndex: i,
+                        isMulti: true
+                    });
+                    
+                    // Build connection map
+                    const connections = new Set(node.connected || []);
+                    this._connectionMap.set(slug, connections);
+                }
+            } else {
+                // Standard single-node perk
+                const primaryNode = perk.system?.primaryNode || perk.system?.nodes?.[0];
+                if (!primaryNode || !primaryNode.x || !primaryNode.y) continue;
+                
+                // For global perks, check if we've already seen this position
+                const positionKey = `${primaryNode.x}:${primaryNode.y}`;
+                if (isGlobalPerk && !isEvolutionPerk) {
+                    if (this._seenPositions.has(positionKey)) continue;
+                    this._seenPositions.add(positionKey);
+                }
+                
+                this._perkMap.set(perk.slug, {
+                    perk,
+                    node: primaryNode,
+                    slug: perk.slug,
+                    nodeIndex: 0,
+                    isMulti: false
+                });
+                
+                // Build connection map
+                const connections = new Set(primaryNode.connected || []);
+                this._connectionMap.set(perk.slug, connections);
+            }
+        }
+    }
+
+    /**
+     * Check if perk belongs to current web
+     */
+    _isInCurrentWeb(perk) {
+        // In combined mode, show global perks, species-specific perks, and evolution perks
+        if (this.web === 'combined') {
+            // Check if it's a global perk
+            if (perk.system?.global === true) {
+                return true;
+            }
+            
+            // Check if it's an evolution perk (added via species)
+            if (perk.flags?.ptr2e?.evolution) {
+                return true;
+            }
+            
+            // Check if it's assigned to any species web (has any webs)
+            const webs = perk.system?.webs;
+            if (webs instanceof Set && webs.size > 0) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Legacy support for global-only mode
+        if (this.web === 'global') {
+            return perk.system?.global === true;
+        }
+        
+        // Legacy support for species-specific web mode
+        if (perk.flags?.ptr2e?.evolution) {
+            return true; // Evolution perks are always shown in species webs
+        }
+        
+        // Check if the perk is explicitly assigned to this web
+        const webs = perk.system?.webs;
+        if (webs instanceof Set) {
+            return webs.has(this.web);
+        }
+        
+        return false;
+    }
+
+    /**
+     * Identify which perks are already purchased
+     */
+    _identifyPurchasedPerks() {
+        if (!this.actor) return;
+        
+        for (const [slug, data] of this._perkMap.entries()) {
+            const { perk, isMulti, node } = data;
+            
+            // Check for evolution perks
+            if (perk.flags?.ptr2e?.evolution) {
+                if (this._isEvolutionPurchased(perk)) {
+                    this._purchasedSlugs.add(slug);
+                    continue;
+                }
+            }
+            
+            // Check if actor owns this perk
+            const actorPerk = this._getActorPerk(perk, slug, isMulti);
+            if (actorPerk) {
+                this._purchasedSlugs.add(slug);
+                
+                // For tiered perks, track tier info
+                if (perk.system?.variant === 'tiered') {
+                    data.tierInfo = this._calculateTierInfo(perk, actorPerk);
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if an evolution perk is purchased (actor has evolved to this species)
+     */
+    _isEvolutionPurchased(perk) {
+        if (!this.actor) return false;
+        
+        const evolution = perk.flags.ptr2e.evolution;
+        const species = this.actor.items?.get?.('actorspeciesitem');
+        if (!species) return false;
+        
+        const sourceId = species.flags?.core?.sourceId || species._stats?.compendiumSource;
+        const speciesSlug = species.slug + (species.system?.form ? `-${species.system.form}` : '');
+        
+        return sourceId === evolution.uuid || 
+               speciesSlug === evolution.name || 
+               species.slug === evolution.name;
+    }
+
+    /**
+     * Get actor's perk by slug
+     */
+    _getActorPerk(perk, slug, isMulti) {
+        if (!this.actor?.perks) return null;
+        
+        if (isMulti && perk.system?.mode === 'shared') {
+            return this.actor.perks.get(perk.slug);
+        }
+        return this.actor.perks.get(slug);
+    }
+
+    /**
+     * Calculate tier information for tiered perks
+     */
+    _calculateTierInfo(perk, actorPerk) {
+        const tiers = [{ perk, tier: 1 }];
+        
+        // Collect all tiers
+        for (const node of perk.system.nodes) {
+            if (!node.tier) continue;
+            
+            const tierPerk = fromUuidSync(node.tier.uuid);
+            if (tierPerk?.type === 'perk') {
+                tiers.push({ perk: tierPerk, tier: node.tier.rank });
+            }
+        }
+        
+        const maxTier = Math.max(...tiers.map(t => t.tier));
+        const lastPurchasedTier = tiers.reduce((acc, { perk: p, tier }) => {
+            const item = this.actor.perks.get(p.slug);
+            return item ? Math.max(acc, tier) : acc;
+        }, 1);
+        
+        const nextTier = tiers.find(t => t.tier === lastPurchasedTier + 1);
+        const previousTier = tiers.find(t => t.tier === lastPurchasedTier - 1);
+        
+        return {
+            tier: nextTier ? nextTier.tier : lastPurchasedTier,
+            perk: nextTier ? nextTier.perk : perk,
+            maxTier,
+            maxTierPurchased: lastPurchasedTier === maxTier,
+            lastTier: actorPerk,
+            previousTier: previousTier?.perk || null
+        };
+    }
+
+    /**
+     * Calculate which perks are reachable from purchased perks (BFS)
+     */
+    _calculateReachability() {
+        const queue = [];
+        const visited = new Set();
+        
+        // Start with all purchased perks and root nodes
+        for (const [slug, data] of this._perkMap.entries()) {
+            if (this._purchasedSlugs.has(slug)) {
+                queue.push(slug);
+                this._reachableSlugs.add(slug);
+            } else if (data.node.type === 'root') {
+                // Roots are always considered "reachable" as starting points
+                this._reachableSlugs.add(slug);
+            }
+        }
+        
+        // BFS to find all connected perks
+        while (queue.length > 0) {
+            const currentSlug = queue.shift();
+            if (visited.has(currentSlug)) continue;
+            visited.add(currentSlug);
+            
+            const connections = this._connectionMap.get(currentSlug);
+            if (!connections) continue;
+            
+            for (const connectedSlug of connections) {
+                if (!visited.has(connectedSlug)) {
+                    this._reachableSlugs.add(connectedSlug);
+                    
+                    // If the connected perk is also purchased, traverse its connections
+                    if (this._purchasedSlugs.has(connectedSlug)) {
+                        queue.push(connectedSlug);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Find the cheapest path from any purchased perk to a target perk
+     * Uses Dijkstra's algorithm to find the minimum AP cost path
+     * @param {string} targetSlug - The slug of the target perk
+     * @returns {Object} - { path: Array of slugs, totalCost: number, perks: Array of perk data }
+     */
+    _findCheapestPath(targetSlug) {
+        // Priority queue implemented as array (for simplicity)
+        // Each entry: { slug, cost, path }
+        const queue = [];
+        const visited = new Set();
+        const costs = new Map();
+        
+        // Start from all purchased perks only
+        // These are our "free" starting points - we already have them
+        for (const slug of this._purchasedSlugs) {
+            if (slug === targetSlug) continue; // Don't start from the target itself
+            queue.push({ slug, cost: 0, path: [] });
+            costs.set(slug, 0);
+        }
+        
+        while (queue.length > 0) {
+            // Sort by cost (Dijkstra's algorithm)
+            queue.sort((a, b) => a.cost - b.cost);
+            const current = queue.shift();
+            
+            if (visited.has(current.slug)) continue;
+            visited.add(current.slug);
+            
+            // Check all connections from this perk
+            const connections = this._connectionMap.get(current.slug);
+            if (!connections) continue;
+            
+            for (const connectedSlug of connections) {
+                if (visited.has(connectedSlug)) continue;
+                
+                const connectedData = this._perkMap.get(connectedSlug);
+                if (!connectedData) continue;
+                
+                // Calculate cost for this perk
+                const perkCost = this._getPerkCost(
+                    connectedData.perk, 
+                    connectedData.node, 
+                    connectedData.tierInfo
+                );
+                
+                // Determine if we need to add this perk to our path
+                const isAlreadyPurchased = this._purchasedSlugs.has(connectedSlug);
+                
+                let newPath, newCost;
+                if (isAlreadyPurchased) {
+                    // We already have this perk, don't add it to the path or cost
+                    newPath = current.path;
+                    newCost = current.cost;
+                } else {
+                    // We need to purchase this perk
+                    newPath = [...current.path, connectedSlug];
+                    newCost = current.cost + perkCost;
+                }
+                
+                // Found the target!
+                if (connectedSlug === targetSlug) {
+                    // Build perk data array for the path (excluding the target itself)
+                    const perks = current.path
+                        .map(slug => this._perkMap.get(slug))
+                        .filter(data => data);
+                    
+                    return {
+                        path: newPath,
+                        totalCost: newCost,
+                        perks
+                    };
+                }
+                
+                // Only add if we haven't found a cheaper path to this perk
+                if (!costs.has(connectedSlug) || newCost < costs.get(connectedSlug)) {
+                    costs.set(connectedSlug, newCost);
+                    queue.push({
+                        slug: connectedSlug,
+                        cost: newCost,
+                        path: newPath
+                    });
+                }
+            }
+        }
+        
+        // No path found
+        return { path: [], totalCost: 0, perks: [] };
+    }
+
+    /**
+     * Categorize perks into purchased, available now, available later, and locked
+     */
+    _categorizePerks() {
+        const apAvailable = this.actor?.system?.advancement?.advancementPoints?.available || 0;
+        
+        for (const [slug, data] of this._perkMap.entries()) {
+            const { perk, node, tierInfo } = data;
+            
+            // Already purchased
+            if (this._purchasedSlugs.has(slug)) {
+                this.purchased.push(this._createPerkEntry(data, PerkState.purchased));
+                continue;
+            }
+            
+            // Check if auto-unlocked
+            if (this._isAutoUnlocked(perk)) {
+                this.purchased.push(this._createPerkEntry(data, PerkState.autoUnlocked));
+                continue;
+            }
+            
+            const cost = this._getPerkCost(perk, node, tierInfo);
+            const hasAP = apAvailable >= cost;
+            const meetsPrerequisites = this._meetsPrerequisites(perk, tierInfo);
+            const isReachable = this._reachableSlugs.has(slug);
+            
+            // Available Now: reachable, has AP, meets prerequisites
+            if (isReachable && hasAP && meetsPrerequisites) {
+                this.availableNow.push(this._createPerkEntry(data, PerkState.available));
+            }
+            // Available Now (but can't afford): reachable, meets prerequisites, but not enough AP
+            else if (isReachable && meetsPrerequisites) {
+                this.availableNow.push(this._createPerkEntry(data, PerkState.connected));
+            }
+            // Available Later: not reachable but meets prerequisites
+            else if (meetsPrerequisites) {
+                const entry = this._createPerkEntry(data, PerkState.connected);
+                
+                // Calculate the cheapest path to this perk
+                const pathInfo = this._findCheapestPath(slug);
+                entry.pathToReach = pathInfo.perks;
+                entry.totalCostToReach = pathInfo.totalCost + entry.cost;
+                // Use totalCostToReach as the display cost for sorting and display
+                entry.displayCost = entry.totalCostToReach;
+                
+                this.availableLater.push(entry);
+            }
+            // Locked: everything else
+            else {
+                this.locked.push(this._createPerkEntry(data, PerkState.unavailable));
+            }
+        }
+        
+        // Sort each category
+        this._sortPerkLists();
+    }
+
+    /**
+     * Check if perk is auto-unlocked based on predicates
+     */
+    _isAutoUnlocked(perk) {
+        if (!this.actor || !perk.system?.autoUnlock) return false;
+        
+        try {
+            // Resolve the autoUnlock predicate using the game's SummonStatistic resolver
+            const resolvedPredicate = game.ptr.SummonStatistic?.resolveValue?.(
+                perk.system.autoUnlock,
+                perk.system.autoUnlock,
+                { actor: this.actor, item: perk },
+                { evaluate: true, resolvables: { actor: this.actor, item: perk } }
+            );
+            
+            if (!resolvedPredicate) return false;
+            
+            // Create a Predicate and test it against actor's roll options
+            const predicate = new Predicate(resolvedPredicate);
+            if (predicate.length === 0) return false;
+            
+            return predicate.test(this.actor.getRollOptions());
+        } catch (e) {
+            console.warn('Error evaluating autoUnlock predicate:', e);
+            return false;
+        }
+    }
+
+    /**
+     * Get the cost of a perk (considering tiers and root status)
+     */
+    _getPerkCost(perk, node, tierInfo) {
+        if (tierInfo && !tierInfo.maxTierPurchased) {
+            return tierInfo.perk.system?.cost || 0;
+        }
+        
+        // Root nodes have special pricing
+        if (node.type === 'root') {
+            // First root is free if no roots purchased yet
+            const hasAnyRoot = Array.from(this._purchasedSlugs).some(slug => {
+                const data = this._perkMap.get(slug);
+                return data?.node.type === 'root';
+            });
+            return hasAnyRoot ? 1 : 0;
+        }
+        
+        return perk.system?.cost || 0;
+    }
+
+    /**
+     * Check if prerequisites are met
+     */
+    _meetsPrerequisites(perk, tierInfo) {
+        if (!this.actor) return true;
+        
+        const prerequisites = tierInfo?.perk.system?.prerequisites || perk.system?.prerequisites;
+        if (!prerequisites || prerequisites.length === 0) return true;
+        
+        try {
+            // Resolve prerequisites using the game's SummonStatistic resolver
+            const targetPerk = tierInfo?.perk || perk;
+            let resolvedPredicate = game.ptr.SummonStatistic?.resolveValue?.(
+                prerequisites,
+                prerequisites,
+                { actor: this.actor, item: targetPerk },
+                { evaluate: true, resolvables: { actor: this.actor, item: targetPerk } }
+            );
+            
+            // If resolveValue returns undefined, use the raw prerequisites
+            if (!resolvedPredicate) {
+                resolvedPredicate = prerequisites;
+            }
+            
+            // Create a Predicate and test it against actor's roll options
+            const predicate = new Predicate(resolvedPredicate);
+            return predicate.test(this.actor.getRollOptions());
+        } catch (e) {
+            console.warn(`Error evaluating prerequisites for ${perk.name}:`, e);
+            return true;
+        }
+    }
+
+    /**
+     * Create a perk entry for the list with all needed data
+     */
+    _createPerkEntry(data, state) {
+        const { perk, node, slug, tierInfo } = data;
+        const isEvolution = !!perk.flags?.ptr2e?.evolution;
+        
+        // Use plain description for now (enrichment can be added later if needed)
+        const description = perk.system?.description || '';
+        
+        return {
+            perk,
+            node,
+            slug,
+            name: perk.name,
+            img: node.config?.texture || perk.img,
+            cost: this._getPerkCost(perk, node, tierInfo),
+            state,
+            tierInfo,
+            isEvolution,
+            evolutionTier: isEvolution ? perk.flags.ptr2e.evolution.tier : null,
+            uuid: perk.uuid,
+            description,
+            enrichedDescription: description // For now, same as description
+        };
+    }
+
+    /**
+     * Sort perk lists: evolutions first, then by cost, then by name
+     */
+    _sortPerkLists() {
+        const sortFn = (a, b) => {
+            // Evolutions first
+            if (a.isEvolution && !b.isEvolution) return -1;
+            if (!a.isEvolution && b.isEvolution) return 1;
+            
+            // Within evolutions, sort by tier
+            if (a.isEvolution && b.isEvolution) {
+                if (a.evolutionTier !== b.evolutionTier) {
+                    return a.evolutionTier - b.evolutionTier;
+                }
+            }
+            
+            // Then by cost (use displayCost if available, otherwise use cost)
+            const costA = a.displayCost ?? a.cost;
+            const costB = b.displayCost ?? b.cost;
+            if (costA !== costB) {
+                return costA - costB;
+            }
+            
+            // Finally by name
+            return a.name.localeCompare(b.name);
+        };
+        
+        this.purchased.sort(sortFn);
+        this.availableNow.sort(sortFn);
+        this.availableLater.sort(sortFn);
+        this.locked.sort(sortFn);
+        
+        // Filter Minor Buff perks - keep only one in Available Now, remove all from Available Later
+        this._filterMinorBuffPerks();
+    }
+    
+    /**
+     * Filter Minor Buff perks to reduce clutter
+     * - Keep only one Minor Buff in Available Now
+     * - Remove all Minor Buff from Available Later
+     */
+    _filterMinorBuffPerks() {
+        let foundMinorBuffAvailable = false;
+        
+        // Filter Available Now - keep only the first Minor Buff
+        this.availableNow = this.availableNow.filter(perk => {
+            if (perk.name === 'Minor Buff') {
+                if (foundMinorBuffAvailable) {
+                    return false; // Skip subsequent Minor Buffs
+                }
+                foundMinorBuffAvailable = true;
+                return true; // Keep the first one
+            }
+            return true; // Keep all non-Minor Buff perks
+        });
+        
+        // Filter Available Later - remove all Minor Buffs
+        this.availableLater = this.availableLater.filter(perk => perk.name !== 'Minor Buff');
+    }
+
+    /**
+     * Reinitialize with new data
+     */
+    async reinitialize({ perks, actor, web } = {}) {
+        if (perks) this.perks = perks;
+        if (actor !== undefined) this.actor = actor;
+        if (web) this.web = web;
+        
+        // Clear all state
+        this.purchased = [];
+        this.availableNow = [];
+        this.availableLater = [];
+        this.locked = [];
+        this._perkMap.clear();
+        this._connectionMap.clear();
+        this._purchasedSlugs.clear();
+        this._reachableSlugs.clear();
+        this._seenUuids.clear();
+        this._seenPositions.clear();
+        this._initialized = false;
+        
+        // Reinitialize
+        await this.initialize();
+    }
+
+    /**
+     * Get a summary of perk counts by category
+     */
+    getSummary() {
+        return {
+            purchased: this.purchased.length,
+            availableNow: this.availableNow.length,
+            availableLater: this.availableLater.length,
+            locked: this.locked.length,
+            total: this._perkMap.size
+        };
+    }
+
+    /**
+     * Get all perks in a specific category
+     */
+    getCategory(category) {
+        switch (category) {
+            case 'purchased': return this.purchased;
+            case 'availableNow': return this.availableNow;
+            case 'availableLater': return this.availableLater;
+            case 'locked': return this.locked;
+            default: return [];
+        }
+    }
+
+    /**
+     * Search perks across all categories
+     */
+    search(query) {
+        const lowerQuery = query.toLowerCase();
+        const allPerks = [
+            ...this.purchased,
+            ...this.availableNow,
+            ...this.availableLater,
+            ...this.locked
+        ];
+        
+        return allPerks.filter(entry => 
+            entry.name.toLowerCase().includes(lowerQuery) ||
+            entry.description.toLowerCase().includes(lowerQuery)
+        );
+    }
+
+    /**
+     * Build HTML for displaying a perk list
+     * @param {Array} perks - Array of perk entries
+     * @param {string} category - Category name for styling
+     * @returns {string} HTML string
+     */
+    static buildPerkListHTML(perks, category) {
+        if (perks.length === 0) {
+            return `<p class="empty-category"><em>No perks in this category</em></p>`;
+        }
+        
+        return `
+            <ul class="perk-list ${category}">
+                ${perks.map(entry => {
+                    const stateClass = {
+                        0: 'unavailable',
+                        1: 'connected',
+                        2: 'available',
+                        3: 'purchased',
+                        4: 'invalid',
+                        5: 'auto-unlocked'
+                    }[entry.state];
+                    
+                    const isEvolution = entry.isEvolution ? 'evolution' : '';
+                    const tierInfo = entry.tierInfo ? `<span class="tier-badge">Tier ${entry.tierInfo.tier}/${entry.tierInfo.maxTier}</span>` : '';
+                    
+                    // Determine if we should show a purchase button
+                    const canPurchase = entry.state === 2; // PerkState.available
+                    const canAfford = entry.state === 2; // They can only be state 2 if they can afford it
+                    
+                    const purchaseButton = canPurchase 
+                        ? `<button type="button" class="purchase-perk" data-slug="${entry.slug}" data-uuid="${entry.uuid}">
+                             <i class="fas fa-cart-plus"></i> Purchase
+                           </button>`
+                        : '';
+                    
+                    // Escape the description for use in HTML attribute
+                    const escapedDescription = (entry.enrichedDescription || entry.description || entry.name)
+                        .replace(/&/g, '&amp;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+                    
+                    // Build path information for "Available Later" perks
+                    let pathInfo = '';
+                    if (entry.pathToReach && entry.pathToReach.length > 0) {
+                        const pathNames = entry.pathToReach.map(data => data.perk.name).join(' → ');
+                        pathInfo = `
+                            <div class="perk-path">
+                                <div class="path-label">Required path:</div>
+                                <div class="path-chain">${pathNames}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Use displayCost if available (for Available Later perks), otherwise use regular cost
+                    const displayCost = entry.displayCost ?? entry.cost;
+                    
+                    return `
+                        <li class="perk-entry perk ${stateClass} ${isEvolution}" 
+                            data-uuid="${entry.uuid}" 
+                            data-slug="${entry.slug}"
+                            data-tooltip="${entry.name}">
+                            <img src="${entry.img}" alt="${entry.name}" class="perk-icon">
+                            <div class="perk-info">
+                                <div class="perk-name-row">
+                                    <h4 class="perk-name">${entry.name}</h4>
+                                    ${tierInfo}
+                                </div>
+                                <div class="perk-cost">Cost: ${displayCost} AP</div>
+                                ${pathInfo}
+                            </div>
+                            ${purchaseButton}
+                        </li>
+                    `;
+                }).join('')}
+            </ul>
+        `;
+    }
+
+    /**
+     * Get CSS styles for the perk list dialog
+     * @returns {string} CSS string
+     */
+    static getDialogStyles() {
+        return `
+            .perk-list-dialog { max-height: 710px; overflow-y: auto; }
+            .ap-display { 
+                text-align: center; 
+                font-size: 1.2em; 
+                padding: 0.75rem; 
+                margin-bottom: 0.5rem; 
+                background: rgba(0, 200, 100, 0.15); 
+                border-radius: 4px;
+                border: 2px solid rgba(0, 200, 100, 0.3);
+            }
+            .ap-display strong { color: #00c864; }
+            .perk-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.1); border-radius: 4px; }
+            .perk-summary-item { text-align: center; }
+            .perk-category { margin-bottom: 1.5rem; }
+            .perk-category h3 { border-bottom: 2px solid #444; padding-bottom: 0.25rem; margin-bottom: 0.5rem; }
+            .perk-list { list-style: none; padding: 0; margin: 0; }
+            .perk-entry { display: flex; gap: 0.5rem; padding: 0.5rem; margin-bottom: 0.25rem; border-radius: 4px; cursor: pointer; transition: background 0.2s; align-items: center; }
+            .perk-entry:hover { background: rgba(255,255,255,0.05); }
+            .perk-entry.purchased { background: rgba(0, 255, 0, 0.1); border-left: 3px solid green; }
+            .perk-entry.auto-unlocked { background: rgba(100, 200, 255, 0.1); border-left: 3px solid #64c8ff; }
+            .perk-entry.available { background: rgba(0, 200, 100, 0.1); border-left: 3px solid #00c864; }
+            .perk-entry.connected { background: rgba(255, 165, 0, 0.1); border-left: 3px solid orange; }
+            .perk-entry.unavailable { background: rgba(128, 128, 128, 0.1); border-left: 3px solid gray; }
+            .perk-entry.evolution { border: 2px solid gold; }
+            .perk-icon { width: 48px; height: 48px; border-radius: 4px; flex-shrink: 0; }
+            .perk-info { flex: 1; }
+            .perk-name-row { display: flex; justify-content: space-between; align-items: center; }
+            .perk-name { margin: 0; font-size: 1.1em; }
+            .perk-cost { font-size: 0.9em; color: #aaa; }
+            .tier-badge { background: #444; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.8em; }
+            .empty-category { text-align: center; color: #888; font-style: italic; padding: 1rem; }
+            .perk-path { 
+                margin-top: 0.5rem; 
+                padding: 0.4rem; 
+                background: rgba(0, 0, 0, 0.2); 
+                border-radius: 4px; 
+                font-size: 0.85em;
+            }
+            .path-label { 
+                font-weight: bold; 
+                color: #181818; 
+                margin-bottom: 0.2rem;
+            }
+            .path-chain { 
+                color: #ccc; 
+                line-height: 1.4;
+            }
+            .purchase-perk { 
+                background: #00c864; 
+                color: white; 
+                border: none; 
+                padding: 0.4rem 0.8rem; 
+                border-radius: 4px; 
+                cursor: pointer; 
+                font-size: 0.9em;
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+                transition: background 0.2s;
+                flex-shrink: 0;
+                width: 150px;
+            }
+            .purchase-perk:hover { background: #00a854; }
+            .purchase-perk:active { background: #008844; }
+            .purchase-perk i { font-size: 1em; }
+        `;
+    }
+
+    /**
+     * Build complete dialog content HTML
+     * @returns {string} Full HTML content for the dialog
+     */
+    buildDialogContent() {
+        const summary = this.getSummary();
+        const apAvailable = this.actor?.system?.advancement?.advancementPoints?.available || 0;
+        
+        return `
+            <style>
+                ${PerkListManager.getDialogStyles()}
+            </style>
+            <div class="perk-list-dialog">
+                <div class="ap-display">
+                    <strong>Available AP:</strong> ${apAvailable}
+                </div>
+                <div class="perk-summary">
+                    <div class="perk-summary-item">
+                        <strong>${summary.purchased}</strong>
+                        <div>Purchased</div>
+                    </div>
+                    <div class="perk-summary-item">
+                        <strong>${summary.availableNow}</strong>
+                        <div>Available Now</div>
+                    </div>
+                    <div class="perk-summary-item">
+                        <strong>${summary.availableLater}</strong>
+                        <div>Available Later</div>
+                    </div>
+                    <div class="perk-summary-item">
+                        <strong>${summary.locked}</strong>
+                        <div>Locked</div>
+                    </div>
+                </div>
+                
+                <div class="perk-category">
+                    <h3>✓ Purchased (${this.purchased.length})</h3>
+                    ${PerkListManager.buildPerkListHTML(this.purchased, 'purchased')}
+                </div>
+                
+                <div class="perk-category">
+                    <h3>→ Available Now (${this.availableNow.length})</h3>
+                    ${PerkListManager.buildPerkListHTML(this.availableNow, 'available-now')}
+                </div>
+                
+                <div class="perk-category">
+                    <h3>⏳ Available Later (${this.availableLater.length})</h3>
+                    ${PerkListManager.buildPerkListHTML(this.availableLater, 'available-later')}
+                </div>
+                
+                <div class="perk-category">
+                    <h3>🔒 Locked (${this.locked.length})</h3>
+                    ${PerkListManager.buildPerkListHTML(this.locked, 'locked')}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Show the perk list in a dialog
+     * @param {Object} options - Dialog options
+     * @param {string} options.title - Dialog title
+     * @param {number} options.width - Dialog width (default: 700)
+     * @param {number} options.height - Dialog height (default: 800)
+     * @returns {Dialog} The rendered dialog
+     */
+    showDialog({ title = 'Perk List', width = 700, height = 800 } = {}) {
+        const content = this.buildDialogContent();
+        const manager = this; // Reference for use in callbacks
+        
+        const dialog = new Dialog({
+            title,
+            content,
+            buttons: {
+                close: {
+                    icon: '<i class="fas fa-times"></i>',
+                    label: "Close"
+                }
+            },
+            render: (html) => {
+                // Add click handlers to view perk sheets
+                html.find('.perk-entry').on('click', async function(e) {
+                    // Don't open sheet if clicking the purchase button
+                    if (e.target.closest('.purchase-perk')) return;
+                    
+                    e.preventDefault();
+                    const uuid = this.dataset.uuid;
+                    const perk = await fromUuid(uuid);
+                    if (perk?.sheet) {
+                        perk.sheet.render(true);
+                    }
+                });
+                
+                // Add purchase button handlers
+                html.find('.purchase-perk').on('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const button = this;
+                    const slug = button.dataset.slug;
+                    const uuid = button.dataset.uuid;
+                    
+                    // Disable button during purchase
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Purchasing...';
+                    
+                    try {
+                        await manager._purchasePerk(slug, uuid);
+                        
+                        // Close and reopen the dialog with refreshed data
+                        dialog.close();
+                        await manager.reinitialize({ 
+                            perks: manager.perks, 
+                            actor: manager.actor, 
+                            web: manager.web 
+                        });
+                        manager.showDialog({ title, width, height });
+                    } catch (error) {
+                        console.error('Error purchasing perk:', error);
+                        ui.notifications.error(`Failed to purchase perk: ${error.message}`);
+                        button.disabled = false;
+                        button.innerHTML = '<i class="fas fa-cart-plus"></i> Purchase';
+                    }
+                });
+            }
+        }, {
+            width,
+            height,
+            resizable: true
+        });
+        
+        dialog.render(true);
+        return dialog;
+    }
+
+    /**
+     * Purchase a perk for the actor
+     * @param {string} slug - The perk slug
+     * @param {string} uuid - The perk UUID
+     */
+    async _purchasePerk(slug, uuid) {
+        if (!this.actor) {
+            throw new Error('No actor available for perk purchase');
+        }
+        
+        // Find the perk entry
+        const perkEntry = [...this.availableNow, ...this.availableLater].find(p => p.slug === slug);
+        if (!perkEntry) {
+            throw new Error('Perk not found in available perks');
+        }
+        
+        if (perkEntry.state !== PerkState.available) {
+            throw new Error('Perk is not available for purchase');
+        }
+        
+        const perk = perkEntry.tierInfo?.perk ?? perkEntry.perk;
+        const currentNode = perkEntry;
+        
+        // Handle tiered perks with "replace" mode
+        if (currentNode.perk.system?.variant === 'tiered' && currentNode.perk.system?.mode === 'replace') {
+            const current = this.actor.perks.get(currentNode.perk.slug);
+            
+            // Preserve old choice sets
+            const oldChoiceSets = new Map();
+            if (current) {
+                for (const effect of current.effects.contents) {
+                    for (const change of effect.changes) {
+                        if (change.type === 'choice-set') {
+                            const key = change.rollOption ?? change.flag;
+                            oldChoiceSets.set(key, change);
+                        }
+                    }
+                }
+            }
+            
+            const newPerk = perk.clone({
+                system: {
+                    cost: perk.system.cost,
+                    originSlug: currentNode.tierInfo?.perk.slug ?? currentNode.slug
+                }
+            }).toObject();
+            
+            // Restore choice set selections
+            for (const effect of newPerk.effects) {
+                for (const change of effect.system?.changes || []) {
+                    if (change.type === 'choice-set') {
+                        const old = oldChoiceSets.get(change.rollOption ?? change.flag);
+                        if (old?.selection) {
+                            change.selection = old.selection;
+                        }
+                    }
+                }
+            }
+            
+            // Check if has effect grants
+            const hasEffectGrants = newPerk.effects.some(effect => 
+                effect.system?.changes?.some(change => 
+                    ['grant-item', 'grant-effect'].includes(change.type)
+                )
+            );
+            
+            if (current) {
+                newPerk.flags = newPerk.flags || {};
+                newPerk.flags.ptr2e = newPerk.flags.ptr2e || {};
+                newPerk.flags.ptr2e = foundry.utils.mergeObject(
+                    newPerk.flags.ptr2e, 
+                    current.toObject().flags.ptr2e, 
+                    { inplace: false }
+                );
+                newPerk.flags.ptr2e.tierSlug = currentNode.tierInfo?.perk.slug ?? currentNode.slug;
+                newPerk.system.originSlug = current.system.originSlug;
+            }
+            
+            if (hasEffectGrants) {
+                await current?.delete();
+                await CONFIG.Item.documentClass.create(newPerk, { parent: this.actor });
+            } else if (current) {
+                if (current.effects.size) {
+                    await current.deleteEmbeddedDocuments("ActiveEffect", current.effects.map(e => e.id));
+                }
+                await current.update({
+                    name: newPerk.name,
+                    img: newPerk.img,
+                    effects: newPerk.effects,
+                    system: newPerk.system,
+                    "flags.ptr2e": newPerk.flags.ptr2e
+                });
+            }
+        } else {
+            // Standard perk purchase
+            await CONFIG.Item.documentClass.create(perk.clone({
+                system: {
+                    cost: perk.system.cost,
+                    originSlug: currentNode.tierInfo?.perk.slug ?? currentNode.slug
+                }
+            }).toObject(), {
+                parent: this.actor
+            });
+        }
+        
+        ui.notifications.info(`Purchased ${perk.name} for ${perk.system.cost} AP`);
+    }
+}
+
+/**
+ * Helper function to create a perk list manager from game data
+ * This would typically be called from the game system
+ */
+export async function createPerkListManager(actor) {
+    // Fetch perks from the game's perk system
+    if (!game.ptr?.perks?.initialized) {
+        await game.ptr.perks.initialize();
+    }
+    
+    const perks = Array.from(game.ptr.perks.perks.values());
+    
+    // Add species evolution and underdog perks if actor has a species
+    if (actor) {
+        try {
+            const species = actor.items?.get?.('actorspeciesitem');
+            if (species) {
+                // Get evolution perks for this species
+                if (species.system?.getEvolutionPerks) {
+                    const isShiny = !!actor.system?.shiny;
+                    const evolutionPerks = await species.system.getEvolutionPerks(isShiny);
+                    perks.push(...evolutionPerks);
+                }
+            }
+            
+            // Get underdog perks for this actor
+            if (actor.getUnderdogPerks) {
+                const underdogPerks = await actor.getUnderdogPerks();
+                perks.push(...underdogPerks);
+            }
+        } catch (e) {
+            console.warn('Error fetching species-specific perks:', e);
+        }
+    }
+    
+    // Use 'combined' as the web type to show all perks
+    const manager = new PerkListManager({ perks, actor, web: 'combined' });
+    await manager.initialize();
+    
+    return manager;
+}

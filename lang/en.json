@@ -168,5 +168,6 @@
         }
     },
     "SCENE.TABS.SHEET.puzzle": "Puzzle",
-    "TILE.TABS.puzzle": "Puzzle"
+    "TILE.TABS.puzzle": "Puzzle",
+    "PTR2E.ActorSheet.Buttons.perkList": "Open Perk List"
 }
