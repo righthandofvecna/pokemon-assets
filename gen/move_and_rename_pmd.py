@@ -182,6 +182,7 @@ def main():
             "Hero",
             "Zen",
             "Crowned",
+            "Crowned_Sword",
             "Neutral",
             "Original",
             "Noice",
@@ -235,25 +236,52 @@ def main():
         processVariant("East", f"_East")
         processVariant("West", f"_West")
 
+        # applin formes
+        processVariant("No_Apple", "_NoApple")
+
         # genesect formes
         for t in ("Douse", "Shock", "Burn", "Chill", ):
             processVariant(t, f"_{t}")
 
         # vivillion formes
-        for t in ("Icy_Snow", "Polar", "Tundra", "Continental", "Garden", "Elegant", "Archipelago", "High_Plains", ):
+        for t in (
+            "Icy_Snow",
+            "Polar",
+            "Tundra",
+            "Continental",
+            "Garden",
+            "Elegant",
+            "Archipelago",
+            "High_Plains",
+            "Modern",
+            "Marine",
+            "Sandstorm",
+            "River",
+            "Monsoon",
+            "Savannah",
+            "Sun",
+            "Ocean",
+            "Jungle",
+            "Fancy",
+            "Pokeball",
+            ):
             # there are so many more than are implemented......
             # and there are already a lot
             processVariant(t, f"_{t.replace('_','')}")
 
         # froufrou haircut/outfit formes
-        for t in ("Kabuki", ):
+        for t in ("Kabuki",):
             processVariant(t, f"_{t}")
 
         # aegislash formes
         processVariant("Blade", f"_Blade")
 
         # size formes
-        for t in ("Small", "Large", "Super" ):
+        for t in (
+            "Small",
+            "Large",
+            "Super",
+            ):
             processVariant(t, f"_{t}")
 
         # zygarde formes

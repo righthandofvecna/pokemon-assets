@@ -2666,6 +2666,9 @@ export default
       "03XX/032X/0323m.png": {
         "animationframes": 4
       },
+      "03XX/032X/0323ms.png": {
+        "animationframes": 4
+      },
       "03XX/032X/0323s.png": {
         "animationframes": 4
       },
@@ -2746,6 +2749,9 @@ export default
       },
       "03XX/033X/0334s.png": {
         "animationframes": 4
+      },
+      "03XX/033X/0334s_MEGA.png": {
+        "animationframes": 10
       },
       "03XX/033X/0335.png": {
         "animationframes": 4
@@ -3908,6 +3914,9 @@ export default
       "04XX/047X/0479_Drone.png": {
         "animationframes": 6
       },
+      "04XX/047X/0479_Fan.png": {
+        "animationframes": 8
+      },
       "04XX/047X/0479_Frost.png": {
         "animationframes": 6
       },
@@ -3917,8 +3926,14 @@ export default
       "04XX/047X/0479_Mow.png": {
         "animationframes": 6
       },
+      "04XX/047X/0479_Wash.png": {
+        "animationframes": 6
+      },
       "04XX/047X/0479s.png": {
         "animationframes": 6
+      },
+      "04XX/047X/0479s_Fan.png": {
+        "animationframes": 8
       },
       "04XX/047X/0479s_Frost.png": {
         "animationframes": 6
@@ -3927,6 +3942,9 @@ export default
         "animationframes": 6
       },
       "04XX/047X/0479s_Mow.png": {
+        "animationframes": 6
+      },
+      "04XX/047X/0479s_Wash.png": {
         "animationframes": 6
       },
       "04XX/048X/0480.png": {
@@ -5252,6 +5270,9 @@ export default
       "06XX/066X/0666_Elegant.png": {
         "animationframes": 12
       },
+      "06XX/066X/0666_Fancy.png": {
+        "animationframes": 12
+      },
       "06XX/066X/0666_Garden.png": {
         "animationframes": 12
       },
@@ -5261,7 +5282,37 @@ export default
       "06XX/066X/0666_IcySnow.png": {
         "animationframes": 12
       },
+      "06XX/066X/0666_Jungle.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_Marine.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_Modern.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_Monsoon.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_Ocean.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_Pokeball.png": {
+        "animationframes": 12
+      },
       "06XX/066X/0666_Polar.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_River.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_Sandstorm.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_Savannah.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666_Sun.png": {
         "animationframes": 12
       },
       "06XX/066X/0666_Tundra.png": {
@@ -5279,6 +5330,9 @@ export default
       "06XX/066X/0666s_Elegant.png": {
         "animationframes": 12
       },
+      "06XX/066X/0666s_Fancy.png": {
+        "animationframes": 12
+      },
       "06XX/066X/0666s_Garden.png": {
         "animationframes": 12
       },
@@ -5288,7 +5342,37 @@ export default
       "06XX/066X/0666s_IcySnow.png": {
         "animationframes": 12
       },
+      "06XX/066X/0666s_Jungle.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_Marine.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_Modern.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_Monsoon.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_Ocean.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_Pokeball.png": {
+        "animationframes": 12
+      },
       "06XX/066X/0666s_Polar.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_River.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_Sandstorm.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_Savannah.png": {
+        "animationframes": 12
+      },
+      "06XX/066X/0666s_Sun.png": {
         "animationframes": 12
       },
       "06XX/066X/0666s_Tundra.png": {
@@ -6205,6 +6289,9 @@ export default
       "07XX/077X/0774s.png": {
         "animationframes": 12
       },
+      "07XX/077X/0775.png": {
+        "animationframes": 6
+      },
       "07XX/077X/0776.png": {
         "animationframes": 4
       },
@@ -6484,6 +6571,9 @@ export default
       "08XX/081X/0819.png": {
         "animationframes": 8
       },
+      "08XX/082X/0820.png": {
+        "animationframes": 4
+      },
       "08XX/082X/0821.png": {
         "animationframes": 5
       },
@@ -6570,6 +6660,9 @@ export default
       },
       "08XX/084X/0840.png": {
         "animationframes": 5
+      },
+      "08XX/084X/0840_NoApple.png": {
+        "animationframes": 3
       },
       "08XX/084X/0840s.png": {
         "animationframes": 5
@@ -7081,10 +7174,16 @@ export default
       "08XX/088X/0888_Crowned.png": {
         "animationframes": 4
       },
+      "08XX/088X/0888_Crowned_Sword.png": {
+        "animationframes": 4
+      },
       "08XX/088X/0888s.png": {
         "animationframes": 4
       },
       "08XX/088X/0888s_Crowned.png": {
+        "animationframes": 4
+      },
+      "08XX/088X/0888s_Crowned_Sword.png": {
         "animationframes": 4
       },
       "08XX/089X/0890.png": {
@@ -7621,6 +7720,9 @@ export default
         "animationframes": 4
       },
       "09XX/099X/0994.png": {
+        "animationframes": 6
+      },
+      "09XX/099X/0994s.png": {
         "animationframes": 6
       },
       "09XX/099X/0995.png": {
