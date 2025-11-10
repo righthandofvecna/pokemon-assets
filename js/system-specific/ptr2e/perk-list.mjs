@@ -20,6 +20,64 @@ export const PerkState = {
 };
 
 /**
+ * Min-heap implementation for efficient priority queue in Dijkstra's algorithm
+ */
+class MinHeap {
+    constructor() {
+        this.heap = [];
+    }
+
+    push(item) {
+        this.heap.push(item);
+        this._bubbleUp(this.heap.length - 1);
+    }
+
+    pop() {
+        if (this.heap.length === 0) return null;
+        if (this.heap.length === 1) return this.heap.pop();
+
+        const min = this.heap[0];
+        this.heap[0] = this.heap.pop();
+        this._bubbleDown(0);
+        return min;
+    }
+
+    get length() {
+        return this.heap.length;
+    }
+
+    _bubbleUp(index) {
+        while (index > 0) {
+            const parentIndex = Math.floor((index - 1) / 2);
+            if (this.heap[index].cost >= this.heap[parentIndex].cost) break;
+            
+            [this.heap[index], this.heap[parentIndex]] = [this.heap[parentIndex], this.heap[index]];
+            index = parentIndex;
+        }
+    }
+
+    _bubbleDown(index) {
+        while (true) {
+            let minIndex = index;
+            const leftChild = 2 * index + 1;
+            const rightChild = 2 * index + 2;
+
+            if (leftChild < this.heap.length && this.heap[leftChild].cost < this.heap[minIndex].cost) {
+                minIndex = leftChild;
+            }
+            if (rightChild < this.heap.length && this.heap[rightChild].cost < this.heap[minIndex].cost) {
+                minIndex = rightChild;
+            }
+
+            if (minIndex === index) break;
+
+            [this.heap[index], this.heap[minIndex]] = [this.heap[minIndex], this.heap[index]];
+            index = minIndex;
+        }
+    }
+}
+
+/**
  * Main class for managing perk lists
  */
 export class PerkListManager {
@@ -42,6 +100,10 @@ export class PerkListManager {
         this._seenUuids = new Set(); // Track UUIDs to avoid duplicates
         this._seenPositions = new Set(); // Track positions (x:y) for global perks to avoid duplicates
         this._initialized = false;
+        
+        // Optimization caches (#7)
+        this._prerequisiteCache = new Map(); // slug -> boolean (can meet prerequisites)
+        this._unsatisfiablePrereqs = new Set(); // slugs with prerequisites that can never be met (#13)
     }
 
     /**
@@ -55,6 +117,9 @@ export class PerkListManager {
         
         // Step 2: Identify purchased perks
         this._identifyPurchasedPerks();
+        
+        // Step 2.5: Cache prerequisite results for all perks (#7)
+        this._cachePrerequisites();
         
         // Step 3: Calculate reachable perks (breadth-first from purchased)
         this._calculateReachability();
@@ -284,6 +349,75 @@ export class PerkListManager {
     }
 
     /**
+     * Cache prerequisite evaluation results for all perks (#7)
+     * This prevents redundant expensive predicate evaluations during pathfinding
+     */
+    _cachePrerequisites() {
+        if (!this.actor) {
+            // No actor, all prerequisites are considered "met"
+            for (const slug of this._perkMap.keys()) {
+                this._prerequisiteCache.set(slug, true);
+            }
+            return;
+        }
+
+        for (const [slug, data] of this._perkMap.entries()) {
+            const { perk, tierInfo } = data;
+            
+            // Skip if already purchased
+            if (this._purchasedSlugs.has(slug)) {
+                this._prerequisiteCache.set(slug, true);
+                continue;
+            }
+
+            const canMeet = this._evaluatePrerequisites(perk, tierInfo);
+            this._prerequisiteCache.set(slug, canMeet);
+            
+            // Track unsatisfiable prerequisites (#13)
+            if (!canMeet) {
+                this._unsatisfiablePrereqs.add(slug);
+            }
+        }
+    }
+
+    /**
+     * Internal method to evaluate prerequisites (used for caching)
+     */
+    _evaluatePrerequisites(perk, tierInfo) {
+        const prerequisites = tierInfo?.perk.system?.prerequisites || perk.system?.prerequisites;
+        if (!prerequisites || prerequisites.length === 0) return true;
+        
+        try {
+            // Resolve prerequisites using the game's SummonStatistic resolver
+            const targetPerk = tierInfo?.perk || perk;
+            let resolvedPredicate = game.ptr.SummonStatistic?.resolveValue?.(
+                prerequisites,
+                prerequisites,
+                { actor: this.actor, item: targetPerk },
+                { evaluate: true, resolvables: { actor: this.actor, item: targetPerk } }
+            );
+            
+            // If resolveValue returns undefined, use the raw prerequisites
+            if (!resolvedPredicate) {
+                resolvedPredicate = prerequisites;
+            }
+            
+            // Create a Predicate and test it against actor's roll options
+            const predicate = new Predicate(resolvedPredicate);
+            const met = predicate.test(this.actor.getRollOptions());
+            
+            // If prerequisites are already met, return true
+            if (met) return true;
+            
+            // Check if prerequisites can be met with available skill points
+            return this._canMeetPrerequisitesWithSkillPoints(predicate, perk.name);
+        } catch (e) {
+            console.warn(`Error evaluating prerequisites for ${perk.name}:`, e);
+            return true;
+        }
+    }
+
+    /**
      * Calculate which perks are reachable from purchased perks (BFS)
      */
     _calculateReachability() {
@@ -321,6 +455,39 @@ export class PerkListManager {
                 }
             }
         }
+        
+        // Build reverse connection map once for use in pathfinding (#1)
+        this._reverseConnectionMap = new Map();
+        for (const [fromSlug, toSlugs] of this._connectionMap.entries()) {
+            for (const toSlug of toSlugs) {
+                if (!this._reverseConnectionMap.has(toSlug)) {
+                    this._reverseConnectionMap.set(toSlug, new Set());
+                }
+                this._reverseConnectionMap.get(toSlug).add(fromSlug);
+            }
+        }
+        
+        // Cache root information (#2, #11 - use direct Set iteration)
+        this._hasAnyPurchasedRoot = false;
+        for (const slug of this._purchasedSlugs) {
+            const data = this._perkMap.get(slug);
+            if (data?.node.type === 'root') {
+                this._hasAnyPurchasedRoot = true;
+                break;
+            }
+        }
+        
+        // Build lookup sets for faster path finding (#4)
+        this._rootSlugs = new Set();
+        this._unpurchasedRootSlugs = new Set();
+        for (const [slug, data] of this._perkMap.entries()) {
+            if (data.node.type === 'root') {
+                this._rootSlugs.add(slug);
+                if (!this._purchasedSlugs.has(slug)) {
+                    this._unpurchasedRootSlugs.add(slug);
+                }
+            }
+        }
     }
 
     /**
@@ -335,6 +502,7 @@ export class PerkListManager {
         for (const [slug, data] of this._perkMap.entries()) {
             if (this._purchasedSlugs.has(slug)) continue; // Already purchased
             if (this._reachableSlugs.has(slug)) continue; // Already reachable
+            if (this._unsatisfiablePrereqs.has(slug)) continue; // Can never be reached (#13)
             
             const path = this._findCheapestPath(slug);
             // Cache if there are perks to purchase (even if cost is 0, like first root)
@@ -346,44 +514,32 @@ export class PerkListManager {
 
     /**
      * Find the cheapest path from any purchased perk or root to a target perk
-     * Uses Dijkstra's algorithm
+     * Uses Dijkstra's algorithm with min-heap priority queue (#9)
      * @param {string} targetSlug - The slug of the target perk
      * @returns {Object} - { path: Array of slugs, totalCost: number, perks: Array of perk data }
      */
     _findCheapestPath(targetSlug) {
-        // Build reverse connection map (who connects TO each node)
-        const reverseConnections = new Map();
-        for (const [fromSlug, toSlugs] of this._connectionMap.entries()) {
-            for (const toSlug of toSlugs) {
-                if (!reverseConnections.has(toSlug)) {
-                    reverseConnections.set(toSlug, new Set());
-                }
-                reverseConnections.get(toSlug).add(fromSlug);
-            }
-        }
+        // Use cached reverse connection map (#1)
+        const reverseConnections = this._reverseConnectionMap;
         
         // Run Dijkstra BACKWARDS from the target
         // This finds the shortest path FROM any starting point TO the target
         const distances = new Map(); // slug -> minimum cost to reach target from this slug
         const previousNode = new Map(); // slug -> previous slug in optimal path
-        const queue = []; // { slug, cost }
+        const queue = new MinHeap(); // Use min-heap instead of array (#9)
         
         // Start from the target with cost 0
         distances.set(targetSlug, 0);
         queue.push({ slug: targetSlug, cost: 0 });
         
-        // Check if we have any purchased roots
-        const hasAnyPurchasedRoot = Array.from(this._purchasedSlugs).some(slug => {
-            const data = this._perkMap.get(slug);
-            return data?.node.type === 'root';
-        });
+        // Use cached root information (#2)
+        const hasAnyPurchasedRoot = this._hasAnyPurchasedRoot;
         
         const visited = new Set();
         
         while (queue.length > 0) {
-            // Sort by cost (process lowest cost first)
-            queue.sort((a, b) => a.cost - b.cost);
-            const current = queue.shift();
+            // Min-heap gives us the lowest cost automatically (#9)
+            const current = queue.pop();
             
             if (visited.has(current.slug)) continue;
             visited.add(current.slug);
@@ -397,9 +553,9 @@ export class PerkListManager {
                 const sourceData = this._perkMap.get(sourceSlug);
                 if (!sourceData) continue;
                 
-                // Skip perks whose prerequisites we can't meet
+                // Skip perks whose prerequisites we can't meet (use cache) (#7)
                 const isSourcePurchased = this._purchasedSlugs.has(sourceSlug);
-                if (!isSourcePurchased && !this._meetsPrerequisites(sourceData.perk, sourceData.tierInfo)) {
+                if (!isSourcePurchased && !this._prerequisiteCache.get(sourceSlug)) {
                     continue; // Can't use this perk in a path since we can't meet its prerequisites
                 }
                 
@@ -430,18 +586,25 @@ export class PerkListManager {
         
         // Also consider unpurchased roots as starting points
         // Add them with their specific costs
-        for (const [slug, data] of this._perkMap.entries()) {
-            if (data.node.type !== 'root') continue;
-            if (this._purchasedSlugs.has(slug)) continue; // Already processed above
+        // Use cached unpurchased root set (#4)
+        for (const slug of this._unpurchasedRootSlugs) {
             if (slug === targetSlug) continue;
+            
+            const data = this._perkMap.get(slug);
+            if (!data) continue;
             
             // Calculate the cost of this root
             let rootCost = 0;
             if (hasAnyPurchasedRoot) {
                 const connections = this._connectionMap.get(slug) || new Set();
-                const isConnectedToPurchased = Array.from(connections).some(connSlug => 
-                    this._purchasedSlugs.has(connSlug)
-                );
+                // Use Set iteration directly (#11)
+                let isConnectedToPurchased = false;
+                for (const connSlug of connections) {
+                    if (this._purchasedSlugs.has(connSlug)) {
+                        isConnectedToPurchased = true;
+                        break;
+                    }
+                }
                 rootCost = isConnectedToPurchased ? 1 : 5;
             }
             
@@ -449,14 +612,11 @@ export class PerkListManager {
             // calculate the total cost from this root
             const rootConnections = this._connectionMap.get(slug) || new Set();
             
-            let foundConnection = false;
             for (const connectedSlug of rootConnections) {
                 // Check if this connects to the target directly or to a node with a path to target
                 if (connectedSlug === targetSlug || distances.has(connectedSlug)) {
                     const connectedCost = connectedSlug === targetSlug ? 0 : distances.get(connectedSlug);
                     const totalCost = rootCost + connectedCost;
-                    
-                    foundConnection = true;
                     
                     // Update if this root provides a better path
                     if (!distances.has(slug) || totalCost < distances.get(slug)) {
@@ -482,10 +642,8 @@ export class PerkListManager {
             }
         }
         
-        // Check unpurchased roots
-        for (const [slug, data] of this._perkMap.entries()) {
-            if (data.node.type !== 'root') continue;
-            if (this._purchasedSlugs.has(slug)) continue;
+        // Check unpurchased roots (#4)
+        for (const slug of this._unpurchasedRootSlugs) {
             if (distances.has(slug)) {
                 const cost = distances.get(slug);
                 if (cost < bestCost) {
@@ -637,11 +795,8 @@ export class PerkListManager {
                 return 0; // Already owned, no cost
             }
             
-            // Check if we have any purchased roots
-            const hasAnyPurchasedRoot = Array.from(this._purchasedSlugs).some(slug => {
-                const data = this._perkMap.get(slug);
-                return data?.node.type === 'root';
-            });
+            // Use cached value (#2, #11)
+            const hasAnyPurchasedRoot = this._hasAnyPurchasedRoot;
             
             // First root is free
             if (!hasAnyPurchasedRoot) {
@@ -650,9 +805,14 @@ export class PerkListManager {
             
             // If we already have a root, check if this root is connected to any purchased perks
             const connections = this._connectionMap.get(perk.slug) || new Set();
-            const isConnectedToPurchased = Array.from(connections).some(connSlug => 
-                this._purchasedSlugs.has(connSlug)
-            );
+            // Use Set iteration directly (#11)
+            let isConnectedToPurchased = false;
+            for (const connSlug of connections) {
+                if (this._purchasedSlugs.has(connSlug)) {
+                    isConnectedToPurchased = true;
+                    break;
+                }
+            }
             return isConnectedToPurchased ? 1 : 5;
         }
         
@@ -661,41 +821,17 @@ export class PerkListManager {
 
     /**
      * Check if prerequisites are met, or can be met with available skill points
+     * Uses cached results when available (#7)
      */
     _meetsPrerequisites(perk, tierInfo) {
-        if (!this.actor) return true;
-        
-        const prerequisites = tierInfo?.perk.system?.prerequisites || perk.system?.prerequisites;
-        if (!prerequisites || prerequisites.length === 0) return true;
-        
-        try {
-            // Resolve prerequisites using the game's SummonStatistic resolver
-            const targetPerk = tierInfo?.perk || perk;
-            let resolvedPredicate = game.ptr.SummonStatistic?.resolveValue?.(
-                prerequisites,
-                prerequisites,
-                { actor: this.actor, item: targetPerk },
-                { evaluate: true, resolvables: { actor: this.actor, item: targetPerk } }
-            );
-            
-            // If resolveValue returns undefined, use the raw prerequisites
-            if (!resolvedPredicate) {
-                resolvedPredicate = prerequisites;
-            }
-            
-            // Create a Predicate and test it against actor's roll options
-            const predicate = new Predicate(resolvedPredicate);
-            const met = predicate.test(this.actor.getRollOptions());
-            
-            // If prerequisites are already met, return true
-            if (met) return true;
-            
-            // Check if prerequisites can be met with available skill points
-            return this._canMeetPrerequisitesWithSkillPoints(predicate, perk.name);
-        } catch (e) {
-            console.warn(`Error evaluating prerequisites for ${perk.name}:`, e);
-            return true;
+        // Try to use cached result first
+        const slug = perk.slug;
+        if (this._prerequisiteCache.has(slug)) {
+            return this._prerequisiteCache.get(slug);
         }
+        
+        // Fallback to evaluation if not cached (shouldn't happen after _cachePrerequisites)
+        return this._evaluatePrerequisites(perk, tierInfo);
     }
     
     /**
@@ -986,6 +1122,8 @@ export class PerkListManager {
         this._reachableSlugs.clear();
         this._seenUuids.clear();
         this._seenPositions.clear();
+        this._prerequisiteCache.clear();
+        this._unsatisfiablePrereqs.clear();
         this._initialized = false;
         
         // Reinitialize
