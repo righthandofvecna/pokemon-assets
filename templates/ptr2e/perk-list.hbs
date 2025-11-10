@@ -1,0 +1,43 @@
+<div class="perk-list-dialog">
+    <div class="ap-display">
+        <strong>Available AP:</strong> {{apAvailable}} | <strong>Available RVs:</strong> {{rvsAvailable}}
+    </div>
+    <div class="perk-summary">
+        <div class="perk-summary-item">
+            <strong>{{summary.purchased}}</strong>
+            <div>Purchased</div>
+        </div>
+        <div class="perk-summary-item">
+            <strong>{{summary.availableNow}}</strong>
+            <div>Available Now</div>
+        </div>
+        <div class="perk-summary-item">
+            <strong>{{summary.availableLater}}</strong>
+            <div>Available Later</div>
+        </div>
+        <div class="perk-summary-item">
+            <strong>{{summary.locked}}</strong>
+            <div>Locked</div>
+        </div>
+    </div>
+    
+    <div class="perk-category">
+        <h3>✓ Purchased ({{purchased.length}})</h3>
+        {{> "modules/pokemon-assets/templates/ptr2e/perk-list-category.hbs" perks=purchased category="purchased" apAvailable=apAvailable}}
+    </div>
+    
+    <div class="perk-category">
+        <h3>→ Available Now ({{availableNow.length}})</h3>
+        {{> "modules/pokemon-assets/templates/ptr2e/perk-list-category.hbs" perks=availableNow category="available-now" apAvailable=apAvailable}}
+    </div>
+    
+    <div class="perk-category">
+        <h3>⏳ Available Later ({{availableLater.length}})</h3>
+        {{> "modules/pokemon-assets/templates/ptr2e/perk-list-category.hbs" perks=availableLater category="available-later" apAvailable=apAvailable}}
+    </div>
+    
+    <div class="perk-category">
+        <h3>🔒 Locked ({{locked.length}})</h3>
+        {{> "modules/pokemon-assets/templates/ptr2e/perk-list-category.hbs" perks=locked category="locked" apAvailable=apAvailable}}
+    </div>
+</div>

@@ -1,5 +1,5 @@
 import { MODULENAME } from "../../utils.mjs";
-import { createPerkListManager } from "./perk-list.mjs";
+import { createPerkListManager, register as registerPerkTemplates } from "./perk-list.mjs";
 
 export function register() {
   class PTR2eSheetPA extends CONFIG.PTR.Actor.sheetClasses.character {
@@ -153,4 +153,6 @@ export function register() {
     makeDefault: false,
     label: "POKEMON-ASSETS.SheetClassCharacter"
   });
+
+  registerPerkTemplates();
 }

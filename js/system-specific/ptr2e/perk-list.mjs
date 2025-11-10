@@ -1037,307 +1037,14 @@ export class PerkListManager {
     }
 
     /**
-     * Build HTML for displaying a perk list
-     * @param {Array} perks - Array of perk entries
-     * @param {string} category - Category name for styling
-     * @param {number} apAvailable - Available AP to check affordability
-     * @returns {string} HTML string
-     */
-    static buildPerkListHTML(perks, category, apAvailable = 0) {
-        if (perks.length === 0) {
-            return `<p class="empty-category"><em>No perks in this category</em></p>`;
-        }
-        
-        return `
-            <ul class="perk-list">
-                ${perks.map(entry => {
-                    const stateClass = {
-                        0: 'unavailable',
-                        1: 'connected',
-                        2: 'available',
-                        3: 'purchased',
-                        4: 'invalid',
-                        5: 'auto-unlocked'
-                    }[entry.state];
-                    
-                    const isEvolution = entry.isEvolution ? 'evolution' : '';
-                    const tierInfo = entry.tierInfo ? `<span class="tier-badge">Tier ${entry.tierInfo.tier}/${entry.tierInfo.maxTier}</span>` : '';
-                    
-                    // Determine if we should show a purchase button
-                    const isAvailableLater = entry.pathToReach && entry.pathToReach.length > 0;
-                    
-                    // Available Now perks have state 2, Available Later perks have state 1
-                    const canPurchase = entry.state === 2 || (isAvailableLater && entry.state === 1);
-                    
-                    // For "Available Later" perks, check if we can afford the total path cost
-                    const costToCheck = isAvailableLater ? (entry.displayCost ?? entry.cost) : entry.cost;
-                    const canAfford = canPurchase && costToCheck <= apAvailable;
-                    
-                    const purchaseButton = canAfford 
-                        ? `<button type="button" class="purchase-perk${isAvailableLater ? ' purchase-path' : ''}" 
-                             data-slug="${entry.slug}" 
-                             data-uuid="${entry.uuid}"
-                             data-is-path="${isAvailableLater}">
-                             <i class="fas fa-${isAvailableLater ? 'route' : 'cart-plus'}"></i> Purchase${isAvailableLater ? ' Path' : ''}
-                           </button>`
-                        : '';
-                    
-                    // Build path information for "Available Later" perks
-                    let pathInfo = '';
-                    if (entry.pathToReach && entry.pathToReach.length > 0) {
-                        const pathNames = entry.pathToReach.map(data => data.perk.name).join(' → ');
-                        pathInfo = `
-                            <div class="perk-path">
-                                <div class="path-label">Required path:</div>
-                                <div class="path-chain">${pathNames}</div>
-                            </div>
-                        `;
-                    }
-                    
-                    // Use displayCost if available (for Available Later perks), otherwise use regular cost
-                    const displayCost = entry.displayCost ?? entry.cost;
-                    
-                    return `
-                        <li class="perk-entry perk ${stateClass} ${isEvolution}" 
-                            data-uuid="${entry.uuid}" 
-                            data-slug="${entry.slug}"
-                            data-tooltip="${entry.name}">
-                            <img src="${entry.img}" alt="${entry.name}" class="perk-icon">
-                            <div class="perk-info">
-                                <div class="perk-name-row">
-                                    <h4 class="perk-name">${entry.name}</h4>
-                                    ${tierInfo}
-                                </div>
-                                <div class="perk-cost">Cost: ${displayCost} AP</div>
-                                ${pathInfo}
-                            </div>
-                            ${purchaseButton}
-                        </li>
-                    `;
-                }).join('')}
-            </ul>
-        `;
-    }
-
-    /**
-     * Get CSS styles for the perk list dialog
-     * @returns {string} CSS string
-     */
-    static getDialogStyles() {
-        return `
-            .perk-list-dialog { max-height: 710px; overflow-y: auto; }
-            .ap-display { 
-                text-align: center; 
-                font-size: 1.2em; 
-                padding: 0.75rem; 
-                margin-bottom: 0.5rem; 
-                background: rgba(0, 200, 100, 0.15); 
-                border-radius: 4px;
-                border: 2px solid rgba(0, 200, 100, 0.3);
-            }
-            .ap-display strong { color: #00c864; }
-            .perk-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.1); border-radius: 4px; }
-            .perk-summary-item { text-align: center; }
-            .perk-category { margin-bottom: 1.5rem; }
-            .perk-category h3 { border-bottom: 2px solid #444; padding-bottom: 0.25rem; margin-bottom: 0.5rem; }
-            .perk-list { list-style: none; padding: 0; margin: 0; }
-            .perk-entry { display: flex; gap: 0.5rem; padding: 0.5rem; margin-bottom: 0.25rem; border-radius: 4px; cursor: pointer; transition: background 0.2s; align-items: center; }
-            .perk-entry:hover { background: rgba(255,255,255,0.05); }
-            .perk-entry.purchased { background: rgba(0, 255, 0, 0.1); border-left: 3px solid green; }
-            .perk-entry.auto-unlocked { background: rgba(100, 200, 255, 0.1); border-left: 3px solid #64c8ff; }
-            .perk-entry.available { background: rgba(0, 200, 100, 0.1); border-left: 3px solid #00c864; }
-            .perk-entry.connected { background: rgba(255, 165, 0, 0.1); border-left: 3px solid orange; }
-            .perk-entry.unavailable { background: rgba(128, 128, 128, 0.1); border-left: 3px solid gray; }
-            .perk-entry.evolution { border: 2px solid gold; }
-            .perk-icon { width: 48px; height: 48px; border-radius: 4px; flex-shrink: 0; }
-            .perk-info { flex: 1; }
-            .perk-name-row { display: flex; justify-content: space-between; align-items: center; }
-            .perk-name { margin: 0; font-size: 1.1em; }
-            .perk-cost { font-size: 0.9em; color: #aaa; }
-            .tier-badge { background: #444; padding: 0.1rem 0.4rem; border-radius: 3px; font-size: 0.8em; }
-            .empty-category { text-align: center; color: #888; font-style: italic; padding: 1rem; }
-            .perk-path { 
-                margin-top: 0.5rem; 
-                padding: 0.4rem; 
-                background: rgba(0, 0, 0, 0.2); 
-                border-radius: 4px; 
-                font-size: 0.85em;
-            }
-            .path-label { 
-                font-weight: bold; 
-                color: #181818; 
-                margin-bottom: 0.2rem;
-            }
-            .path-chain { 
-                color: #ccc; 
-                line-height: 1.4;
-            }
-            .purchase-perk { 
-                background: #00c864; 
-                color: white; 
-                border: none; 
-                padding: 0.4rem 0.8rem; 
-                border-radius: 4px; 
-                cursor: pointer; 
-                font-size: 0.9em;
-                display: flex;
-                align-items: center;
-                gap: 0.3rem;
-                transition: background 0.2s;
-                flex-shrink: 0;
-                width: 150px;
-            }
-            .purchase-perk:hover { background: #00a854; }
-            .purchase-perk:active { background: #008844; }
-            .purchase-perk i { font-size: 1em; }
-            .purchase-path {
-                background: #ff8c00;
-                width: 160px;
-            }
-            .purchase-path:hover { background: #ff7700; }
-            .purchase-path:active { background: #ff6600; }
-        `;
-    }
-
-    /**
-     * Build complete dialog content HTML
-     * @returns {string} Full HTML content for the dialog
-     */
-    buildDialogContent() {
-        const summary = this.getSummary();
-        const apAvailable = this.actor?.system?.advancement?.advancementPoints?.available || 0;
-        const rvsAvailable = this.actor?.system?.advancement?.rvs?.available || 0;
-        
-        return `
-            <style>
-                ${PerkListManager.getDialogStyles()}
-            </style>
-            <div class="perk-list-dialog">
-                <div class="ap-display">
-                    <strong>Available AP:</strong> ${apAvailable} | <strong>Available RVs:</strong> ${rvsAvailable}
-                </div>
-                <div class="perk-summary">
-                    <div class="perk-summary-item">
-                        <strong>${summary.purchased}</strong>
-                        <div>Purchased</div>
-                    </div>
-                    <div class="perk-summary-item">
-                        <strong>${summary.availableNow}</strong>
-                        <div>Available Now</div>
-                    </div>
-                    <div class="perk-summary-item">
-                        <strong>${summary.availableLater}</strong>
-                        <div>Available Later</div>
-                    </div>
-                    <div class="perk-summary-item">
-                        <strong>${summary.locked}</strong>
-                        <div>Locked</div>
-                    </div>
-                </div>
-                
-                <div class="perk-category">
-                    <h3>✓ Purchased (${this.purchased.length})</h3>
-                    ${PerkListManager.buildPerkListHTML(this.purchased, 'purchased', apAvailable)}
-                </div>
-                
-                <div class="perk-category">
-                    <h3>→ Available Now (${this.availableNow.length})</h3>
-                    ${PerkListManager.buildPerkListHTML(this.availableNow, 'available-now', apAvailable)}
-                </div>
-                
-                <div class="perk-category">
-                    <h3>⏳ Available Later (${this.availableLater.length})</h3>
-                    ${PerkListManager.buildPerkListHTML(this.availableLater, 'available-later', apAvailable)}
-                </div>
-                
-                <div class="perk-category">
-                    <h3>🔒 Locked (${this.locked.length})</h3>
-                    ${PerkListManager.buildPerkListHTML(this.locked, 'locked', apAvailable)}
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Show the perk list in a dialog
+     * Show the perk list in an ApplicationV2 dialog
      * @param {Object} options - Dialog options
-     * @param {string} options.title - Dialog title
-     * @param {number} options.width - Dialog width (default: 700)
-     * @param {number} options.height - Dialog height (default: 800)
-     * @returns {Dialog} The rendered dialog
+     * @returns {PerkListApplication} The rendered application
      */
-    showDialog({ title = 'Perk List', width = 700, height = 800 } = {}) {
-        const content = this.buildDialogContent();
-        const manager = this; // Reference for use in callbacks
-        
-        const dialog = new Dialog({
-            title,
-            content,
-            buttons: {
-                close: {
-                    icon: '<i class="fas fa-times"></i>',
-                    label: "Close"
-                }
-            },
-            render: (html) => {
-                // Add click handlers to view perk sheets
-                html.find('.perk-entry').on('click', async function(e) {
-                    // Don't open sheet if clicking the purchase button
-                    if (e.target.closest('.purchase-perk')) return;
-                    
-                    e.preventDefault();
-                    const uuid = this.dataset.uuid;
-                    const perk = await fromUuid(uuid);
-                    if (perk?.sheet) {
-                        perk.sheet.render(true);
-                    }
-                });
-                
-                // Add purchase button handlers
-                html.find('.purchase-perk').on('click', async function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const button = this;
-                    const slug = button.dataset.slug;
-                    const uuid = button.dataset.uuid;
-                    const isPath = button.dataset.isPath === 'true';
-                    
-                    // Disable button during purchase
-                    button.disabled = true;
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Purchasing...';
-                    
-                    try {
-                        if (isPath) {
-                            await manager._purchasePerkPath(slug, uuid);
-                        } else {
-                            await manager._purchasePerk(slug, uuid);
-                        }
-                        
-                        // Close and reopen the dialog with refreshed data
-                        dialog.close();
-                        await manager.reinitialize({ 
-                            perks: manager.perks, 
-                            actor: manager.actor, 
-                            web: manager.web 
-                        });
-                        manager.showDialog({ title, width, height });
-                    } catch (error) {
-                        console.error('Error purchasing perk:', error);
-                        ui.notifications.error(`Failed to purchase perk: ${error.message}`);
-                        button.disabled = false;
-                        button.innerHTML = `<i class="fas fa-${isPath ? 'route' : 'cart-plus'}"></i> Purchase${isPath ? ' Path' : ''}`;
-                    }
-                });
-            }
-        }, {
-            width,
-            height,
-            resizable: true
-        });
-        
-        dialog.render(true);
-        return dialog;
+    showDialog(options = {}) {
+        const app = new PerkListApplication({ manager: this, ...options });
+        app.render(true);
+        return app;
     }
 
     /**
@@ -1607,4 +1314,160 @@ export async function createPerkListManager(actor) {
     await manager.initialize();
     
     return manager;
+}
+
+/**
+ * ApplicationV2 class for the Perk List dialog
+ */
+export class PerkListApplication extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+    
+    static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+        super.DEFAULT_OPTIONS,
+        {
+            classes: ["sheet", "pokemon-assets", "perk-list"],
+            position: {
+                height: 800,
+                width: 700,
+            },
+            window: {
+                title: "Perk List",
+                minimizable: true,
+                resizable: true,
+            },
+        },
+        { inplace: false }
+    );
+
+    static PARTS = {
+        main: {
+            id: "perk-list",
+            template: "modules/pokemon-assets/templates/ptr2e/perk-list.hbs",
+        },
+    };
+
+    constructor(options = {}) {
+        super(options);
+        this.manager = options.manager;
+        if (!this.manager) {
+            throw new Error('PerkListApplication requires a manager instance');
+        }
+    }
+
+    get title() {
+        if (this.manager.actor) return `${this.manager.actor.name} - Perk List`;
+        return "Perk List";
+    }
+
+    async _prepareContext() {
+        const summary = this.manager.getSummary();
+        const apAvailable = this.manager.actor?.system?.advancement?.advancementPoints?.available || 0;
+        const rvsAvailable = this.manager.actor?.system?.advancement?.rvs?.available || 0;
+
+        // Helper function to prepare perk entries for the template
+        const preparePerkEntries = (perks) => {
+            return perks.map(entry => {
+                const stateClass = {
+                    0: 'unavailable',
+                    1: 'connected',
+                    2: 'available',
+                    3: 'purchased',
+                    4: 'invalid',
+                    5: 'auto-unlocked'
+                }[entry.state];
+
+                // Determine if we should show a purchase button
+                const isAvailableLater = entry.pathToReach && entry.pathToReach.length > 0;
+                
+                // Available Now perks have state 2, Available Later perks have state 1
+                const canPurchase = entry.state === 2 || (isAvailableLater && entry.state === 1);
+                
+                // For "Available Later" perks, check if we can afford the total path cost
+                const costToCheck = isAvailableLater ? (entry.displayCost ?? entry.cost) : entry.cost;
+                const canAfford = canPurchase && costToCheck <= apAvailable;
+
+                // Build path chain string for "Available Later" perks
+                let pathChain = entry.pathToReach?.map(data => data.perk) ?? [];
+
+                return {
+                    ...entry,
+                    stateClass,
+                    isPath: isAvailableLater,
+                    canAfford,
+                    pathChain,
+                    displayCost: entry.displayCost ?? entry.cost
+                };
+            });
+        };
+
+        return {
+            summary,
+            apAvailable,
+            rvsAvailable,
+            purchased: preparePerkEntries(this.manager.purchased),
+            availableNow: preparePerkEntries(this.manager.availableNow),
+            availableLater: preparePerkEntries(this.manager.availableLater),
+            locked: preparePerkEntries(this.manager.locked),
+        };
+    }
+
+    _onRender(context, options) {
+        super._onRender(context, options);
+
+        // Add click handlers to view perk sheets
+        this.element.querySelectorAll('.perk-entry').forEach(entry => {
+            entry.addEventListener('click', async (e) => {
+                // Don't open sheet if clicking the purchase button
+                if (e.target.closest('.purchase-perk')) return;
+                
+                e.preventDefault();
+                const uuid = entry.dataset.uuid;
+                const perk = await fromUuid(uuid);
+                if (perk?.sheet) {
+                    perk.sheet.render(true);
+                }
+            });
+        });
+
+        // Add purchase button handlers
+        this.element.querySelectorAll('.purchase-perk').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const slug = button.dataset.slug;
+                const uuid = button.dataset.uuid;
+                const isPath = button.dataset.isPath === 'true';
+                
+                // Disable button during purchase
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Purchasing...';
+                
+                try {
+                    if (isPath) {
+                        await this.manager._purchasePerkPath(slug, uuid);
+                    } else {
+                        await this.manager._purchasePerk(slug, uuid);
+                    }
+                    
+                    // Refresh the application with updated data
+                    await this.manager.reinitialize({ 
+                        perks: this.manager.perks, 
+                        actor: this.manager.actor, 
+                        web: this.manager.web 
+                    });
+                    this.render(true);
+                } catch (error) {
+                    console.error('Error purchasing perk:', error);
+                    ui.notifications.error(`Failed to purchase perk: ${error.message}`);
+                    button.disabled = false;
+                    button.innerHTML = `<i class="fas fa-${isPath ? 'route' : 'cart-plus'}"></i> Purchase${isPath ? ' Path' : ''}`;
+                }
+            });
+        });
+    }
+}
+
+
+export function register() {
+    loadTemplates([`modules/pokemon-assets/templates/ptr2e/perk-list.hbs`, `modules/pokemon-assets/templates/ptr2e/perk-list-category.hbs`]);
 }
