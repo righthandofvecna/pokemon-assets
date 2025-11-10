@@ -1489,6 +1489,8 @@ export class PerkListApplication extends foundry.applications.api.HandlebarsAppl
         if (!this.manager) {
             throw new Error('PerkListApplication requires a manager instance');
         }
+        this.sortMode = 'cost'; // 'cost' or 'alpha'
+        this.nameFilter = '';
     }
 
     get title() {
@@ -1503,7 +1505,37 @@ export class PerkListApplication extends foundry.applications.api.HandlebarsAppl
 
         // Helper function to prepare perk entries for the template
         const preparePerkEntries = (perks) => {
-            return perks.map(entry => {
+            let filtered = perks;
+            
+            // Apply name filter
+            if (this.nameFilter) {
+                const lowerFilter = this.nameFilter.toLowerCase();
+                filtered = filtered.filter(entry => 
+                    entry.name.toLowerCase().includes(lowerFilter)
+                );
+            }
+            
+            // Apply sorting
+            if (this.sortMode === 'alpha') {
+                filtered = [...filtered].sort((a, b) => {
+                    // Evolutions first
+                    if (a.isEvolution && !b.isEvolution) return -1;
+                    if (!a.isEvolution && b.isEvolution) return 1;
+                    
+                    // Within evolutions, sort by tier
+                    if (a.isEvolution && b.isEvolution) {
+                        if (a.evolutionTier !== b.evolutionTier) {
+                            return a.evolutionTier - b.evolutionTier;
+                        }
+                    }
+                    
+                    // Alphabetically by name
+                    return a.name.localeCompare(b.name);
+                });
+            }
+            // Default sort mode is 'cost' which is already applied by the manager
+            
+            return filtered.map(entry => {
                 const stateClass = {
                     0: 'unavailable',
                     1: 'connected',
@@ -1545,11 +1577,22 @@ export class PerkListApplication extends foundry.applications.api.HandlebarsAppl
             availableNow: preparePerkEntries(this.manager.availableNow),
             availableLater: preparePerkEntries(this.manager.availableLater),
             locked: preparePerkEntries(this.manager.locked),
+            sortMode: this.sortMode,
+            nameFilter: this.nameFilter,
         };
     }
 
     _onRender(context, options) {
         super._onRender(context, options);
+
+        const filterInput = this.element.querySelector('.name-filter');
+        
+        // Restore filter input cursor position if it was focused
+        if (filterInput && this._filterCursorPosition !== undefined) {
+            filterInput.focus();
+            filterInput.setSelectionRange(this._filterCursorPosition, this._filterCursorPosition);
+            this._filterCursorPosition = undefined;
+        }
 
         // Add click handlers to view perk sheets
         this.element.querySelectorAll('.perk-entry').forEach(entry => {
@@ -1602,6 +1645,30 @@ export class PerkListApplication extends foundry.applications.api.HandlebarsAppl
                 }
             });
         });
+        
+        // Add sort button handler
+        const sortButton = this.element.querySelector('.sort-toggle');
+        if (sortButton) {
+            sortButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.sortMode = this.sortMode === 'cost' ? 'alpha' : 'cost';
+                this.render(true);
+            });
+        }
+        
+        // Add filter input handler with debounce
+        if (filterInput) {
+            let debounceTimeout;
+            filterInput.addEventListener('input', (e) => {
+                // Save cursor position before render
+                this._filterCursorPosition = e.target.selectionStart;
+                this.nameFilter = e.target.value;
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    this.render(true);
+                }, 300);
+            });
+        }
     }
 }
 
