@@ -59,7 +59,10 @@ export class PerkListManager {
         // Step 3: Calculate reachable perks (breadth-first from purchased)
         this._calculateReachability();
         
-        // Step 4: Categorize all perks
+        // Step 4: Calculate paths to unreachable perks
+        this._calculateAllPaths();
+        
+        // Step 5: Categorize all perks
         this._categorizePerks();
         
         this._initialized = true;
@@ -69,7 +72,11 @@ export class PerkListManager {
      * Build internal maps for fast lookup
      */
     _buildPerkMap() {
-        for (const perk of this.perks) {
+        // Process perks in reverse order to match perk-web behavior
+        // (perk-web uses Map.set which makes the last perk win, we skip duplicates so first wins)
+        const reversedPerks = [...this.perks].reverse();
+        
+        for (const perk of reversedPerks) {
             // Filter by web if needed
             if (!this._isInCurrentWeb(perk)) continue;
             
@@ -317,93 +324,210 @@ export class PerkListManager {
     }
 
     /**
-     * Find the cheapest path from any purchased perk to a target perk
-     * Uses Dijkstra's algorithm to find the minimum AP cost path
+     * Calculate shortest paths from all nodes to all unreachable perks
+     * This is more efficient than running pathfinding for each perk individually
+     * Uses Dijkstra's algorithm running backward from each target
+     */
+    _calculateAllPaths() {
+        this._pathCache = new Map(); // targetSlug -> { totalCost, perks: [] }
+        
+        // For each unreachable perk, calculate the cheapest path to it
+        for (const [slug, data] of this._perkMap.entries()) {
+            if (this._purchasedSlugs.has(slug)) continue; // Already purchased
+            if (this._reachableSlugs.has(slug)) continue; // Already reachable
+            
+            const path = this._findCheapestPath(slug);
+            // Cache if there are perks to purchase (even if cost is 0, like first root)
+            if (path.perks.length > 0) {
+                this._pathCache.set(slug, path);
+            }
+        }
+    }
+
+    /**
+     * Find the cheapest path from any purchased perk or root to a target perk
+     * Uses Dijkstra's algorithm
      * @param {string} targetSlug - The slug of the target perk
      * @returns {Object} - { path: Array of slugs, totalCost: number, perks: Array of perk data }
      */
     _findCheapestPath(targetSlug) {
-        // Priority queue implemented as array (for simplicity)
-        // Each entry: { slug, cost, path }
-        const queue = [];
-        const visited = new Set();
-        const costs = new Map();
-        
-        // Start from all purchased perks only
-        // These are our "free" starting points - we already have them
-        for (const slug of this._purchasedSlugs) {
-            if (slug === targetSlug) continue; // Don't start from the target itself
-            queue.push({ slug, cost: 0, path: [] });
-            costs.set(slug, 0);
+        // Build reverse connection map (who connects TO each node)
+        const reverseConnections = new Map();
+        for (const [fromSlug, toSlugs] of this._connectionMap.entries()) {
+            for (const toSlug of toSlugs) {
+                if (!reverseConnections.has(toSlug)) {
+                    reverseConnections.set(toSlug, new Set());
+                }
+                reverseConnections.get(toSlug).add(fromSlug);
+            }
         }
         
+        // Run Dijkstra BACKWARDS from the target
+        // This finds the shortest path FROM any starting point TO the target
+        const distances = new Map(); // slug -> minimum cost to reach target from this slug
+        const previousNode = new Map(); // slug -> previous slug in optimal path
+        const queue = []; // { slug, cost }
+        
+        // Start from the target with cost 0
+        distances.set(targetSlug, 0);
+        queue.push({ slug: targetSlug, cost: 0 });
+        
+        // Check if we have any purchased roots
+        const hasAnyPurchasedRoot = Array.from(this._purchasedSlugs).some(slug => {
+            const data = this._perkMap.get(slug);
+            return data?.node.type === 'root';
+        });
+        
+        const visited = new Set();
+        
         while (queue.length > 0) {
-            // Sort by cost (Dijkstra's algorithm)
+            // Sort by cost (process lowest cost first)
             queue.sort((a, b) => a.cost - b.cost);
             const current = queue.shift();
             
             if (visited.has(current.slug)) continue;
             visited.add(current.slug);
             
-            // Check all connections from this perk
-            const connections = this._connectionMap.get(current.slug);
-            if (!connections) continue;
+            // Get all nodes that connect TO the current node (reverse direction)
+            const sources = reverseConnections.get(current.slug) || new Set();
             
-            for (const connectedSlug of connections) {
-                if (visited.has(connectedSlug)) continue;
+            for (const sourceSlug of sources) {
+                if (visited.has(sourceSlug)) continue;
                 
-                const connectedData = this._perkMap.get(connectedSlug);
-                if (!connectedData) continue;
+                const sourceData = this._perkMap.get(sourceSlug);
+                if (!sourceData) continue;
                 
-                // Calculate cost for this perk
-                const perkCost = this._getPerkCost(
-                    connectedData.perk, 
-                    connectedData.node, 
-                    connectedData.tierInfo
-                );
+                // Skip perks whose prerequisites we can't meet
+                const isSourcePurchased = this._purchasedSlugs.has(sourceSlug);
+                if (!isSourcePurchased && !this._meetsPrerequisites(sourceData.perk, sourceData.tierInfo)) {
+                    continue; // Can't use this perk in a path since we can't meet its prerequisites
+                }
                 
-                // Determine if we need to add this perk to our path
-                const isAlreadyPurchased = this._purchasedSlugs.has(connectedSlug);
+                // Cost to reach the target from this source node
+                let costFromSource;
                 
-                let newPath, newCost;
-                if (isAlreadyPurchased) {
-                    // We already have this perk, don't add it to the path or cost
-                    newPath = current.path;
-                    newCost = current.cost;
+                if (isSourcePurchased) {
+                    // Already purchased, no cost to start from here
+                    costFromSource = current.cost;
                 } else {
-                    // We need to purchase this perk
-                    newPath = [...current.path, connectedSlug];
-                    newCost = current.cost + perkCost;
+                    // Need to purchase this node
+                    const sourceCost = this._getPerkCost(
+                        sourceData.perk,
+                        sourceData.node,
+                        sourceData.tierInfo
+                    );
+                    costFromSource = current.cost + sourceCost;
                 }
                 
-                // Found the target!
-                if (connectedSlug === targetSlug) {
-                    // Build perk data array for the path (excluding the target itself)
-                    const perks = current.path
-                        .map(slug => this._perkMap.get(slug))
-                        .filter(data => data);
+                // Update if this is a better path
+                if (!distances.has(sourceSlug) || costFromSource < distances.get(sourceSlug)) {
+                    distances.set(sourceSlug, costFromSource);
+                    previousNode.set(sourceSlug, current.slug);
+                    queue.push({ slug: sourceSlug, cost: costFromSource });
+                }
+            }
+        }
+        
+        // Also consider unpurchased roots as starting points
+        // Add them with their specific costs
+        for (const [slug, data] of this._perkMap.entries()) {
+            if (data.node.type !== 'root') continue;
+            if (this._purchasedSlugs.has(slug)) continue; // Already processed above
+            if (slug === targetSlug) continue;
+            
+            // Calculate the cost of this root
+            let rootCost = 0;
+            if (hasAnyPurchasedRoot) {
+                const connections = this._connectionMap.get(slug) || new Set();
+                const isConnectedToPurchased = Array.from(connections).some(connSlug => 
+                    this._purchasedSlugs.has(connSlug)
+                );
+                rootCost = isConnectedToPurchased ? 1 : 5;
+            }
+            
+            // If this root connects to the target (or nodes on the path to target)
+            // calculate the total cost from this root
+            const rootConnections = this._connectionMap.get(slug) || new Set();
+            
+            let foundConnection = false;
+            for (const connectedSlug of rootConnections) {
+                // Check if this connects to the target directly or to a node with a path to target
+                if (connectedSlug === targetSlug || distances.has(connectedSlug)) {
+                    const connectedCost = connectedSlug === targetSlug ? 0 : distances.get(connectedSlug);
+                    const totalCost = rootCost + connectedCost;
                     
-                    return {
-                        path: newPath,
-                        totalCost: newCost,
-                        perks
-                    };
+                    foundConnection = true;
+                    
+                    // Update if this root provides a better path
+                    if (!distances.has(slug) || totalCost < distances.get(slug)) {
+                        distances.set(slug, totalCost);
+                        previousNode.set(slug, connectedSlug);
+                    }
                 }
-                
-                // Only add if we haven't found a cheaper path to this perk
-                if (!costs.has(connectedSlug) || newCost < costs.get(connectedSlug)) {
-                    costs.set(connectedSlug, newCost);
-                    queue.push({
-                        slug: connectedSlug,
-                        cost: newCost,
-                        path: newPath
-                    });
+            }
+        }
+        
+        // Find the best starting point (purchased perk or root)
+        let bestStart = null;
+        let bestCost = Infinity;
+        
+        // Check purchased perks
+        for (const purchasedSlug of this._purchasedSlugs) {
+            if (distances.has(purchasedSlug)) {
+                const cost = distances.get(purchasedSlug);
+                if (cost < bestCost) {
+                    bestCost = cost;
+                    bestStart = purchasedSlug;
+                }
+            }
+        }
+        
+        // Check unpurchased roots
+        for (const [slug, data] of this._perkMap.entries()) {
+            if (data.node.type !== 'root') continue;
+            if (this._purchasedSlugs.has(slug)) continue;
+            if (distances.has(slug)) {
+                const cost = distances.get(slug);
+                if (cost < bestCost) {
+                    bestCost = cost;
+                    bestStart = slug;
                 }
             }
         }
         
         // No path found
-        return { path: [], totalCost: 0, perks: [] };
+        if (bestStart === null) {
+            return { path: [], totalCost: 0, perks: [] };
+        }
+        
+        // Reconstruct the path from start to target
+        const path = [];
+        let currentSlug = bestStart;
+        
+        while (currentSlug !== targetSlug) {
+            // Only add to path if it needs to be purchased
+            if (!this._purchasedSlugs.has(currentSlug)) {
+                path.push(currentSlug);
+            }
+            
+            const next = previousNode.get(currentSlug);
+            if (!next) break;
+            currentSlug = next;
+        }
+        
+        // Add the target to the path
+        path.push(targetSlug);
+        
+        // Build perks array (excluding the target)
+        const perks = path.slice(0, -1)
+            .map(slug => this._perkMap.get(slug))
+            .filter(data => data);
+        
+        return {
+            path,
+            totalCost: bestCost,
+            perks
+        };
     }
 
     /**
@@ -431,7 +555,7 @@ export class PerkListManager {
             const hasAP = apAvailable >= cost;
             const meetsPrerequisites = this._meetsPrerequisites(perk, tierInfo);
             const isReachable = this._reachableSlugs.has(slug);
-            
+
             // Available Now: reachable, has AP, meets prerequisites
             if (isReachable && hasAP && meetsPrerequisites) {
                 this.availableNow.push(this._createPerkEntry(data, PerkState.available));
@@ -440,18 +564,25 @@ export class PerkListManager {
             else if (isReachable && meetsPrerequisites) {
                 this.availableNow.push(this._createPerkEntry(data, PerkState.connected));
             }
-            // Available Later: not reachable but meets prerequisites
+            // Available Later: not reachable but meets prerequisites AND has a valid path
             else if (meetsPrerequisites) {
                 const entry = this._createPerkEntry(data, PerkState.connected);
                 
-                // Calculate the cheapest path to this perk
-                const pathInfo = this._findCheapestPath(slug);
-                entry.pathToReach = pathInfo.perks;
-                entry.totalCostToReach = pathInfo.totalCost + entry.cost;
-                // Use totalCostToReach as the display cost for sorting and display
-                entry.displayCost = entry.totalCostToReach;
+                // Get the pre-calculated path from cache
+                const pathInfo = this._pathCache?.get(slug) || { path: [], totalCost: 0, perks: [] };
                 
-                this.availableLater.push(entry);
+                // Only put in Available Later if there's actually a path
+                if (pathInfo.perks.length > 0) {
+                    entry.pathToReach = pathInfo.perks;
+                    entry.totalCostToReach = pathInfo.totalCost + entry.cost;
+                    // Use totalCostToReach as the display cost for sorting and display
+                    entry.displayCost = entry.totalCostToReach;
+                    
+                    this.availableLater.push(entry);
+                } else {
+                    // No valid path exists (intermediate perks have unmet prerequisites)
+                    this.locked.push(this._createPerkEntry(data, PerkState.unavailable));
+                }
             }
             // Locked: everything else
             else {
@@ -501,12 +632,28 @@ export class PerkListManager {
         
         // Root nodes have special pricing
         if (node.type === 'root') {
-            // First root is free if no roots purchased yet
-            const hasAnyRoot = Array.from(this._purchasedSlugs).some(slug => {
+            // Check if this specific root is already purchased
+            if (this._purchasedSlugs.has(perk.slug)) {
+                return 0; // Already owned, no cost
+            }
+            
+            // Check if we have any purchased roots
+            const hasAnyPurchasedRoot = Array.from(this._purchasedSlugs).some(slug => {
                 const data = this._perkMap.get(slug);
                 return data?.node.type === 'root';
             });
-            return hasAnyRoot ? 1 : 0;
+            
+            // First root is free
+            if (!hasAnyPurchasedRoot) {
+                return 0;
+            }
+            
+            // If we already have a root, check if this root is connected to any purchased perks
+            const connections = this._connectionMap.get(perk.slug) || new Set();
+            const isConnectedToPurchased = Array.from(connections).some(connSlug => 
+                this._purchasedSlugs.has(connSlug)
+            );
+            return isConnectedToPurchased ? 1 : 5;
         }
         
         return perk.system?.cost || 0;
@@ -562,63 +709,75 @@ export class PerkListManager {
         const availableRVs = this.actor.system?.advancement?.rvs?.available || 0;
         if (availableRVs === 0) return false;
         
-        // Parse the predicate to find skill requirements
-        const skillRequirements = this._parseSkillRequirements(predicate);
-
-        console.log(`[${name} - Skill Prerequisites] Predicate:`, predicate);
-        console.log(`[${name} - Skill Prerequisites] Parsed requirements:`, skillRequirements);
-        console.log(`[${name} - Skill Prerequisites] Available RVs:`, availableRVs);
-
+        // Parse the predicate to find skill requirements and check for non-skill requirements
+        const { skillRequirements, hasNonSkillRequirements } = this._parseSkillRequirements(predicate);
         if (skillRequirements.length === 0) return false;
+        
+        // If there are non-skill requirements mixed in, we need ALL of them to already be met
+        // Check if the predicate would pass if we only removed the skill requirements
+        if (hasNonSkillRequirements) {
+            // Create a modified predicate with skill requirements removed
+            const nonSkillStatements = [];
+            for (const statement of predicate) {
+                if (typeof statement === 'string') {
+                    if (!statement.match(/^skill:([^:]+):(\d+)$/)) {
+                        nonSkillStatements.push(statement);
+                    }
+                } else if (typeof statement === 'object') {
+                    const isSkill = this._isSkillStatement(statement);
+                    if (!isSkill) {
+                        nonSkillStatements.push(statement);
+                    }
+                }
+            }
+            
+            // If there are non-skill requirements, they must all be met
+            if (nonSkillStatements.length > 0) {
+                const nonSkillPredicate = new Predicate(nonSkillStatements);
+                if (!nonSkillPredicate.test(this.actor.getRollOptions())) {
+                    return false; // Non-skill requirements not met
+                }
+            }
+        }
         
         // Calculate total RVs needed to meet all skill requirements
         let totalNeeded = 0;
         for (const { slug, required } of skillRequirements) {
             const skill = this.actor.system?.skills?.get(slug);
-            if (!skill) {
-                console.log(`[${name} - Skill Prerequisites] Skill not found: ${slug}`);
-                continue;
-            }
+            if (!skill) continue;
             
             const currentValue = skill.total || 0;
             const currentRVs = skill.rvs || 0;
-
-            console.log(`[${name} - Skill Prerequisites] ${slug}: current=${currentValue}, required=${required}, currentRVs=${currentRVs}`);
 
             if (currentValue >= required) continue; // Already meets this requirement
             
             const neededIncrease = required - currentValue;
             const maxPossibleIncrease = (this.actor.level === 1 ? 90 : 100) - currentRVs;
 
-            console.log(`[${name} - Skill Prerequisites] ${slug}: needsIncrease=${neededIncrease}, maxPossible=${maxPossibleIncrease}`);
-
             // Can't meet this requirement even with all available points
-            if (neededIncrease > maxPossibleIncrease) {
-                console.log(`[${name} - Skill Prerequisites] Cannot meet ${slug} requirement (needs ${neededIncrease}, max possible ${maxPossibleIncrease})`);
-                return false;
-            }
+            if (neededIncrease > maxPossibleIncrease) return false;
             
             totalNeeded += neededIncrease;
         }
 
-        console.log(`[${name} - Skill Prerequisites] Total RVs needed: ${totalNeeded}, available: ${availableRVs}`);
-
-        // Check if we have enough available RVs to meet all requirements
-        const canMeet = totalNeeded <= availableRVs && totalNeeded > 0;
-        console.log(`[${name} - Skill Prerequisites] Can meet: ${canMeet}`);
-        return canMeet;
+        // If totalNeeded is 0, all skill requirements are already met
+        // If totalNeeded > 0, check if we have enough available RVs
+        return totalNeeded === 0 || totalNeeded <= availableRVs;
     }
     
     /**
      * Parse a predicate to extract skill requirements
      * @param {Predicate} predicate - The predicate to parse
-     * @returns {Array} - Array of {slug, required} objects
+     * @returns {Object} - { skillRequirements: Array of {slug, required}, hasNonSkillRequirements: boolean }
      */
     _parseSkillRequirements(predicate) {
         const requirements = [];
+        let hasNonSkillRequirements = false;
         
         // Predicates are arrays of predicate statements
         for (const statement of predicate) {
+            let isSkillRequirement = false;
+            
             if (typeof statement === 'string') {
                 // Check for skill:value pattern (e.g., "skill:acrobatics:5")
                 const skillMatch = statement.match(/^skill:([^:]+):(\d+)$/);
@@ -627,6 +786,10 @@ export class PerkListManager {
                         slug: skillMatch[1],
                         required: parseInt(skillMatch[2], 10)
                     });
+                    isSkillRequirement = true;
+                } else {
+                    // Any other string is a non-skill requirement
+                    hasNonSkillRequirements = true;
                 }
             } else if (typeof statement === 'object') {
                 // Handle comparison operators like { "gte": ["{actor|skills.fast-talk.mod}", 55] }
@@ -640,16 +803,20 @@ export class PerkListManager {
                             slug: actorSkillMatch[1],
                             required: value
                         });
-                        continue;
-                    }
-                    
-                    // Fallback to old skill:slug pattern
-                    const skillMatch = skillKey?.match(/^skill:([^:]+)$/);
-                    if (skillMatch && typeof value === 'number') {
-                        requirements.push({
-                            slug: skillMatch[1],
-                            required: value
-                        });
+                        isSkillRequirement = true;
+                    } else {
+                        // Fallback to old skill:slug pattern
+                        const skillMatch = skillKey?.match(/^skill:([^:]+)$/);
+                        if (skillMatch && typeof value === 'number') {
+                            requirements.push({
+                                slug: skillMatch[1],
+                                required: value
+                            });
+                            isSkillRequirement = true;
+                        } else {
+                            // Not a skill requirement
+                            hasNonSkillRequirements = true;
+                        }
                     }
                 }
                 // Handle other comparison operators similarly
@@ -663,22 +830,54 @@ export class PerkListManager {
                             slug: actorSkillMatch[1],
                             required: value + 1 // gt means greater than, so we need value + 1
                         });
-                        continue;
+                        isSkillRequirement = true;
+                    } else {
+                        // Fallback to skill:slug pattern
+                        const skillMatch = skillKey?.match(/^skill:([^:]+)$/);
+                        if (skillMatch && typeof value === 'number') {
+                            requirements.push({
+                                slug: skillMatch[1],
+                                required: value + 1
+                            });
+                            isSkillRequirement = true;
+                        } else {
+                            // Not a skill requirement
+                            hasNonSkillRequirements = true;
+                        }
                     }
-                    
-                    // Fallback to skill:slug pattern
-                    const skillMatch = skillKey?.match(/^skill:([^:]+)$/);
-                    if (skillMatch && typeof value === 'number') {
-                        requirements.push({
-                            slug: skillMatch[1],
-                            required: value + 1
-                        });
-                    }
+                } else {
+                    // Any other object structure is a non-skill requirement
+                    hasNonSkillRequirements = true;
                 }
             }
         }
         
-        return requirements;
+        return { skillRequirements: requirements, hasNonSkillRequirements };
+    }
+
+    /**
+     * Check if a predicate statement is a skill requirement
+     * @param {Object} statement - The predicate statement object
+     * @returns {boolean} - True if this is a skill requirement
+     */
+    _isSkillStatement(statement) {
+        if (typeof statement !== 'object') return false;
+        
+        // Check gte operator
+        if (statement.gte && Array.isArray(statement.gte)) {
+            const [skillKey] = statement.gte;
+            if (skillKey?.match(/^\{actor\|skills\.([^.]+)\.mod\}$/)) return true;
+            if (skillKey?.match(/^skill:([^:]+)$/)) return true;
+        }
+        
+        // Check gt operator
+        if (statement.gt && Array.isArray(statement.gt)) {
+            const [skillKey] = statement.gt;
+            if (skillKey?.match(/^\{actor\|skills\.([^.]+)\.mod\}$/)) return true;
+            if (skillKey?.match(/^skill:([^:]+)$/)) return true;
+        }
+        
+        return false;
     }
 
     /**
