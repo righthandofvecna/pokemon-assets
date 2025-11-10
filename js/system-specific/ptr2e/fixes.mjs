@@ -110,6 +110,16 @@ function generateFlingAttack() {
 }
 
 
+// if a temporary item is being created with quantity 1 and stack > 1, set quantity to stack
+function OnPreCreateItem(item, data, options, userId) {
+  if (!game.settings.get(MODULENAME, "ipMaxStack")) return;
+  if (game.combats.filter(c=>c.active).length > 0) return;
+  if (data?.system?.temporary && data?.system?.quantity == 1 && data?.system?.stack > 1) {
+    data.system.quantity = data.system.stack;
+    item.updateSource({"system.quantity": data.system.quantity});
+  }
+}
+
 export function register() {
   game.settings.register(MODULENAME, "fixFling", {
 		name: "Fix Fling Attack Consumption Priority",
@@ -120,6 +130,17 @@ export function register() {
 		config: true,
 		hint: "In PTR2e, prioritize the item to consume for Fling attacks based on whether the item is equipped, then if it's temporary, then by sort value.",
 	});
+  game.settings.register(MODULENAME, "ipMaxStack", {
+		name: "IP Max Stack",
+		default: true,
+		type: Boolean,
+		scope: "world",
+		requiresReload: true,
+		config: true,
+		hint: "In PTR2e, create an item with a maxed stack when IPing outside of combat.",
+	});
   if (!game.settings.get(MODULENAME, "fixFling")) return;
   libWrapper.register(MODULENAME, "CONFIG.PTR.Actor.documentClass.prototype.generateFlingAttack", generateFlingAttack, "OVERRIDE");
+
+  Hooks.on("preCreateItem", OnPreCreateItem);
 }
