@@ -1,0 +1,42 @@
+{{#if perks.length}}
+<ul class="perk-list">
+    {{#each perks}}
+    <li class="perk-entry perk {{stateClass}} {{#if isEvolution}}evolution{{/if}}" 
+        data-uuid="{{uuid}}" 
+        data-slug="{{slug}}"
+        data-tooltip="{{name}}">
+        <img src="{{img}}" alt="{{name}}" class="perk-icon">
+        <div class="perk-info">
+            <div class="perk-name-row">
+                <h4 class="perk-name">{{name}}</h4>
+                {{#if tierInfo}}
+                <span class="tier-badge">Tier {{tierInfo.tier}}/{{tierInfo.maxTier}}</span>
+                {{/if}}
+            </div>
+            <div class="perk-cost">Cost: {{displayCost}} AP</div>
+            {{#if pathToReach}}
+            <div class="perk-path">
+              {{#each pathChain}}
+                <span class="path-node perk"
+                  data-uuid="{{uuid}}"
+                  data-slug="{{slug}}"
+                  data-tooltip="{{name}}"
+                >{{name}}</span>
+              {{/each}}
+            </div>
+            {{/if}}
+        </div>
+        {{#if canAfford}}
+        <button type="button" class="purchase-perk{{#if isPath}} purchase-path{{/if}}" 
+             data-slug="{{slug}}" 
+             data-uuid="{{uuid}}"
+             data-is-path="{{isPath}}">
+             <i class="fas fa-{{#if isPath}}route{{else}}cart-plus{{/if}}"></i> Purchase{{#if isPath}} Path{{/if}}
+        </button>
+        {{/if}}
+    </li>
+    {{/each}}
+</ul>
+{{else}}
+<p class="empty-category"><em>No perks in this category</em></p>
+{{/if}}

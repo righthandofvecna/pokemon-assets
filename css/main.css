@@ -506,10 +506,242 @@
   font-size: 1rem;
   border-bottom: 1px solid var(--border-theme-color);
 }
+.application.sheet.ptr2e.actor.pokemon-assets .tab.active[data-tab=actions] {
+  grid-template-areas: "subnav body";
+  grid-template-columns: 30px auto;
+  grid-template-rows: unset;
+}
+.application.sheet.ptr2e.actor.pokemon-assets .tab.active[data-tab=actions] .sub-tabs {
+  flex-direction: column;
+  background: var(--sidebar-background);
+  border-bottom: unset;
+  border-right: 1px solid var(--border-theme-color);
+}
 .application.sheet.ptr2e.actor.pokemon-assets .tab.active[data-tab=actions] section.active[data-tab=actionsCombat] {
   flex-direction: column;
   overflow-y: scroll;
   overflow-x: auto;
+}
+.application.pokemon-assets.perk-list .perk-list-dialog {
+  max-height: 710px;
+  display: flex;
+  flex-direction: column;
+}
+.application.pokemon-assets.perk-list .perk-list-dialog .perk-categories {
+  overflow-y: auto;
+}
+.application.pokemon-assets.perk-list .ap-display {
+  text-align: center;
+  font-size: 1.2em;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: rgba(0, 200, 100, 0.15);
+  border-radius: 4px;
+  border: 2px solid rgba(0, 200, 100, 0.3);
+}
+.application.pokemon-assets.perk-list .ap-display strong {
+  color: #00c864;
+}
+.application.pokemon-assets.perk-list .perk-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.application.pokemon-assets.perk-list .perk-controls .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+.application.pokemon-assets.perk-list .perk-controls .filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+  font-weight: normal;
+  margin: 0;
+}
+.application.pokemon-assets.perk-list .perk-controls .name-filter {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: rgba(0, 0, 0, 0.3);
+  color: inherit;
+  font-size: 1em;
+}
+.application.pokemon-assets.perk-list .perk-controls .name-filter:focus {
+  outline: none;
+  border-color: #00c864;
+  box-shadow: 0 0 0 2px rgba(0, 200, 100, 0.2);
+}
+.application.pokemon-assets.perk-list .perk-controls .sort-toggle {
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  border: 1px solid #555;
+  background: rgba(0, 0, 0, 0.3);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  transition: background 0.2s, border-color 0.2s;
+}
+.application.pokemon-assets.perk-list .perk-controls .sort-toggle:hover {
+  background: rgba(0, 200, 100, 0.2);
+  border-color: #00c864;
+}
+.application.pokemon-assets.perk-list .perk-controls .sort-toggle i {
+  font-size: 1em;
+}
+.application.pokemon-assets.perk-list .perk-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+.application.pokemon-assets.perk-list .perk-summary-item {
+  text-align: center;
+}
+.application.pokemon-assets.perk-list .perk-category {
+  margin-bottom: 1.5rem;
+}
+.application.pokemon-assets.perk-list .perk-category h3 {
+  border-bottom: 2px solid #444;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+.application.pokemon-assets.perk-list .perk-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.application.pokemon-assets.perk-list .perk-entry {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  margin-bottom: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  align-items: center;
+}
+.application.pokemon-assets.perk-list .perk-entry:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.application.pokemon-assets.perk-list .perk-entry.purchased {
+  background: rgba(0, 255, 0, 0.1);
+  border-left: 3px solid green;
+}
+.application.pokemon-assets.perk-list .perk-entry.auto-unlocked {
+  background: rgba(100, 200, 255, 0.1);
+  border-left: 3px solid #64c8ff;
+}
+.application.pokemon-assets.perk-list .perk-entry.available {
+  background: rgba(0, 200, 100, 0.1);
+  border-left: 3px solid #00c864;
+}
+.application.pokemon-assets.perk-list .perk-entry.connected {
+  background: rgba(255, 165, 0, 0.1);
+  border-left: 3px solid orange;
+}
+.application.pokemon-assets.perk-list .perk-entry.unavailable {
+  background: rgba(128, 128, 128, 0.1);
+  border-left: 3px solid gray;
+}
+.application.pokemon-assets.perk-list .perk-entry.evolution {
+  border: 2px solid gold;
+}
+.application.pokemon-assets.perk-list .perk-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.application.pokemon-assets.perk-list .perk-info {
+  flex: 1;
+}
+.application.pokemon-assets.perk-list .perk-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.application.pokemon-assets.perk-list .perk-name {
+  margin: 0;
+  font-size: 1.1em;
+}
+.application.pokemon-assets.perk-list .perk-cost {
+  font-size: 0.9em;
+  color: #aaa;
+}
+.application.pokemon-assets.perk-list .tier-badge {
+  background: #444;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.8em;
+}
+.application.pokemon-assets.perk-list .empty-category {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 1rem;
+}
+.application.pokemon-assets.perk-list .perk-path {
+  margin-top: 0.5rem;
+  padding: 0.4rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #ccc;
+  line-height: 1.4;
+}
+.application.pokemon-assets.perk-list .perk-path .path-node + .path-node::before {
+  content: "→";
+  margin: 0 0.4rem;
+  color: #999;
+}
+.application.pokemon-assets.perk-list .purchase-perk {
+  background: #00c864;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  width: 150px;
+}
+.application.pokemon-assets.perk-list .purchase-perk:hover {
+  background: #00a854;
+}
+.application.pokemon-assets.perk-list .purchase-perk:active {
+  background: #008844;
+}
+.application.pokemon-assets.perk-list .purchase-perk i {
+  font-size: 1em;
+}
+.application.pokemon-assets.perk-list .purchase-path {
+  background: #ff8c00;
+  width: 160px;
+}
+.application.pokemon-assets.perk-list .purchase-path:hover {
+  background: #ff7700;
+}
+.application.pokemon-assets.perk-list .purchase-path:active {
+  background: #ff6600;
 }
 .pokerole.actor .pokeball-field {
   display: flex;

@@ -1,9 +1,13 @@
 import { MODULENAME } from "../../utils.mjs";
+import { createPerkListManager, register as registerPerkTemplates } from "./perk-list.mjs";
 
 export function register() {
   class PTR2eSheetPA extends CONFIG.PTR.Actor.sheetClasses.character {
     static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       classes: [...super.DEFAULT_OPTIONS.classes, MODULENAME],
+      actions: {
+        "open-perk-list": PTR2eSheetPA._onOpenPerkList
+      }
     }, { inplace: false });
 
     static PARTS = {
@@ -96,6 +100,26 @@ export function register() {
       return context;
     }
 
+    /* -------------------------------------------- */
+
+    /**
+     * Handle opening the perk list view
+     * @param {PointerEvent} event  The triggering event.
+     * @param {HTMLElement} target  The target element.
+     */
+    static async _onOpenPerkList(event, target) {
+      event.preventDefault();
+      
+      const actor = this.actor;
+      if (!actor) return;
+      
+      // Create the perk list manager (now combines global and species perks)
+      const manager = await createPerkListManager(actor);
+      manager.showDialog({
+        title: `${actor.name} - Perk List`
+      });
+    }
+
     /** @inheritDoc */
     async _onRender(context, options) {
       await super._onRender(context, options);
@@ -129,4 +153,6 @@ export function register() {
     makeDefault: false,
     label: "POKEMON-ASSETS.SheetClassCharacter"
   });
+
+  registerPerkTemplates();
 }

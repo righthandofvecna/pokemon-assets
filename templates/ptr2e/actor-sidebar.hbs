@@ -105,4 +105,12 @@
           num=actor.system.advancement.advancementPoints.available}})</small>{{/if}}</label>
     </button>
   </div>
+  <div class="perk-web-button">
+    <button type="button" class="perk-web-button" data-action="open-perk-list">
+      <i class="fas fa-list"></i>
+      <label>{{localize "PTR2E.ActorSheet.Buttons.perkList"}} {{#if shouldPerkFlash}}<small
+          class="ml-1 unspent">({{localize "PTR2E.ActorSheet.Unspent"
+          num=actor.system.advancement.advancementPoints.available}})</small>{{/if}}</label>
+    </button>
+  </div>
 </aside>

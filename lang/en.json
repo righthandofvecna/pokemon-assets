@@ -161,10 +161,13 @@
             "spd.Label": "SPD",
             "spe.Label": "SPE",
             "accuracy.Label": "ACC",
+            "acc.Label": "ACC",
             "evasion.Label": "EVA",
+            "eva.Label": "EVA",
             "critRate.Label": "CRIT"
         }
     },
     "SCENE.TABS.SHEET.puzzle": "Puzzle",
-    "TILE.TABS.puzzle": "Puzzle"
+    "TILE.TABS.puzzle": "Puzzle",
+    "PTR2E.ActorSheet.Buttons.perkList": "Open Perk List"
 }
