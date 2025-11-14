@@ -293,11 +293,13 @@ function OnCreateCombatant(combatant) {
 
 
 
-/** Initialize all the edges for tokens when the canvas refreshes */
+/** 
+ * Initialize all the edges for tokens when the canvas refreshes
+ * @deprecated This function is no longer used as token collision uses TokenLayer methods instead
+ * Kept for backward compatibility with tiles
+ */
 function OnInitializeEdges() {
-  for (const token of canvas.tokens.placeables) {
-    token?.initializeEdges?.();
-  }
+  // Token edges are deprecated - only process tiles if they still use edges
   for (const tile of canvas.tiles.placeables) {
     tile?.initializeEdges?.();
   }
@@ -781,11 +783,19 @@ export function register() {
       }
     }
 
+    /* -------------------------------------------- */
+    /* DEPRECATED: Edge-based collision system      */
+    /* These methods are kept for backward compatibility but are no longer used */
+    /* The new collision system uses TokenLayer methods instead */
+    /* -------------------------------------------- */
+
     get shouldHaveEdges() {
-      return game.settings.get(MODULENAME, "tokenCollision") && (!this.document.hidden || game.settings.get(MODULENAME, "tokenCollisionHidden"));
+      // Deprecated: Edge-based collision is replaced by TokenLayer collision detection
+      return false;
     }
 
     filterCollisions(collisions, {follow=false}={}) {
+      // Deprecated: Keep for backward compatibility but edges are no longer created
       const followChain = (()=>{
         if (follow) return getAllInFollowChain(this.document);
         return new Set(getAllFollowing(this.document));
@@ -795,6 +805,7 @@ export function register() {
 
     /**
      * Check for collisions, but exclude tokens of the same disposition and tokens in your follow chain
+     * @deprecated This method is kept for backward compatibility but may not function as expected
      */
     checkCollision(destination, {origin, type="move", mode="any", follow=false}={}) {
       const collisions = super.checkCollision(destination, { origin, type, mode: "all" });
@@ -811,6 +822,7 @@ export function register() {
      * @param {string} type                  The wall type
      * @param {boolean} preview              Is preview?
      * @returns {PolygonVertex|null}         The collision point with a wall, if any
+     * @deprecated This method is kept for backward compatibility but may not function as expected
      */
     _PRIVATE_testWallCollision(origin, destination, type, preview) {
       let collision = null;
@@ -832,144 +844,30 @@ export function register() {
       return collision;
     }
 
+    /**
+     * Initialize edges for the token
+     * @deprecated This method is no longer used as the collision system has moved to TokenLayer-based detection
+     * Kept for backward compatibility only
+     */
     initializeEdges({ changes, deleted=false}={}) {
-      // the token has been deleted
+      // DEPRECATED: The new collision system doesn't use edges
+      // Clean up any existing edges if this token is being deleted
       if ( deleted ) {
         ["t","r","b","l","tl","tr","bl","br"].forEach(d=>canvas.edges.delete(`${this.id}_${d}`));
         return;
       }
-
-      if (!this.shouldHaveEdges) return;
-
-      // re-create the edges for the token
-      const docX = changes?.x ?? this.document.x;
-      const docY = changes?.y ?? this.document.y;
-      const width = changes?.width ?? this.document.width;
-      const height = changes?.height ?? this.document.height;
-
-      const { sizeX: gridX, sizeY: gridY } = canvas.grid;
-      const w = gridX * Math.max(width, 1);
-      const h = gridY * Math.max(height, 1);
-      const wDia = gridX / 2;
-      const hDia = gridY / 2;
-      const wOrth = w - (wDia * 2);
-      const hOrth = h - (hDia * 2);
-      const { x, y } = canvas.grid.getSnappedPoint({ x: docX, y: docY }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_CORNER });
-
-      const pointList = [];
-      const suffixList = [];
-
-      // if the width or height of the token is < 1, we have to do one corner square, unless it's centered
-      let position = "center";
-      if (width < 1 || height < 1) {
-        const docL = docX;
-        const docR = docX + (gridX * width);
-        const docT = docY;
-        const docB = docY + (gridY * height);
-        if (docL < x + (w / 4)) {
-          if (docT < y + (h / 4)) {
-            position = "tl";
-          } else if (docB > y + (3 * h / 4)) {
-            position = "bl";
-          }
-        } else if (docR > x + (3 * w / 4)) {
-          if (docT < y + (h / 4)) {
-            position = "tr";
-          } else if (docB > y + (3 * h / 4)) {
-            position = "br";
-          }
-        }
-      }
-
-      // currently at the top-left point
-      if (position == "tl") {
-        suffixList.push("l", "t");
-        pointList.push(x, y, x + wDia, y);
-      } else {
-        suffixList.push("tl");
-        pointList.push(x + wDia, y);
-        if (wOrth > 0) {
-          suffixList.push("t");
-          pointList.push(x + wDia + wOrth, y);
-        }
-      }
-      // currently at the top-right point
-      if (position == "tr") {
-        suffixList.push("t", "r");
-        pointList.push(x + w, y, x + w, y + hDia);
-      } else {
-        suffixList.push("tr");
-        pointList.push(x + w, y + hDia);
-        if (hOrth > 0) {
-          suffixList.push("r");
-          pointList.push(x + w, y + hDia + hOrth);
-        }
-      }
-      // currently at the bottom-right point
-      if (position == "br") {
-        suffixList.push("r", "b");
-        pointList.push(x + w, y + h, x + wDia, y + h);
-      } else {
-        suffixList.push("br");
-        pointList.push(x + wDia + wOrth, y + h);
-        if (wOrth > 0) {
-          suffixList.push("b");
-          pointList.push(x + wDia, y + h);
-        }
-      }
-      // currently at the bottom-left point
-      if (position == "bl") {
-        suffixList.push("b", "l");
-        pointList.push(x, y + h, x, y + hDia);
-      } else {
-        suffixList.push("bl");
-        pointList.push(x, y + hDia + hOrth);
-        if (hOrth > 0) {
-          suffixList.push("l");
-          pointList.push(x, y + hDia);
-        }
-      }
-
-      // create edges
-      pointList.unshift(pointList[pointList.length-1]);
-      pointList.unshift(pointList[pointList.length-2]);
-      const polygonList = [];
-      for (let i = 0; i < suffixList.length; i++) {
-        const offset = i*2;
-        this._setEdge(`${this.id}_${suffixList[i]}`, [pointList[offset + 0], pointList[offset + 1], pointList[offset + 2], pointList[offset + 3]]);
-        polygonList.push([pointList[offset + 0], pointList[offset + 1]], [pointList[offset + 2], pointList[offset + 3]]);
-      }
-
-      // remove unused edges
-      for (const direction of ["t","r","b","l","tl","tr","bl","br"]) {
-        if (suffixList.includes(direction)) continue;
-        canvas.edges.delete(`${this.id}_${direction}`);
-      }
+      // Otherwise, do nothing - edges are no longer created
     }
 
     _setEdge(id, c) {
-      canvas.edges.set(id, new foundry.canvas.geometry.edges.Edge({x: c[0], y: c[1]}, {x: c[2], y: c[3]}, {
-        id,
-        object: this,
-        type: "wall",
-        direction: CONST.WALL_DIRECTIONS.LEFT,
-        light: CONST.WALL_SENSE_TYPES.NONE,
-        sight: CONST.WALL_SENSE_TYPES.NONE,
-        sound: CONST.WALL_SENSE_TYPES.NONE,
-        move: CONST.WALL_MOVEMENT_TYPES.NORMAL,
-        threshold: {
-          light: 0,
-          sight: 0,
-          sound: 0,
-          attenuation: false,
-        }
-      }));
+      // DEPRECATED: No longer creates edges
+      // Kept for backward compatibility only
     }
 
     /** @inheritDoc */
     _onCreate(data, options, userId) {
       super._onCreate(data, options, userId);
-      this.initializeEdges();
+      // initializeEdges() is deprecated - no longer creates edges
     }
 
     /** @inheritDoc */
@@ -979,9 +877,7 @@ export function register() {
       //   this._handleTeleportAnimation(to);
       // }
       super._onUpdate(changed, options, userId);
-      if ("x" in changed || "y" in changed || "width" in changed || "height" in changed || "hidden" in changed) {
-        this.initializeEdges({ changes: changed, deleted: !this.shouldHaveEdges });
-      }
+      // initializeEdges is deprecated - no longer creates edges
       if ("hidden" in changed && !changed.hidden) {
         this.#localOpacity = 1;
       }
@@ -991,9 +887,125 @@ export function register() {
       }
     }
 
+    /* -------------------------------------------- */
+    /* Token Movement and Collision Methods         */
+    /* -------------------------------------------- */
+
+    /** @inheritDoc */
+    findMovementPath(waypoints, options) {
+      // Normal behavior if movement automation is disabled
+      if (!game.settings.get(MODULENAME, "tokenCollision")) {
+        return super.findMovementPath(waypoints, options);
+      }
+
+      // Get all grid spaces as waypoints so that running into a blocking token stops us immediately before it
+      waypoints = this.document.getCompleteMovementPath(waypoints);
+
+      // Drop all intermediate waypoints except those immediately before a blocking token
+      const grid = this.document.parent.grid;
+      waypoints = waypoints.filter((waypoint, i) => {
+        return !waypoint.intermediate || this.layer.isOccupiedGridSpaceBlocking(grid.getOffset(waypoints[i + 1]), this);
+      });
+      return super.findMovementPath(waypoints, options);
+    }
+
+    /* -------------------------------------------- */
+
+    /** @inheritDoc */
+    _getDragConstrainOptions() {
+      const unconstrainedMovement = game.user.isGM
+        && ui.controls.controls.tokens?.tools.unconstrainedMovement?.active;
+      return { ...super._getDragConstrainOptions(), ignoreTokens: unconstrainedMovement };
+    }
+
+    /* -------------------------------------------- */
+
+    /** @inheritDoc */
+    _getMovementCostFunction(options) {
+      const costFunction = super._getMovementCostFunction(options);
+      if (!game.settings.get(MODULENAME, "tokenCollision")) return costFunction;
+
+      const preview = options?.preview && canvas.visibility.tokenVision && !game.user.isGM;
+      return (from, to, distance, segment) => {
+        const cost = costFunction(from, to, distance, segment);
+
+        // Terrain already difficult, no stacking
+        if (segment.terrain?.difficultTerrain) return cost;
+
+        // Check difficult due to occupied tokens
+        if (!this.layer.isOccupiedGridSpaceDifficult(to, this, {preview})) return cost;
+
+        // Difficult terrain due to occupied grid space
+        return cost + distance;
+      };
+    }
+
+    /* -------------------------------------------- */
+
+    /** @inheritDoc */
+    constrainMovementPath(waypoints, options) {
+      let { preview=false, ignoreTokens=false } = options; // Custom constrain option to ignore tokens
+
+      ignoreTokens ||= !game.settings.get(MODULENAME, "tokenCollision");
+
+      // Ignore tokens if path contains resize
+      ignoreTokens ||= waypoints.some(w => (w.width !== waypoints[0].width) || (w.height !== waypoints[0].height));
+
+      if (ignoreTokens) return super.constrainMovementPath(waypoints, options);
+
+      // Ignore preview if token vision is disabled or the current user is a GM
+      if (!canvas.visibility.tokenVision || game.user.isGM) preview = false;
+
+      let path = waypoints;
+      let constrained = false;
+
+      for (let k = 0; k < 10; k++) {
+
+        // Apply blocking constraints
+        const completePath = this.document.getCompleteMovementPath(path);
+        let blockedIndex;
+        for (let i = 1; i < completePath.length; i++) {
+          const waypoint = completePath[i];
+          const occupiedGridSpaces = this.document.getOccupiedGridSpaceOffsets(waypoint);
+          const elevationOffset = Math.floor((waypoint.elevation / canvas.grid.distance) + 1e-8);
+          if (occupiedGridSpaces.some(space =>
+            this.layer.isOccupiedGridSpaceBlocking({...space, k: elevationOffset}, this, {preview}))
+          ) {
+            blockedIndex = i;
+            break;
+          }
+        }
+        const blocked = blockedIndex >= 1;
+        if (blocked) {
+          path = completePath.slice(0, blockedIndex - 1).filter(waypoint => !waypoint.intermediate);
+          path.push(completePath.at(blockedIndex - 1));
+          constrained = true;
+        }
+
+        // Test wall/cost constraints in the first iteration always and in later
+        // iterations only if the path changed due to blocking
+        if ((k === 0) || blocked) {
+          const [constrainedPath, wasConstrained] = super.constrainMovementPath(path, options);
+          path = constrainedPath;
+          if (!wasConstrained) return [path, constrained]; // No change: path is valid
+          constrained = true;
+        }
+
+        // In a later iteration if there was no change due to blocking, we found a valid path
+        else if (!blocked) return [path, constrained];
+      }
+
+      // After 10 failed attempts to find a valid path, remove the last waypoints and constrain this path
+      [path] = this.constrainMovementPath(waypoints.slice(0, -1), options);
+      return [path, true];
+    }
+
+    /* -------------------------------------------- */
+
     /** @inheritDoc */
     _onDelete(options, userId) {
       super._onDelete(options, userId);
+      // Clean up any deprecated edges if they exist
       this.initializeEdges({deleted: true});
     }
 
