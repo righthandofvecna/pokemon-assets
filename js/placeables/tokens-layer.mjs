@@ -35,33 +35,6 @@ export function register() {
     /* -------------------------------------------- */
 
     /**
-     * Determine whether the provided grid space is being occupied by a token which should at least cause difficult
-     * terrain for the provided token
-     * @param {GridOffset3D} gridSpace            The grid space to check
-     * @param {Token} token                       The token being moved
-     * @param {object} [options]                  Additional options
-     * @param {boolean} [options.preview=false]   Whether the movement in question is previewed
-     * @returns {boolean} Whether the moving token should suffer difficult terrain
-     */
-    isOccupiedGridSpaceDifficult(gridSpace, token, { preview=false }={}) {
-      if (!game.settings.get(MODULENAME, "tokenCollision")) return false;
-      
-      const found = this.#getRelevantOccupyingTokens(gridSpace, token, { preview });
-      
-      return found.some(t => {
-        const isAllied = token.document.disposition === t.document.disposition;
-        
-        // Allied tokens might not cause difficult terrain depending on rules
-        // For now, any token that doesn't block completely is at least difficult terrain
-        if (isAllied && !game.settings.get(MODULENAME, "tokenCollisionAllied")) return true;
-        
-        return false; // If it blocks, it's not just difficult terrain
-      });
-    }
-
-    /* -------------------------------------------- */
-
-    /**
      * Determine the set of tokens occupying the provided grid space which may be relevant for blocking/difficult terrain
      * considerations
      * @param {GridOffset3D} gridSpace            The grid space to check

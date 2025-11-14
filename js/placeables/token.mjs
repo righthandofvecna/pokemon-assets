@@ -844,31 +844,6 @@ export function register() {
       return collision;
     }
 
-    /**
-     * Initialize edges for the token
-     * @deprecated This method is no longer used as the collision system has moved to TokenLayer-based detection
-     * Kept for backward compatibility only
-     */
-    initializeEdges({ changes, deleted=false}={}) {
-      // DEPRECATED: The new collision system doesn't use edges
-      // Clean up any existing edges if this token is being deleted
-      if ( deleted ) {
-        ["t","r","b","l","tl","tr","bl","br"].forEach(d=>canvas.edges.delete(`${this.id}_${d}`));
-        return;
-      }
-      // Otherwise, do nothing - edges are no longer created
-    }
-
-    _setEdge(id, c) {
-      // DEPRECATED: No longer creates edges
-      // Kept for backward compatibility only
-    }
-
-    /** @inheritDoc */
-    _onCreate(data, options, userId) {
-      super._onCreate(data, options, userId);
-      // initializeEdges() is deprecated - no longer creates edges
-    }
 
     /** @inheritDoc */
     _onUpdate(changed, options, userId) {
@@ -877,7 +852,6 @@ export function register() {
       //   this._handleTeleportAnimation(to);
       // }
       super._onUpdate(changed, options, userId);
-      // initializeEdges is deprecated - no longer creates edges
       if ("hidden" in changed && !changed.hidden) {
         this.#localOpacity = 1;
       }
@@ -916,28 +890,6 @@ export function register() {
       const unconstrainedMovement = game.user.isGM
         && ui.controls.controls.tokens?.tools.unconstrainedMovement?.active;
       return { ...super._getDragConstrainOptions(), ignoreTokens: unconstrainedMovement };
-    }
-
-    /* -------------------------------------------- */
-
-    /** @inheritDoc */
-    _getMovementCostFunction(options) {
-      const costFunction = super._getMovementCostFunction(options);
-      if (!game.settings.get(MODULENAME, "tokenCollision")) return costFunction;
-
-      const preview = options?.preview && canvas.visibility.tokenVision && !game.user.isGM;
-      return (from, to, distance, segment) => {
-        const cost = costFunction(from, to, distance, segment);
-
-        // Terrain already difficult, no stacking
-        if (segment.terrain?.difficultTerrain) return cost;
-
-        // Check difficult due to occupied tokens
-        if (!this.layer.isOccupiedGridSpaceDifficult(to, this, {preview})) return cost;
-
-        // Difficult terrain due to occupied grid space
-        return cost + distance;
-      };
     }
 
     /* -------------------------------------------- */
@@ -1005,8 +957,6 @@ export function register() {
     /** @inheritDoc */
     _onDelete(options, userId) {
       super._onDelete(options, userId);
-      // Clean up any deprecated edges if they exist
-      this.initializeEdges({deleted: true});
     }
 
   };
