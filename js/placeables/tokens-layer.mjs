@@ -72,6 +72,10 @@ export function register() {
           // If preview movement, don't reveal blocked or difficult terrain for non-visible tokens
           if (preview && !t.visible) return false;
 
+          // Ignore friendly tokens if setting disables blocking by allies
+          const isAllied = token.document.disposition === t.document.disposition;
+          if (isAllied && !game.settings.get(MODULENAME, "tokenCollisionAllied")) return false;
+
           // Always ignore secret tokens
           if (t.document.disposition === CONST.TOKEN_DISPOSITIONS.SECRET) return false;
 
