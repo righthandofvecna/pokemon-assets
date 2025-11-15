@@ -6292,6 +6292,9 @@ export default
       "07XX/077X/0775.png": {
         "animationframes": 6
       },
+      "07XX/077X/0775s.png": {
+        "animationframes": 6
+      },
       "07XX/077X/0776.png": {
         "animationframes": 4
       },
@@ -7619,6 +7622,9 @@ export default
       },
       "09XX/097X/0976s.png": {
         "animationframes": 4
+      },
+      "09XX/097X/0977.png": {
+        "animationframes": 12
       },
       "09XX/097X/0978.png": {
         "animationframes": 6
