@@ -390,7 +390,7 @@ function ExtendTokenImageRuleElement() {
           const basename = this.value.substring(this.value.lastIndexOf("/")+1, this.value.lastIndexOf("."));
           if (!basename) return false;
 
-          const alternateForm = basename.substring(basename.indexOf("_"));
+          const alternateForm = basename.substring(basename.indexOf("_")+1);
           if (!alternateForm) return false;
 
           const species = this.actor.itemTypes.species?.at(0);

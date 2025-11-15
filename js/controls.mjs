@@ -24,8 +24,9 @@ function Scene_prepareBaseData(wrapped, ...args) {
  */
 async function OnRenderRegionConfig(regionConfig, html) {
   const behaviorControls = html.querySelector(".region-element.region-behavior .region-element-controls");
+  if (behaviorControls.querySelector(".region-control.puzzle-control")) return;
   const puzzleLink = document.createElement("a");
-  puzzleLink.classList = "region-control";
+  puzzleLink.classList = "region-control puzzle-control";
   puzzleLink.setAttribute("data-tooltip", "Automatic Behaviors");
   puzzleLink.setAttribute("aria-label", "Automatic Behaviors");
   const puzzleIcon = document.createElement("i");
@@ -643,7 +644,7 @@ async function CreateJump(regionConfig) {
     type: "executeScript",
     name: `Jump ${direction.titleCase()}`,
     system: {
-      events: ["tokenMoveWithin", "tokenMoveIn"],
+      events: ["tokenMoveWithin", "tokenEnter"],
       source: `game.modules.get("${MODULENAME}")?.api?.scripts?.HandleJumps?.("${direction}", ...arguments);`
     }
   };
@@ -664,7 +665,7 @@ async function CreateIce(regionConfig) {
     type: "executeScript",
     name: `Slippery Floor`,
     system: {
-      events: ["tokenMoveWithin"],
+      events: ["tokenMoveWithin", "tokenEnter"],
       source: `game.modules.get("${MODULENAME}")?.api?.scripts?.HandleIce?.(...arguments);`
     }
   };
