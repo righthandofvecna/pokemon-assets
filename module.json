@@ -8,7 +8,7 @@
       "url": "https://github.com/righthandofvecna"
     }
   ],
-  "version": "0.6.10",
+  "version": "0.6.11",
   "compatibility": {
     "minimum": "13",
     "verified": "13.348"
@@ -31,13 +31,13 @@
           "verified": "3.6.9"
         }
       },
-		  {
+      {
         "id": "socketlib",
         "type": "module",
         "compatibility": {
           "verified": "1.1.3"
         }
-		  }
+      }
     ]
   },
   "esmodules": [
@@ -47,10 +47,14 @@
     "css/main.css"
   ],
   "languages": [
-    {"lang": "en", "name": "English", "path": "lang/en.json"}
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
   ],
-	"socket": true,
+  "socket": true,
   "url": "https://github.com/righthandofvecna/pokemon-assets",
   "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",
-  "download": "https://github.com/righthandofvecna/pokemon-assets/releases/download/v0.6.10/module.zip"
+  "download": "https://github.com/righthandofvecna/pokemon-assets/releases/download/v0.6.11/module.zip"
 }
