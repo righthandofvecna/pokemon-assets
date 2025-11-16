@@ -359,6 +359,8 @@ async function HandleJumps() {
  * @returns 
  */
 async function HandleIce() {
+  const DEBUG = game.settings.get(MODULENAME, "debug");
+  if (DEBUG) console.log("HandleIce called with arguments:", arguments);
   const [scene, regionDocument, regionBehavior, { data: { token, movement }, name: eventName, user }] = arguments;
 
   if (user?.id !== game.user.id || !token || !scene) return;
@@ -366,11 +368,14 @@ async function HandleIce() {
   if (token._sliding ?? false) return;
   token._sliding = true;
   const unlock = token.lockMovement();
-  token.stopMovement();
+  if (DEBUG) console.log("pokemon-assets | HandleIce: token movement pre stop", token.movement);
+  const stopped = token.stopMovement();
+  if (DEBUG) console.log("pokemon-assets | HandleIce: movement stopped", token.name, stopped);
 
   const { sizeX, sizeY } = scene.grid;
   const elevation = token.elevation ?? 0;
-  const tokenSource = game.canvas.grid.getSnappedPoint({ x: token.center.x, y: token.center.y, elevation }, { mode: CONST.GRID_SNAPPING_MODES.CENTER });
+  const lastWaypoint = token.movement.passed.waypoints.at(-1);
+  const tokenSource = game.canvas.grid.getSnappedPoint({ x: lastWaypoint.x, y: lastWaypoint.y, elevation }, { mode: CONST.GRID_SNAPPING_MODES.CENTER });
 
   const renderedToken = token.object;
 
@@ -387,7 +392,7 @@ async function HandleIce() {
   let count = 1;
   let endpos = foundry.utils.deepClone(tokenSource);
   // check if the token is still inside the slide area
-  while (count < 80 && regionDocument.testPoint(endpos)) {
+  while (count < 80 && (count == 1 || regionDocument.testPoint(endpos))) {
     // hitscan out!
     const pointSource = new foundry.canvas.sources.PointMovementSource({object: renderedToken});
     pointSource.initialize(renderedToken);
@@ -399,21 +404,29 @@ async function HandleIce() {
     }) ?? []);
     const stops = renderedToken.filterCollisions(hits);
     if (stops.length) {
+      if (DEBUG) console.log("pokemon-assets | HandleIce: collision detected, stopping slide at", endpos, "after", count, "steps", stops);
       break;
     }
     endpos = nextPos;
     count++;
   }
+  if (DEBUG) console.log("pokemon-assets | HandleIce: calculated endpos", endpos, "after", count, "steps");
   if (endpos.x != tokenSource.x || endpos.y != tokenSource.y) {
-    const DEBUG = game.settings.get(MODULENAME, "debug");
-    if (DEBUG) canvas.scene.createEmbeddedDocuments("Drawing", [{shape:{points:[tokenSource.x, tokenSource.y, endpos.x, endpos.y], height: canvas.dimensions.height, width: canvas.dimensions.width, type: "p"}}]);
+    if (DEBUG) canvas.scene.createEmbeddedDocuments("Drawing", [{strokeColor: "#00ff00", shape:{points:[tokenSource.x, tokenSource.y, endpos.x, endpos.y], height: canvas.dimensions.height, width: canvas.dimensions.width, type: "p"}}]);
     if (DEBUG) console.log(`pokemon-assets | HandleIce: Sliding token ${token.name}`, foundry.utils.deepClone(tokenSource), foundry.utils.deepClone(endpos), dx * count, dy * count);
-    endpos = game.canvas.grid.getSnappedPoint({
-      x: startpos.x + (dx * (count - 0.7)),
-      y: startpos.y + (dy * (count - 0.7)),
-    }, { mode: CONST.GRID_SNAPPING_MODES.TOP_LEFT_VERTEX });
 
     if (DEBUG) canvas.scene.createEmbeddedDocuments("Drawing", [{
+      strokeColor: "#00ff00",
+      shape:{points:[], height: 32, width: 32, type: "e"},
+      x: endpos.x - 16,
+      y: endpos.y - 16,
+    }]);
+
+    endpos.x -= sizeX / 2;
+    endpos.y -= sizeY / 2;
+
+    if (DEBUG) canvas.scene.createEmbeddedDocuments("Drawing", [{
+      strokeColor: "#ffff00",
       shape:{points:[], height: 32, width: 32, type: "e"},
       x: endpos.x - 16,
       y: endpos.y - 16,
@@ -424,6 +437,13 @@ async function HandleIce() {
       x: endpos.x,
       y: endpos.y,
     });
+  } else {
+    if (DEBUG) canvas.scene.createEmbeddedDocuments("Drawing", [{
+      strokeColor: "#ff0000",
+      shape:{points:[], height: 32, width: 32, type: "e"},
+      x: endpos.x - 16,
+      y: endpos.y - 16,
+    }]);
   }
   await renderedToken.allAnimationsPromise;
   token._sliding = false;
