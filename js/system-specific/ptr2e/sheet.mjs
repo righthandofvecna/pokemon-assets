@@ -3,6 +3,8 @@ import { createPerkListManager, register as registerPerkTemplates } from "./perk
 
 export function register() {
   class PTR2eSheetPA extends CONFIG.PTR.Actor.sheetClasses.character {
+    static get name() { return 'PTR2eSheetPA'; }
+    
     static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
       classes: [...super.DEFAULT_OPTIONS.classes, MODULENAME],
       actions: {
