@@ -10,7 +10,7 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 - Token and Tile collisions (tokens can't enter each other's spaces, as if there were walls around the tokens, and tiles can be configured as solid)
 - Restricting movement to keyboard-only or disallowing diagonals on a per-scene basis
 - Animations and sounds for catching Pokémon and taking damage
-- Sliding Ice, One-Way Jumps, Trainer's "Eyes Meeting" Animations and movement, Pokémon Centers & Computers, and scene-to-scene doors (usable through Foundry v12's "Regions" tool)
+- Sliding Ice, One-Way Jumps, Trainer's "Eyes Meeting" Animations and movement, Pokémon Centers & Computers, and scene-to-scene doors (usable through Foundry v13's "Regions" tool)
 - Breakable Boulders (*Rock Smash*), Destructible Plants (*Cut*), Destructible Whirlpools (*Whirlpool*), Movable Boulders (*Strength*), Climbable Rocks (*Rock Climb*), Climbable Waterfalls (*Waterfall*), and the ability to use their corresponding field moves to destroy/move/interact with them
 - Tile Scripts, which are scripts that run when the user interacts with a tile. A tool for quickly placing signs is also included.
 - Interacting with things like Item Piles with the Enter button (configurable), or opening unlocked doors with Enter
@@ -24,6 +24,9 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 ***Method 1.*** **Setting the Trainer Profile.** You can set the actor's profile to one of the images in `modules/pokemon-assets/img/trainers-profile`, which will automatically set the actor's Prototype Token to use the associated spritesheet.
 
 ***Method 2.*** **Manual Setting.** The trainer overworld sprites are located in `modules/pokemon-assets/img/trainers-overworld`; the Pokemon ones are in `modules/pokemon-assets/img/pmd-overworld` (but the Pokemon sprites should get automatically set for PTR and PTR2e)
+
+### Custom Sprites
+This system is fairly adaptable as far as sprite sheets go. For Gen 4-style sheets, you can base them off [this blank trainer overworld image](img/trainers-overworld/blank_gen4.png).
 
 
 ### Token Following
