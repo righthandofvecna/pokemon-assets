@@ -110,7 +110,7 @@ LornaWR	<@!598484619897077761>	https://twitter.com/LornaWR_
 	<@!828520880299966525>	
 Precascer	<@!340299853345325056>	https://twitter.com/Precascer
 Mr_L	<@!177522243985866754>	
-Murpi	<@!593113130213572610>	https://bsky.app/profile/murpia57.bsky.social
+Morei	<@!593113130213572610>	https://bsky.app/profile/murpia57.bsky.social
 "motherhenna(Helen)"	MOTHERHENNA	<@!543717476421074945>
 Fearless-Quit	<@!801938240562397194>	
 PhillipsYoung	<@!772726854188400641>	https://twitter.com/PhilliYoung196
@@ -179,7 +179,7 @@ ShyStarryRain	<@!576876006636519434>
 	<@!136619914512433152>	
 SkeleJ64	<@!291732421332697098>	<@291732421332697098>
 	<@!319728945920475137>	
-Garbage	<@!350050109741858829>	https://twitter.com/Just_Tr4sh
+G〜	<@!350050109741858829>	https://bsky.app/profile/justtr4sh.pmd.social
 LightBlueBlaze	<@!283045864509800468>	LightBlueBlaze@gmail.com
 Dejais	<@!375676609283358722>	<@375676609283358722>
 Jelly	<@!402702516866908160>	https://www.deviantart.com/drjellystone
@@ -281,3 +281,5 @@ brookriver	<@!255219192901402624>	https://brookriver.carrd.co/
 JustAGunk	<@!1377429093997477928>	<@1377429093997477928>
 Neat_Neato	<@!181900575934382081>	imneatneato@gmail.com
 SethY	<@!268261643178344448>	https://linktr.ee/sethyuikora
+<ElGian>	<@!770438729575563284>	<gfcobross@gmail.com>
+<SKREE>	<@!350778126919401485>	<https://www.tumblr.com/blog/skree-like-a-pterodactyl>
