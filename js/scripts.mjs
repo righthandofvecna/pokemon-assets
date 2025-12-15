@@ -506,14 +506,14 @@ async function IndicateDamage(actor, token, lowHp) {
  * @returns the sequence to play
  */
 function ThrowPokeball(source, target, img, hit) {
-  const sceneVisible = target?.scene?.id === canvas?.scene?.id;
+  const scene = tokenScene(target);
+  const sceneVisible = scene?.id == canvas?.scene?.id;
   if (!sceneVisible) return;
   Sequencer.Preloader.preload([
     "modules/pokemon-assets/audio/bgs/pokeball-throw.mp3",
     "modules/pokemon-assets/audio/bgs/pokeball-drop.mp3",
   ]);
 
-  const scene = tokenScene(target);
   const targetCenter = target.center ?? {
     x: target.x + (target.width * (scene?.grid?.sizeX ?? 100) / 2),
     y: target.y + (target.height * (scene?.grid?.sizeY ?? 100) / 2)

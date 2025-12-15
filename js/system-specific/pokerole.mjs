@@ -187,7 +187,7 @@ async function OnCreateToken(token, options) {
   if (!isActorPokemon(actor)) return;
   const scene = tokenScene(token);
   const trainerId = actor.getFlag(MODULENAME, "trainerId");
-  const source = trainerId ? scene?.tokens?.find(t=>t.actor?.uuid === trainerId || t.baseActor?.uuid === trainerId) : null;
+  const source = trainerId ? scene?.tokens?.find(t=>t.actor?.uuid == trainerId || t.baseActor?.uuid == trainerId) : null;
   const isTrained = !!trainerId;
 
   const shiny = false;
