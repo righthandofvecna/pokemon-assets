@@ -307,8 +307,13 @@ export class PerkListManager {
     _getActorPerk(perk, slug, isMulti) {
         if (!this.actor?.perks) return null;
         
-        if (isMulti && perk.system?.mode === 'shared') {
-            return this.actor.perks.get(perk.slug);
+        // For multi-variant perks with shared mode, use the base perk slug
+        // For tiered perks, always use the slug parameter
+        if (perk.system?.variant === 'multi') {
+            if (perk.system?.mode === 'shared') {
+                return this.actor.perks.get(perk.slug);
+            }
+            return this.actor.perks.get(slug);
         }
         return this.actor.perks.get(slug);
     }
@@ -331,6 +336,7 @@ export class PerkListManager {
         
         const maxTier = Math.max(...tiers.map(t => t.tier));
         const lastPurchasedTier = tiers.reduce((acc, { perk: p, tier }) => {
+            // For tiered perks, always use base perk slug (they don't use node-specific slugs)
             const item = this.actor.perks.get(p.slug);
             return item ? Math.max(acc, tier) : acc;
         }, 1);
@@ -554,7 +560,12 @@ export class PerkListManager {
                 if (!sourceData) continue;
                 
                 // Skip perks whose prerequisites we can't meet (use cache) (#7)
-                const isSourcePurchased = this._purchasedSlugs.has(sourceSlug);
+                // For multi-variant shared mode perks, check if any node is purchased
+                let isSourcePurchased = this._purchasedSlugs.has(sourceSlug);
+                if (!isSourcePurchased && sourceData.isMulti && sourceData.perk.system?.mode === 'shared') {
+                    // Check if the base perk (any node) is purchased
+                    isSourcePurchased = this.actor?.perks.get(sourceData.perk.slug) != null;
+                }
                 if (!isSourcePurchased && !this._prerequisiteCache.get(sourceSlug)) {
                     continue; // Can't use this perk in a path since we can't meet its prerequisites
                 }
@@ -677,9 +688,21 @@ export class PerkListManager {
         path.push(targetSlug);
         
         // Build perks array (excluding the target)
+        // IMPORTANT: preserve the node-specific slug so purchases can set originSlug correctly
+        // (multi-variant perks rely on originSlug for node association in the web)
         const perks = path.slice(0, -1)
-            .map(slug => this._perkMap.get(slug))
-            .filter(data => data);
+            .map((slug) => {
+                const data = this._perkMap.get(slug);
+                if (!data) return null;
+                return {
+                    slug,
+                    perk: data.perk,
+                    node: data.node,
+                    tierInfo: data.tierInfo,
+                    cost: this._getPerkCost(data.perk, data.node, data.tierInfo)
+                };
+            })
+            .filter(step => step);
         
         return {
             path,
@@ -1210,6 +1233,7 @@ export class PerkListManager {
         
         // Handle tiered perks with "replace" mode
         if (currentNode.perk.system?.variant === 'tiered' && currentNode.perk.system?.mode === 'replace') {
+            // For tiered perks, always use base perk slug
             const current = this.actor.perks.get(currentNode.perk.slug);
             
             // Preserve old choice sets
@@ -1280,6 +1304,8 @@ export class PerkListManager {
             }
         } else {
             // Standard perk purchase
+            // Note: originSlug stores where the perk came from in the web (can be node-specific slug)
+            // but the actual item slug will be the base perk's slug
             await CONFIG.Item.documentClass.create(perk.clone({
                 system: {
                     cost: perk.system.cost,
@@ -1354,12 +1380,12 @@ export class PerkListManager {
         }
         
         // Purchase each perk in the path in order
-        for (const { perk, cost } of perkEntry.pathToReach) {
-            await this._purchaseSinglePerk(perk, cost);
+        for (const { perk, cost, slug: stepSlug } of perkEntry.pathToReach) {
+            await this._purchaseSinglePerk(perk, cost, stepSlug);
         }
         
         // Purchase the target perk
-        await this._purchaseSinglePerk(perkEntry.perk, perkEntry.cost);
+        await this._purchaseSinglePerk(perkEntry.perk, perkEntry.cost, perkEntry.slug);
         
         const totalCost = perkEntry.displayCost ?? perkEntry.cost;
         ui.notifications.info(`Purchased path to ${perkEntry.name} for ${totalCost} AP (${perkEntry.pathToReach.length + 1} perks)`);
@@ -1400,11 +1426,11 @@ export class PerkListManager {
      * @param {Object} perk - The perk to purchase
      * @param {number} cost - The cost of the perk
      */
-    async _purchaseSinglePerk(perk, cost) {
+    async _purchaseSinglePerk(perk, cost, originSlug) {
         await CONFIG.Item.documentClass.create(perk.clone({
             system: {
                 cost: cost,
-                originSlug: perk.slug
+                originSlug: originSlug ?? perk.slug
             }
         }).toObject(), {
             parent: this.actor
@@ -1555,8 +1581,13 @@ export class PerkListApplication extends foundry.applications.api.HandlebarsAppl
                 const costToCheck = isAvailableLater ? (entry.displayCost ?? entry.cost) : entry.cost;
                 const canAfford = canPurchase && costToCheck <= apAvailable;
 
-                // Build path chain string for "Available Later" perks
-                let pathChain = entry.pathToReach?.map(data => data.perk) ?? [];
+                // Build path chain for "Available Later" perks.
+                // Keep node-specific slug so the UI (and purchases) can refer to the correct node.
+                let pathChain = entry.pathToReach?.map(step => ({
+                    name: step.perk?.name,
+                    uuid: step.perk?.uuid,
+                    slug: step.slug
+                })) ?? [];
 
                 return {
                     ...entry,

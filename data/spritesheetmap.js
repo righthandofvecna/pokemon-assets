@@ -671,11 +671,17 @@ export default
       "00XX/008X/0080.png": {
         "animationframes": 4
       },
+      "00XX/008X/0080_MEGA.png": {
+        "animationframes": 8
+      },
       "00XX/008X/0080_galarian.png": {
         "animationframes": 4
       },
       "00XX/008X/0080s.png": {
         "animationframes": 4
+      },
+      "00XX/008X/0080s_MEGA.png": {
+        "animationframes": 8
       },
       "00XX/008X/0080s_galarian.png": {
         "animationframes": 4
@@ -2927,8 +2933,14 @@ export default
       "03XX/035X/0358.png": {
         "animationframes": 12
       },
+      "03XX/035X/0358_MEGA.png": {
+        "animationframes": 1
+      },
       "03XX/035X/0358s.png": {
         "animationframes": 12
+      },
+      "03XX/035X/0358s_MEGA.png": {
+        "animationframes": 1
       },
       "03XX/035X/0359.png": {
         "animationframes": 4
@@ -4811,6 +4823,9 @@ export default
       "05XX/059X/0594.png": {
         "animationframes": 12
       },
+      "05XX/059X/0594s.png": {
+        "animationframes": 12
+      },
       "05XX/059X/0595.png": {
         "animationframes": 4
       },
@@ -4837,6 +4852,21 @@ export default
       },
       "05XX/059X/0599.png": {
         "animationframes": 6
+      },
+      "05XX/059X/0599s.png": {
+        "animationframes": 10
+      },
+      "06XX/060X/0600.png": {
+        "animationframes": 10
+      },
+      "06XX/060X/0600s.png": {
+        "animationframes": 10
+      },
+      "06XX/060X/0601.png": {
+        "animationframes": 10
+      },
+      "06XX/060X/0601s.png": {
+        "animationframes": 10
       },
       "06XX/060X/0602.png": {
         "animationframes": 4
@@ -6034,6 +6064,9 @@ export default
       "07XX/075X/0750.png": {
         "animationframes": 4
       },
+      "07XX/075X/0750s.png": {
+        "animationframes": 4
+      },
       "07XX/075X/0751.png": {
         "animationframes": 4
       },
@@ -6573,6 +6606,9 @@ export default
       },
       "08XX/081X/0819.png": {
         "animationframes": 8
+      },
+      "08XX/081X/0819s.png": {
+        "animationframes": 4
       },
       "08XX/082X/0820.png": {
         "animationframes": 4
@@ -7357,6 +7393,12 @@ export default
       "09XX/091X/0916m.png": {
         "animationframes": 4
       },
+      "09XX/091X/0917.png": {
+        "animationframes": 4
+      },
+      "09XX/091X/0917s.png": {
+        "animationframes": 4
+      },
       "09XX/091X/0918.png": {
         "animationframes": 4
       },
@@ -7430,6 +7472,9 @@ export default
         "animationframes": 1
       },
       "09XX/093X/0930.png": {
+        "animationframes": 4
+      },
+      "09XX/093X/0930s.png": {
         "animationframes": 4
       },
       "09XX/093X/0932.png": {
@@ -7936,7 +7981,7 @@ export default
         "animationframes": 4
       }
     },
-    "sheetstyle": "pmd"
+    "sheetstyle": "eight"
   },
   "modules/pokemon-assets/img/trainers-overworld/": {
     "animationframes": 4,
@@ -7981,7 +8026,7 @@ export default
       "tuber_m.png": {},
       "youngster.png": {}
     },
-    "sheetstyle": "trainer"
+    "sheetstyle": "dlru"
   },
   "modules/pokemon-assets/img/trainers-overworld/custom_": {
     "anchor": 0.63,
@@ -7990,7 +8035,7 @@ export default
       "acetrainer_f_xy.png": {}
     },
     "scale": 1.1,
-    "sheetstyle": "trainer3"
+    "sheetstyle": "durlReduced"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_": {
     "anchor": 0.65,
@@ -8411,6 +8456,6 @@ export default
       "youngster_m_pe_01u2uyla.webp": {}
     },
     "scale": 1.5,
-    "sheetstyle": "trainer3"
+    "sheetstyle": "durlReduced"
   }
 }

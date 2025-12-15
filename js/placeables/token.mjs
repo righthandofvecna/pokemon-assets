@@ -30,29 +30,43 @@ async function OnRenderTokenConfig(config, html, context) {
     const isPredefined = predefinedSheetSettings !== undefined;
 
     const data = {
-      spritesheet: isPredefined || (form.querySelector("input[name='flags.pokemon-assets.spritesheet']")?.checked ?? token.getFlag("pokemon-assets", "spritesheet")),
-      sheetstyle: form.querySelector("select[name='flags.pokemon-assets.sheetstyle']")?.value ?? token.getFlag("pokemon-assets", "sheetstyle") ?? "trainer",
-      animationframes: (parseInt(form.querySelector("input[name='flags.pokemon-assets.animationframes']")?.value) || token.getFlag("pokemon-assets", "animationframes")) ?? 4,
-      separateidle: form.querySelector("input[name='flags.pokemon-assets.separateidle']")?.checked ?? token.getFlag("pokemon-assets", "separateidle") ?? false,
-      noidle: form.querySelector("input[name='flags.pokemon-assets.noidle']")?.checked ?? token.getFlag("pokemon-assets", "noidle") ?? false,
-      unlockedanchor: token.getFlag("pokemon-assets", "unlockedanchor") ?? false,
-      unlockedfit: token.getFlag("pokemon-assets", "unlockedfit") ?? false,
+      spritesheet: isPredefined || (form.querySelector(`input[name='flags.${MODULENAME}.spritesheet']`)?.checked ?? token.getFlag(MODULENAME, "spritesheet")),
+      sheetstyle: form.querySelector(`select[name='flags.${MODULENAME}.sheetstyle']`)?.value ?? token.getFlag(MODULENAME, "sheetstyle") ?? "dlru",
+      animationframes: (parseInt(form.querySelector(`input[name='flags.${MODULENAME}.animationframes']`)?.value) || token.getFlag(MODULENAME, "animationframes")) ?? 4,
+      separateidle: form.querySelector(`input[name='flags.${MODULENAME}.separateidle']`)?.checked ?? token.getFlag(MODULENAME, "separateidle") ?? false,
+      noidle: form.querySelector(`input[name='flags.${MODULENAME}.noidle']`)?.checked ?? token.getFlag(MODULENAME, "noidle") ?? false,
+      unlockedanchor: token.getFlag(MODULENAME, "unlockedanchor") ?? false,
+      unlockedfit: token.getFlag(MODULENAME, "unlockedfit") ?? false,
       ...(predefinedSheetSettings ?? {}),
+      MODULENAME,
     };
+    
+    // Convert aliased sheet styles to their canonical equivalents
+    let SHEET_STYLE = SpritesheetGenerator.SHEET_STYLES[data.sheetstyle];
+    if (SHEET_STYLE?.alias) {
+      data.sheetstyle = SHEET_STYLE.alias;
+      SHEET_STYLE = SpritesheetGenerator.SHEET_STYLES[data.sheetstyle];
+    }
+    
+    if (SHEET_STYLE?.frames !== undefined) {
+      data.animationframes = SHEET_STYLE.frames;
+    }
 
-    // Populate the dropdown for the types of spritesheet layouts available
-    data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, label])=>{
-      return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${label}</option>`;
-    }, "");
+    // Populate the dropdown for the types of spritesheet layouts available (exclude aliases)
+    data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES)
+      .filter(([val, option]) => !option.alias) // Filter out aliased entries
+      .reduce((allOptions, [val, option])=>{
+        return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${game.i18n.localize(option.label)}</option>`;
+      }, "");
 
     // checkbox for whether or not this should be a spritesheet!
-    if (!form.querySelector("[name='flags.pokemon-assets.spritesheet']")) {
-      $(form).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.pokemon-assets.spritesheet" ${data.spritesheet ? "checked" : ""}>`);
+    if (!form.querySelector(`[name='flags.${MODULENAME}.spritesheet']`)) {
+      $(form).find("[name='texture.src']").before(`<label>Sheet</label><input type="checkbox" name="flags.${MODULENAME}.spritesheet" ${data.spritesheet ? "checked" : ""}>`);
     };
-    form.querySelector("[name='flags.pokemon-assets.spritesheet']").checked = data.spritesheet;
-    form.querySelector("[name='flags.pokemon-assets.spritesheet']").readonly = isPredefined;
+    form.querySelector(`[name='flags.${MODULENAME}.spritesheet']`).checked = data.spritesheet;
+    form.querySelector(`[name='flags.${MODULENAME}.spritesheet']`).readonly = isPredefined;
 
-    // check that the anchoring fields exist
+    // locks for "unlockedanchor" and "unlockedfit"
     for (const [tf,tfInput] of Object.entries({
       "fit": new foundry.data.fields.StringField({ label: "Fit", choices: ()=>({"fill": "Fill", "contain": "Contain", "cover": "Cover", "width": "Width", "height": "Height"}) }),
       "anchorX": new foundry.data.fields.NumberField({ label: "Anchor X" }),
@@ -66,12 +80,11 @@ async function OnRenderTokenConfig(config, html, context) {
       }
     }
 
-    // locks for "unlockedanchor" and "unlockedfit"
     $(form).find(".toggle-link-anchor-to-sheet").remove();
     const unlockedAnchorLink = $(`<a class="toggle-link-anchor-to-sheet" title="${data.unlockedanchor ? "Base Anchors on Sheet" : "Manual Anchors"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedanchor ? "fa-lock-open" : "fa-lock"}"></i></a>`);
     $(form).find('[name="texture.anchorX"]').closest('.form-group').find('> label').append(unlockedAnchorLink);
     $(unlockedAnchorLink).on("click", ()=>{
-      token.setFlag("pokemon-assets", "unlockedanchor", !data.unlockedanchor);
+      token.setFlag(MODULENAME, "unlockedanchor", !data.unlockedanchor);
     });
     if (!data.unlockedanchor) {
       $(form).find('[name="texture.anchorX"]').prop("readonly", true);
@@ -82,23 +95,30 @@ async function OnRenderTokenConfig(config, html, context) {
     const unlockedFitLink = $(`<a class="toggle-link-fit-to-sheet" title="${data.unlockedfit ? "Base Fit on Sheet" : "Manual Fit"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedfit ? "fa-lock-open" : "fa-lock"}"></i></a>`);
     $(form).find('[name="texture.fit"]').closest('.form-group').find('> label').append(unlockedFitLink);
     $(unlockedFitLink).on("click", ()=>{
-      token.setFlag("pokemon-assets", "unlockedfit", !data.unlockedfit);
+      token.setFlag(MODULENAME, "unlockedfit", !data.unlockedfit);
     });
     if (!data.unlockedfit) {
       $(form).find('[name="texture.fit"]').prop("readonly", true);
     }
 
     // additional spritesheet-specific configurations
-    data.showframes = (form.querySelector("[name='flags.pokemon-assets.sheetstyle']")?.value ?? data.sheetstyle) != "trainer3";
+    data.showframes = SHEET_STYLE?.frames === undefined;
     data.showidle = game.settings.get(MODULENAME, "playIdleAnimations") && !data.separateidle;
     data.hide = !data.spritesheet || isPredefined;
     data.hideaux = !data.spritesheet;
-    const rendered = $(await foundry.applications.handlebars.renderTemplate("modules/pokemon-assets/templates/token-settings.hbs", data)).get(0);
+    const rendered = $(await renderTemplate(`modules/${MODULENAME}/templates/token-settings.hbs`, data)).get(0);
     if (!form.querySelector(".spritesheet-config")) {
       $(form).find("[name='texture.src']").closest(".form-group").after(`<div class="spritesheet-config"></div>`)
     };
     form.querySelector(".spritesheet-config-aux")?.remove();
     form.querySelector(".spritesheet-config").replaceWith(rendered);
+
+    // check that the anchoring fields exist
+    for (const tf of ["fit", "anchorX", "anchorY"]) {
+      if (!form.querySelector(`[name='texture.${tf}']`)) {
+        $(form).append(`<input name="texture.${tf}" value="${token?.texture?.[tf]}" hidden />`);
+      }
+    }
 
     // update the anchors
     if (!data.spritesheet) {
@@ -140,7 +160,8 @@ async function OnRenderTokenConfig(config, html, context) {
     if (!width || !height) return;
     const directions = (()=>{
       switch (data.sheetstyle) {
-        case "pmd": return 8;
+        case "pmd":
+        case "eight": return 8;
         default: return 4;
       }
     })();
@@ -149,7 +170,8 @@ async function OnRenderTokenConfig(config, html, context) {
     const scale = form.querySelector("input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
       switch (data.sheetstyle) {
-        case "pmd": return 0.5;
+        case "pmd":
+        case "eight": return 0.5;
         default: return 1.02 + (0.5 / (-ratio * scale));
       }
     })();
@@ -182,11 +204,11 @@ async function OnRenderTokenConfig(config, html, context) {
   })
 
   // listen for the "spritesheet" toggle
-  $(form).on("change", "[name='flags.pokemon-assets.spritesheet']", refreshConfig);
+  $(form).on("change", `[name='flags.${MODULENAME}.spritesheet']`, refreshConfig);
 
-  $(form).on("change", "[name='flags.pokemon-assets.sheetstyle']", refreshConfig);
+  $(form).on("change", `[name='flags.${MODULENAME}.sheetstyle']`, refreshConfig);
 
-  $(form).on("change", "[name='flags.pokemon-assets.animationframes']", refreshConfig);
+  $(form).on("change", `[name='flags.${MODULENAME}.animationframes']`, refreshConfig);
 
   // listen for the "scale" value
   $(form).on("change", "[name='scale']", ()=>refreshConfig({updateScale: false}));
@@ -194,30 +216,28 @@ async function OnRenderTokenConfig(config, html, context) {
 
 
 /**
- * When a token's spritesheet settings have been updated, re-render the token immediately
- * Otherwise, it will take a scene/browser reload to display the changed settings.
+ * When a token's spritesheet settings have been updated, re-render the token immediately.
+ * The token object's _onUpdate method handles cache invalidation.
  * @param {*} token 
  * @param {*} changes 
  * @param {*} metadata 
  * @param {*} user 
- * @returns 
  */
-function OnUpdateToken(token, changes, metadata, user) {
-  if (!changes?.texture?.src &&
-    !changes?.flags?.["pokemon-assets"]?.sheetstyles &&
-    !changes?.flags?.["pokemon-assets"]?.animationframes)
-    return;
-
-  const src = changes?.texture?.src ?? token?.texture?.src;
-  if (!src) return;
+async function OnUpdateToken(token, changes, metadata, user) {
+  // Check if any spritesheet-related properties changed
+  const needsRedraw = changes?.texture?.src ||
+                      changes?.flags?.[MODULENAME]?.sheetstyle ||
+                      changes?.flags?.[MODULENAME]?.animationframes ||
+                      changes?.flags?.[MODULENAME]?.spritesheet;
   
-  const tokenObj = token?.object;
-  if (!tokenObj) return
+  if (!needsRedraw) return;
 
-  tokenObj.renderFlags.set({
-    redraw: true
-  });
-  tokenObj.applyRenderFlags();
+  const tokenObj = token?.object;
+  if (!tokenObj) return;
+
+  // Trigger a full redraw - cache invalidation is handled by _onUpdate
+  tokenObj.clear();
+  await tokenObj.draw();
 }
 
 
@@ -226,7 +246,7 @@ function OnUpdateToken(token, changes, metadata, user) {
 
 
 function OnPreUpdateToken(doc, change, options) {
-  if (!doc.getFlag("pokemon-assets", "spritesheet")) return;
+  if (!doc.getFlag(MODULENAME, "spritesheet")) return;
   
   const ox = doc.x ?? 0;
   const nx = change?.x ?? ox;
@@ -284,7 +304,7 @@ function getDirectionFromAngle(angle) {
 
 function OnCreateCombatant(combatant) {
   if (!isTheGM()) return;
-  if (!combatant?.token?.getFlag("pokemon-assets", "spritesheet")) return;
+  if (!combatant?.token?.getFlag(MODULENAME, "spritesheet")) return;
   combatant.update({
     "img": combatant?.actor?.img ?? "icons/svg/mystery-man.svg",
   });
@@ -313,6 +333,8 @@ export function register() {
     #textureKey;
     #direction;
     #localOpacity;
+    #idle;
+    #run;
 
     constructor(document) {
       super(document);
@@ -321,6 +343,8 @@ export function register() {
 
     #initialize() {
       this.#localOpacity = 1;
+      this.#idle = false;
+      this.#run = false;
     }
 
     /** @override */
@@ -337,7 +361,7 @@ export function register() {
     }
 
     get sheetStyle() {
-      return this.document.getFlag(MODULENAME, "sheetstyle") ?? "trainer";
+      return this.document.getFlag(MODULENAME, "sheetstyle") ?? "dlru";
     }
 
     get animationFrames() {
@@ -439,11 +463,11 @@ export function register() {
         else texture = await foundry.canvas.loadTexture(this.document.texture.src, {fallback: CONST.DEFAULT_TOKEN});
 
         this.#textureSrc = this.document.texture.src;
-        this.#textures = await game.modules.get("pokemon-assets").api.spritesheetGenerator.getTexturesForToken(this, texture);
+        this.#textures = await game.modules.get(MODULENAME).api.spritesheetGenerator.getTexturesForToken(this, texture);
         this.#textureKey = genSpritesheetKey;
       }
       this.#updateDirection();
-      this.texture = this.#textures[this.#facing][this.#index];
+      this.texture = this.#getTexture();
     }
 
     get isometric() {
@@ -454,27 +478,54 @@ export function register() {
       return this.#direction;
     }
 
-    get #facing() {
-      if (this.isometric) {
-        const options = [
-          "down",
-          "downright", 
-          "right",
-          "upright",
-          "up",
-          "upleft",
-          "left",
-          "downleft",
-          "down"];
-        return options[options.indexOf(this.#direction)+1];
-      }
-      return this.#direction;
+    #getTextureList() {
+      if (!this.isSpritesheet || this.#textures == null) return null;
+      const facing = (()=>{
+        if (this.isometric) {
+          const options = [
+            "down",
+            "downright", 
+            "right",
+            "upright",
+            "up",
+            "upleft",
+            "left",
+            "downleft",
+            "down"];
+          return options[options.indexOf(this.#direction)+1];
+        }
+        return this.#direction;
+      })();
+      const animation = (()=>{
+        if (this.#idle && !this.separateIdle && this.#textures[`idle${facing}`] !== undefined) {
+          return `idle${facing}`;
+        }
+        if (this.#run && this.#textures[`run${facing}`] !== undefined) {
+          return `run${facing}`;
+        }
+        return facing;
+      })();
+      return this.#textures[animation];
+    }
+
+    #getTexture() {
+      const textureList = this.#getTextureList();
+      if (!textureList) return null;
+      const index = (()=>{
+        const framesInAnimation = textureList.length;
+        if (this.#idle && this.separateIdle) {
+          return 0;
+        }
+        const idxOffset = this.separateIdle ? 1 : 0;
+        return idxOffset + ( this.#index % (framesInAnimation - idxOffset) );
+      })();
+      return textureList[index];
     }
 
     set direction(value) {
       this.#direction = value;
       if (this.#textures != null) {
-        this.texture = this.#textures[this.#facing][this.#index];
+        this.texture = this.#getTexture();
         if (this.mesh.texture != this.texture) {
           this.mesh.texture = this.texture;
           this.renderFlags.set({
@@ -505,7 +556,7 @@ export function register() {
       try {
         const scene = this?.document?.parent;
         const hasCombat = getCombatsForScene(scene?.uuid).length > 0;
-        if (!game.user.isGM && (scene.getFlag("pokemon-assets", "disableDrag") && !(scene.getFlag("pokemon-assets", "outOfCombat") && hasCombat)))
+        if (!game.user.isGM && (scene.getFlag(MODULENAME, "disableDrag") && !(scene.getFlag(MODULENAME, "outOfCombat") && hasCombat)))
           return false;
       } catch { }
       return super._canDrag();
@@ -526,7 +577,7 @@ export function register() {
       this.#updateDirection();
       this.#index = 0;
       if (this.#textures != null) {
-        this.texture = this.#textures[this.#facing][this.#index];
+        this.texture = this.#getTexture();
         if (this.mesh.texture != this.texture) {
           this.mesh.texture = this.texture;
           this.renderFlags.set({
@@ -550,13 +601,16 @@ export function register() {
         let desiredSpeed = 4; // default walk speed
 
         if (this.document._sliding) {
+          this.#run = false;
           desiredSpeed = game.settings.get(MODULENAME, "walkSpeed") ?? 4;
         } else {
           const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
           const manhattan = (Math.abs((to.x ?? from.x) - from.x) / sizeX) + (Math.abs((to.y ?? from.y) - from.y) / sizeY);
           if (manhattan < (game.settings.get(MODULENAME, "runDistance") ?? 5)) {
+            this.#run = false;
             desiredSpeed = game.settings.get(MODULENAME, "walkSpeed") ?? 4;
           } else {
+            this.#run = true;
             desiredSpeed = game.settings.get(MODULENAME, "runSpeed") ?? 8;
           }
         }
@@ -591,7 +645,8 @@ export function register() {
 
     startIdleAnimation() {
       if (this.destroyed) return;
-      const fia = this.framesInAnimation;
+      this.#idle = true;
+      const fia = this.#getTextureList()?.length ?? 0;
       if (fia <= 1) return;
       const iad = this.idleAnimationDuration;
       if (iad <= 0) return;
@@ -629,12 +684,6 @@ export function register() {
       return attributes;
     }
 
-    get framesInAnimation() {
-      if (!this.isSpritesheet || this.#textures == null) return 1;
-      const idxOffset = this.separateIdle ? 1 : 0;
-      return this.#textures[this.#facing].length - idxOffset;
-    }
-
     _getAnimationData() {
       return {
         ...super._getAnimationData(),
@@ -658,30 +707,33 @@ export function register() {
       const dx = (context?.to?.x ?? changed.x ?? 0) - (changed.x ?? context?.to?.x ?? 0);
       const dy = (context?.to?.y ?? changed.y ?? 0) - (changed.y ?? context?.to?.y ?? 0);
       if (changed.frame != undefined) { // idle animation
+        this.#idle = true;
         if (changed.rotation != undefined) {
           this.#direction = getDirectionFromAngle(changed.rotation);
         } else if (dx != 0 || dy != 0) {
           this.#direction = getDirection(dx, dy);
+          this.#idle = false;
         }
-        const idxOffset = this.separateIdle ? 1 : 0;
-        this.#index = idxOffset + ( frame % this.framesInAnimation );
+        this.#index = frame;
       } else if (this._spinning && (dx != 0 || dy != 0)) { // spinning animation
+        this.#idle = false;
         this.#index = 0;
         this.#direction = ["down", "right", "up", "left"][frame % 4];
       } else if (dx != 0 || dy != 0) {  // normal animation
+        this.#idle = false;
         this.#direction = getDirectionFromAngle(changed.rotation ?? this.document.rotation);
-        const idxOffset = this.separateIdle ? 1 : 0;
-        this.#index = idxOffset + ( frame % this.framesInAnimation );
+        this.#index = frame;
       } else {
+        this.#idle = true;
         this.#direction = getDirectionFromAngle(changed.rotation ?? this.document.rotation);
         this.#index = 0; // no movement, reset to first frame
       }
 
       if (this.document._sliding) { // slide with one leg out
-        this.#index = Math.min(1, this.#textures[this.#facing].length);
+        this.#index = 1;
       }
 
-      const newTexture = this.#textures[this.#facing][this.#index];
+      const newTexture = this.#getTexture();
       if (this.mesh.texture != newTexture) {
         this.mesh.texture = newTexture;
         this.renderFlags.set({
@@ -847,15 +899,21 @@ export function register() {
 
     /** @inheritDoc */
     _onUpdate(changed, options, userId) {
-      // if (options.teleport === true) {
-      //   const to = foundry.utils.filterObject(this._getAnimationData(), changed);
-      //   this._handleTeleportAnimation(to);
-      // }
       super._onUpdate(changed, options, userId);
+      
       if ("hidden" in changed && !changed.hidden) {
         this.#localOpacity = 1;
       }
-      if (changed.flags?.[MODULENAME]?.spritesheet !== undefined) {
+      
+      // Invalidate cached textures when spritesheet configuration changes
+      const needsTextureRefresh = changed.flags?.[MODULENAME]?.spritesheet !== undefined ||
+                                   changed.flags?.[MODULENAME]?.sheetstyle !== undefined ||
+                                   changed.flags?.[MODULENAME]?.animationframes !== undefined;
+      
+      if (needsTextureRefresh) {
+        this.#textures = null;
+        this.#textureSrc = null;
+        this.#textureKey = null;
         this.renderable = true;
         this.initializeSources();
       }
