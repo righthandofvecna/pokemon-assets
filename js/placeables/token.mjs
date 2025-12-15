@@ -216,30 +216,28 @@ async function OnRenderTokenConfig(config, html, context) {
 
 
 /**
- * When a token's spritesheet settings have been updated, re-render the token immediately
- * Otherwise, it will take a scene/browser reload to display the changed settings.
+ * When a token's spritesheet settings have been updated, re-render the token immediately.
+ * The token object's _onUpdate method handles cache invalidation.
  * @param {*} token 
  * @param {*} changes 
  * @param {*} metadata 
  * @param {*} user 
- * @returns 
  */
-function OnUpdateToken(token, changes, metadata, user) {
-  if (!changes?.texture?.src &&
-    !changes?.flags?.[MODULENAME]?.sheetstyles &&
-    !changes?.flags?.[MODULENAME]?.animationframes)
-    return;
-
-  const src = changes?.texture?.src ?? token?.texture?.src;
-  if (!src) return;
+async function OnUpdateToken(token, changes, metadata, user) {
+  // Check if any spritesheet-related properties changed
+  const needsRedraw = changes?.texture?.src ||
+                      changes?.flags?.[MODULENAME]?.sheetstyle ||
+                      changes?.flags?.[MODULENAME]?.animationframes ||
+                      changes?.flags?.[MODULENAME]?.spritesheet;
   
-  const tokenObj = token?.object;
-  if (!tokenObj) return
+  if (!needsRedraw) return;
 
-  tokenObj.renderFlags.set({
-    redraw: true
-  });
-  tokenObj.applyRenderFlags();
+  const tokenObj = token?.object;
+  if (!tokenObj) return;
+
+  // Trigger a full redraw - cache invalidation is handled by _onUpdate
+  tokenObj.clear();
+  await tokenObj.draw();
 }
 
 
@@ -901,15 +899,21 @@ export function register() {
 
     /** @inheritDoc */
     _onUpdate(changed, options, userId) {
-      // if (options.teleport === true) {
-      //   const to = foundry.utils.filterObject(this._getAnimationData(), changed);
-      //   this._handleTeleportAnimation(to);
-      // }
       super._onUpdate(changed, options, userId);
+      
       if ("hidden" in changed && !changed.hidden) {
         this.#localOpacity = 1;
       }
-      if (changed.flags?.[MODULENAME]?.spritesheet !== undefined) {
+      
+      // Invalidate cached textures when spritesheet configuration changes
+      const needsTextureRefresh = changed.flags?.[MODULENAME]?.spritesheet !== undefined ||
+                                   changed.flags?.[MODULENAME]?.sheetstyle !== undefined ||
+                                   changed.flags?.[MODULENAME]?.animationframes !== undefined;
+      
+      if (needsTextureRefresh) {
+        this.#textures = null;
+        this.#textureSrc = null;
+        this.#textureKey = null;
         this.renderable = true;
         this.initializeSources();
       }
