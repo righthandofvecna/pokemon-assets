@@ -40,15 +40,24 @@ async function OnRenderTokenConfig(config, html, context) {
       ...(predefinedSheetSettings ?? {}),
       MODULENAME,
     };
-    const SHEET_STYLE = SpritesheetGenerator.SHEET_STYLES[data.sheetstyle];
+    
+    // Convert aliased sheet styles to their canonical equivalents
+    let SHEET_STYLE = SpritesheetGenerator.SHEET_STYLES[data.sheetstyle];
+    if (SHEET_STYLE?.alias) {
+      data.sheetstyle = SHEET_STYLE.alias;
+      SHEET_STYLE = SpritesheetGenerator.SHEET_STYLES[data.sheetstyle];
+    }
+    
     if (SHEET_STYLE?.frames !== undefined) {
       data.animationframes = SHEET_STYLE.frames;
     }
 
-    // Populate the dropdown for the types of spritesheet layouts available
-    data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, option])=>{
-      return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${game.i18n.localize(option.label)}</option>`;
-    }, "");
+    // Populate the dropdown for the types of spritesheet layouts available (exclude aliases)
+    data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES)
+      .filter(([val, option]) => !option.alias) // Filter out aliased entries
+      .reduce((allOptions, [val, option])=>{
+        return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${game.i18n.localize(option.label)}</option>`;
+      }, "");
 
     // checkbox for whether or not this should be a spritesheet!
     if (!form.querySelector(`[name='flags.${MODULENAME}.spritesheet']`)) {

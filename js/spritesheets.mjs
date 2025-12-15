@@ -50,8 +50,8 @@ function sliceDLRU(sheetKey, slicingInfo, frames) {
  * @param {*} slicingInfo 
  * @param {*} frames 
  */
-function sliceDURLeduced(sheetKey, slicingInfo, frames) {
-  frames = 3; // force this to be 3 for dlruReduced
+function sliceDURLReduced(sheetKey, slicingInfo, frames) {
+  frames = 3; // force this to be 3 for durlReduced
   const [frameWidth, frameHeight] = [slicingInfo.meta.size.w / frames, slicingInfo.meta.size.h / 4];
   for (let c=0; c<frames; c++) {
     for (let r=0; r<4; r++) {
@@ -336,7 +336,7 @@ export class SpritesheetGenerator {
     durlReduced: {
       label: "4-directions (Reduced Trainer Overworld Style)",
       hint: "Reduced 4-direction spritesheet (3 frames) with Down, Up, Right, Left rows",
-      slicer: sliceDURLeduced,
+      slicer: sliceDURLReduced,
       frames: 3, // force this to be 3 for durlReduced
     },
     eight: {
@@ -345,12 +345,12 @@ export class SpritesheetGenerator {
       slicer: sliceEight,
     },
     diagonal: {
-      label: "4-directions, diagonal (Digimon)",
+      label: "4-directions, Diagonal (Digimon)",
       hint: "4-direction diagonal spritesheet with DownRight, UpRight, UpLeft, DownLeft rows",
       slicer: sliceDiagonal,
     },
     nihey: {
-      label: "4-directions (Nihey Style)",
+      label: "Nihey Style",
       hint: "Nihey-style 4-direction spritesheet (3 frames) with Down, Up, Right, Left rows",
       slicer: sliceNihey,
       frames: 3, // force this to be 3 for nihey
@@ -373,27 +373,32 @@ export class SpritesheetGenerator {
       label: "4-directions (Trainer Overworld Style)",
       hint: "Legacy alias for dlru",
       slicer: sliceDLRU,
+      alias: "dlru",
     },
     trainer3: {
       label: "4-directions (Reduced Trainer Overworld Style)",
       hint: "Legacy alias for durlReduced",
-      slicer: sliceDURLeduced,
+      slicer: sliceDURLReduced,
       frames: 3,
+      alias: "durlReduced",
     },
     pkmn: {
       label: "4-directions (Pokemon Overworld Style)",
       hint: "Legacy alias for dlru",
       slicer: sliceDLRU,
+      alias: "dlru",
     },
     pmd: {
       label: "8-direction (Mystery Dungeon Style)",
       hint: "Legacy alias for eight",
       slicer: sliceEight,
+      alias: "eight",
     },
     digimon: {
-      label: "4-directions, diagonal (Digimon)",
+      label: "4-directions, Diagonal (Digimon)",
       hint: "Legacy alias for diagonal",
       slicer: sliceDiagonal,
+      alias: "diagonal",
     },
   };
 

@@ -24,10 +24,10 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 To set up a token to use animated spritesheets, open the Prototype Token settings and navigate to the **"Appearance"** tab. Set your spritesheet as the token image, check the **"Sheet"** checkbox next to the image path, and then choose the Sheet Style as appropriate.
 
 #### Standard Spritesheet Formats
-- **DLRU (Down-Left-Right-Up)** - Standard 4-direction overworld sprites
-- **DURL Reduced** - Reduced 3-frame trainer overworld style
-- **8-Directional (Mystery Dungeon)** - PMD-style 8-direction sprites
-- **Diagonal** - 4 diagonal directions only
+- **4-directions (Down-Left-Right-Up)** - Standard 4-direction overworld sprites
+- **4-directions (Reduced Trainer Overworld Style)** - Reduced 3-frame trainer overworld style
+- **8-directions (Mystery Dungeon Style)** - PMD-style 8-direction sprites
+- **4-directions, Diagonal (Digimon)** - 4 diagonal directions only
 
 #### Third-Party Spritesheet Generators
 - **Nihey** - For spritesheets from [Nihey's Retro Sprite Creator](https://retro-sprite-creator.nihey.org/character/new)

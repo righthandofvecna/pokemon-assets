@@ -7936,7 +7936,7 @@ export default
         "animationframes": 4
       }
     },
-    "sheetstyle": "pmd"
+    "sheetstyle": "eight"
   },
   "modules/pokemon-assets/img/trainers-overworld/": {
     "animationframes": 4,
@@ -7981,7 +7981,7 @@ export default
       "tuber_m.png": {},
       "youngster.png": {}
     },
-    "sheetstyle": "trainer"
+    "sheetstyle": "dlru"
   },
   "modules/pokemon-assets/img/trainers-overworld/custom_": {
     "anchor": 0.63,
@@ -7990,7 +7990,7 @@ export default
       "acetrainer_f_xy.png": {}
     },
     "scale": 1.1,
-    "sheetstyle": "trainer3"
+    "sheetstyle": "durlReduced"
   },
   "modules/pokemon-assets/img/trainers-overworld/trainer_": {
     "anchor": 0.65,
@@ -8411,6 +8411,6 @@ export default
       "youngster_m_pe_01u2uyla.webp": {}
     },
     "scale": 1.5,
-    "sheetstyle": "trainer3"
+    "sheetstyle": "durlReduced"
   }
 }
