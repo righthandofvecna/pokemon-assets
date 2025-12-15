@@ -215,7 +215,7 @@ function OnRenderPokeroleActorSheet(sheet, html, context) {
   // add a pokeball field to the sheet
   const ball = sheet.actor.getFlag(MODULENAME, "pokeballImage") ?? game.settings.get(MODULENAME, "defaultBallImage");
   const pbf = $(`<div class="pokeball-field" data-tooltip="POKEMON-ASSETS.Fields.Pokeball.hint">${game.i18n.localize("POKEMON-ASSETS.Fields.Pokeball.label")}: <img src="${ball}"></div>`);
-  $(html).find(".pokedex-number-name").after(pbf);
+  $(html).find(".species-data:last-child .pokedex-number-name").after(pbf);
   $(pbf).on("click", (event) => {
     event.preventDefault();
     new FilePicker({
@@ -231,7 +231,7 @@ function OnRenderPokeroleActorSheet(sheet, html, context) {
   const trainer = sheet.actor.getFlag(MODULENAME, "trainerId") ?? null;
   fromUuid(trainer).then(trainer=>{
     const name = trainer?.name ?? game.i18n.localize("POKEMON-ASSETS.Settings.Trainer.none");
-    $(html).find(".pokedex-number-name").after(`<div class="trainer" data-tooltip="POKEMON-ASSETS.Settings.Trainer.hint">${game.i18n.localize("POKEMON-ASSETS.Settings.Trainer.label")}: ${name}</div>`);
+    $(html).find(".species-data:last-child .pokedex-number-name").after(`<div class="trainer" data-tooltip="POKEMON-ASSETS.Settings.Trainer.hint">${game.i18n.localize("POKEMON-ASSETS.Settings.Trainer.label")}: ${name}</div>`);
     // add a drop hook
     const trainerDiv = $(html).find(".trainer").get(0);
     trainerDiv.addEventListener("drop", async (event) => {
