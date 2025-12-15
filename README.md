@@ -19,6 +19,21 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 
 ## Usage
 
+### Animated Spritesheets
+
+To set up a token to use animated spritesheets, open the Prototype Token settings and navigate to the **"Appearance"** tab. Set your spritesheet as the token image, check the **"Sheet"** checkbox next to the image path, and then choose the Sheet Style as appropriate.
+
+#### Standard Spritesheet Formats
+- **DLRU (Down-Left-Right-Up)** - Standard 4-direction overworld sprites
+- **DURL Reduced** - Reduced 3-frame trainer overworld style
+- **8-Directional (Mystery Dungeon)** - PMD-style 8-direction sprites
+- **Diagonal** - 4 diagonal directions only
+
+#### Third-Party Spritesheet Generators
+- **Nihey** - For spritesheets from [Nihey's Retro Sprite Creator](https://retro-sprite-creator.nihey.org/character/new)
+- **Universal LPC** - For [Universal LPC Spritesheet Generator](https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator) (download as single image). Note: Because Universal LPC sheets contain many animations, you may experience performance issues with large numbers of these tokens. To improve performance, isolate the walking animation and use one of the standard sheet styles.
+- **Memao** - For [Sleeping Robot's Memao Sprite Creator](https://sleepingrobot.itch.io/memao-sprite-creator)
+
 ### Setting Sprites
 
 ***Method 1.*** **Setting the Trainer Profile.** You can set the actor's profile to one of the images in `modules/pokemon-assets/img/trainers-profile`, which will automatically set the actor's Prototype Token to use the associated spritesheet.

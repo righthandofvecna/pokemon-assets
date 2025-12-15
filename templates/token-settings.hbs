@@ -3,21 +3,21 @@
     <div class="form-group sheet-style">
         <label>Sheet Style</label>
         <div class="form-fields">
-            <select name="flags.pokemon-assets.sheetstyle">{{{sheetStyleOptions}}}</select>
+            <select name="flags.{{MODULENAME}}.sheetstyle">{{{sheetStyleOptions}}}</select>
         </div>
         <p class="hint">What the sheet's layout style is.</p>
     </div>
     <div class="form-group sheet-frames" {{#unless showframes}}style="display: none"{{/unless}}>
         <label>Sheet Frames</label>
         <div class="form-fields">
-            <input type="number" name="flags.pokemon-assets.animationframes" value="{{animationframes}}" {{#unless showframes}}hidden readonly{{/unless}}>
+            <input type="number" name="flags.{{MODULENAME}}.animationframes" value="{{animationframes}}" {{#unless showframes}}hidden readonly{{/unless}}>
         </div>
         <p class="hint">How many frames per animation this spritesheet has.</p>
     </div>
     <div class="form-group sheet-idle">
-        <label for="flags.pokemon-assets.separateidle">Separate Idle Frame</label>
+        <label for="flags.{{MODULENAME}}.separateidle">Separate Idle Frame</label>
         <div class="form-fields">
-            <input type="checkbox" name="flags.pokemon-assets.separateidle" {{#if separateidle}}checked{{/if}}>
+            <input type="checkbox" name="flags.{{MODULENAME}}.separateidle" {{#if separateidle}}checked{{/if}}>
         </div>
         <p class="hint">Whether or not the first frame of each direction on the sheet should be included when playing the walking animation.</p>
     </div>
@@ -25,9 +25,9 @@
 <div class="spritesheet-config-aux" {{#if hideaux}}style="display: none"{{/if}}>
     {{#if showidle}}
     <div class="form-group sheet-no-idle">
-        <label for="flags.pokemon-assets.noidle">No Idle Animation</label>
+        <label for="flags.{{MODULENAME}}.noidle">No Idle Animation</label>
         <div class="form-fields">
-            <input type="checkbox" name="flags.pokemon-assets.noidle" {{#if noidle}}checked{{/if}}>
+            <input type="checkbox" name="flags.{{MODULENAME}}.noidle" {{#if noidle}}checked{{/if}}>
         </div>
         <p class="hint">If checked, this token will not play a constant idle animation.</p>
     </div>
