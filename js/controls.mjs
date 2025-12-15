@@ -1,6 +1,7 @@
 import { MODULENAME, early_isGM, sleep, snapToGrid, listenFilepickerChange, getCombatsForScene } from "./utils.mjs";
 import { SOUNDS } from "./audio.mjs";
 import { UserPaintArea } from "./scripts.mjs";
+import { PokemonPrompt, PokemonConfirm } from "./dialog.mjs";
 
 
 /**
@@ -40,15 +41,21 @@ async function OnRenderRegionConfig(regionConfig, html) {
     event.preventDefault();
     const options = Object.entries(controls).reduce((o, [k, v])=>o+`<option value="${k}">${v.label}</option>`, "");
     const option = await new Promise(async (resolve)=>{
-      Dialog.prompt({
-        title: 'Create Automatic Behavior',
+      foundry.applications.api.DialogV2.wait({
+        window: { title: 'Create Automatic Behavior' },
         content: `
             <div class="form-group">
               <label for="behavior">Behavior</label>
               <select name="behavior">${options}</select>
             </div>
         `,
-        callback: (html) => resolve(html.find('[name="behavior"]')?.val() ?? null),
+        buttons: [{
+          action: "ok",
+          label: "OK",
+          default: true,
+          callback: (event, button, dialog) => resolve(button.form.elements.behavior?.value ?? null),
+        }],
+        close: () => resolve(null),
       }).catch(()=>{
         resolve(null);
       });
@@ -258,15 +265,21 @@ function TilesLayer_onClickLeft2(wrapper, event) {
       break;
     case "sign":
       (new Promise(async (resolve)=>{
-        Dialog.prompt({
-          title: 'Text to Display',
+        foundry.applications.api.DialogV2.wait({
+          window: { title: 'Text to Display' },
           content: `
               <div class="form-group">
                 <label for="text">Text to Display</label>
                 <input name="text" type="text" />
               </div>
           `,
-          callback: (html) => resolve(html.find('[name="text"]')?.val() ?? null),
+          buttons: [{
+            action: "ok",
+            label: "OK",
+            default: true,
+            callback: (event, button, dialog) => resolve(button.form.elements.text?.value ?? null),
+          }],
+          close: () => resolve(null),
         }).catch(()=>{
           resolve(null);
         });
@@ -288,64 +301,30 @@ function TilesLayer_onClickLeft2(wrapper, event) {
       break;
     case "item":
       (new Promise(async (resolve)=>{
-        Dialog.prompt({
-          title: 'Items Contained',
-          content: `
-              <!--<div class="form-group">
-                <label>Overworld Type</label>
-                <div class="form-fields">
-                  <label><img src="modules/pokemon-assets/img/items-overworld/pokeball.png"></img><input type="radio" name="overworldType" value="item" checked></label>
-                </div>
-              </div>-->
-              <div class="form-group">
-                <label>Interact Sound</label>
-                <div class="form-fields">
-                  <select name="interactionSound">
-                    <option value="">None</option>
-                    ${Object.entries(SOUNDS).map(([k, v])=>`<option value="${k}" ${k === "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3" ? "default selected" : ""}>${v}</option>`).reduce((a, b)=> a + b)}
-                    <option class="custom-interaction" value="custom">Custom</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-group custom-sound" style='display:none'>
-                <label>Custom Interaction Sound</label>
-                <div class="form-fields">
-                  <file-picker class="custom-interaction" type="audio" value=""></file-picker>
-                </div>
-              </div>
-              <div class="form-group">
-                <div id="item-drop-zone" style="min-height: 100px; border: 2px dashed #ccc; padding: 10px; margin-bottom: 10px;">
-                  <p class="drop-text">Drag and drop items here</p>
-                  <div id="dropped-items-list"></div>
-                </div>
-              </div>
-          `,
-          callback: (html) => {
-            // const overworldType = html.find('[name="overworldType"]')?.val() ?? null;
-            const interactionSound = html.find('[name="interactionSound"]')?.val() ?? null;
-            const items = html.find('#dropped-items-list').data('items') || [];
-            resolve({items, interactionSound});
-          },
-          render: (html) => {
-            $(html).find(`select[name="interactionSound"]`).on("change", function() {
+        class ItemDialog extends foundry.applications.api.DialogV2 {
+          _onRender(context, options) {
+            super._onRender(context, options);
+            const html = $(this.element);
+            
+            html.find(`select[name="interactionSound"]`).on("change", function() {
               const custom = $(this).find("option.custom-interaction").get(0).value;
-              const customInput = $(html).find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
+              const customInput = html.find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
               if (this.value === custom) {
-                $(html).find(`.custom-sound`).show();
+                html.find(`.custom-sound`).show();
                 if (this.value == "custom") {
                   customInput.value = "";
                 } else {
                   customInput.value = this.value;
                 }
               } else {
-                $(html).find(`.custom-sound`).hide();
+                html.find(`.custom-sound`).hide();
                 customInput.value = "";
               }
             });
           
-            listenFilepickerChange($(html).find(`.custom-interaction`), function(value) {
-              const custom = $(html).find("option.custom-interaction").get(0);
-              const select = $(html).find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
+            listenFilepickerChange(html.find(`.custom-interaction`), function(value) {
+              const custom = html.find("option.custom-interaction").get(0);
+              const select = html.find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
               if (!value) {
                 select.value = "custom";
               } else {
@@ -423,7 +402,52 @@ function TilesLayer_onClickLeft2(wrapper, event) {
     
               itemsList.append(itemElement);
             });
-          },
+          }
+        }
+        
+        ItemDialog.wait({
+          window: { title: 'Items Contained' },
+          content: `
+              <!--<div class="form-group">
+                <label>Overworld Type</label>
+                <div class="form-fields">
+                  <label><img src="modules/pokemon-assets/img/items-overworld/pokeball.png"></img><input type="radio" name="overworldType" value="item" checked></label>
+                </div>
+              </div>-->
+              <div class="form-group">
+                <label>Interact Sound</label>
+                <div class="form-fields">
+                  <select name="interactionSound">
+                    <option value="">None</option>
+                    ${Object.entries(SOUNDS).map(([k, v])=>`<option value="${k}" ${k === "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3" ? "default selected" : ""}>${v}</option>`).reduce((a, b)=> a + b)}
+                    <option class="custom-interaction" value="custom">Custom</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group custom-sound" style='display:none'>
+                <label>Custom Interaction Sound</label>
+                <div class="form-fields">
+                  <file-picker class="custom-interaction" type="audio" value=""></file-picker>
+                </div>
+              </div>
+              <div class="form-group">
+                <div id="item-drop-zone" style="min-height: 100px; border: 2px dashed #ccc; padding: 10px; margin-bottom: 10px;">
+                  <p class="drop-text">Drag and drop items here</p>
+                  <div id="dropped-items-list"></div>
+                </div>
+              </div>
+          `,
+          buttons: [{
+            action: "ok",
+            label: "OK",
+            default: true,
+            callback: (event, button, dialog) => {
+              const interactionSound = button.form.elements.interactionSound?.value ?? null;
+              const items = $(dialog.element).find('#dropped-items-list').data('items') || [];
+              resolve({items, interactionSound});
+            },
+          }],
+          close: () => resolve(null),
         }).catch(()=>{
           resolve(null);
         });
@@ -455,8 +479,8 @@ function TilesLayer_onClickLeft2(wrapper, event) {
       break;
     case "headbutt-tree":
       (new Promise(async (resolve)=>{
-        Dialog.prompt({
-          title: 'Pokemon To Spawn',
+        foundry.applications.api.DialogV2.wait({
+          window: { title: 'Pokemon To Spawn' },
           content: `
               <div class="form-group">
                 <label for="text">Species Rolltable</label>
@@ -465,7 +489,13 @@ function TilesLayer_onClickLeft2(wrapper, event) {
                 </select>
               </div>
           `,
-          callback: (html) => resolve(html.find('[name="species"]')?.val() ?? null),
+          buttons: [{
+            action: "ok",
+            label: "OK",
+            default: true,
+            callback: (event, button, dialog) => resolve(button.form.elements.species?.value ?? null),
+          }],
+          close: () => resolve(null),
         }).catch(()=>{
           resolve(null);
         });
@@ -571,8 +601,8 @@ async function CreateDoor(regionConfig) {
   // prompt for the other scene
   const otherScenesSelect = otherScenes.map(s=>`<option value="${s.uuid}">${s.name}</option>`).reduce((a, b)=> a + b);
   const sceneUuid = await new Promise(async (resolve)=>{
-    Dialog.prompt({
-      title: 'Select Scene',
+    foundry.applications.api.DialogV2.wait({
+      window: { title: 'Select Scene' },
       content: `
           <div class="form-group">
             <label for="scene">Scene</label>
@@ -581,7 +611,13 @@ async function CreateDoor(regionConfig) {
             </select>
           </div>
       `,
-      callback: (html) => resolve(html.find('[name="scene"]')?.val() ?? null),
+      buttons: [{
+        action: "ok",
+        label: "OK",
+        default: true,
+        callback: (event, button, dialog) => resolve(button.form.elements.scene?.value ?? null),
+      }],
+      close: () => resolve(null),
     }).catch(()=>{
       resolve(null);
     });
@@ -618,8 +654,8 @@ async function CreateDoor(regionConfig) {
 async function CreateJump(regionConfig) {
   // prompt for the direction
   const direction = await new Promise(async (resolve)=>{
-    Dialog.prompt({
-      title: 'Jump Direction',
+    foundry.applications.api.DialogV2.wait({
+      window: { title: 'Jump Direction' },
       content: `
           <div class="form-group">
             <label for="direction">Jump Direction</label>
@@ -631,7 +667,13 @@ async function CreateJump(regionConfig) {
             </select>
           </div>
       `,
-      callback: (html) => resolve(html.find('[name="direction"]')?.val() ?? null),
+      buttons: [{
+        action: "ok",
+        label: "OK",
+        default: true,
+        callback: (event, button, dialog) => resolve(button.form.elements.direction?.value ?? null),
+      }],
+      close: () => resolve(null),
     }).catch(()=>{
       resolve(null);
     });
@@ -686,8 +728,8 @@ async function CreateTrainer(regionConfig) {
   const allTokensSelect = currentScene.tokens.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b);
 
   const tokenUuid = await new Promise(async (resolve)=>{
-    Dialog.prompt({
-      title: 'Select Token',
+    foundry.applications.api.DialogV2.wait({
+      window: { title: 'Select Token' },
       content: `
           <div class="form-group">
             <label for="token">Token</label>
@@ -696,7 +738,13 @@ async function CreateTrainer(regionConfig) {
             </select>
           </div>
       `,
-      callback: (html) => resolve(html.find('[name="token"]')?.val() ?? null),
+      buttons: [{
+        action: "ok",
+        label: "OK",
+        default: true,
+        callback: (event, button, dialog) => resolve(button.form.elements.token?.value ?? null),
+      }],
+      close: () => resolve(null),
     }).catch(()=>{
       resolve(null);
     });

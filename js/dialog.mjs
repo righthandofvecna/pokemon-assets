@@ -86,7 +86,7 @@ async function PokemonPrompt({ title, content, label = "OK", callback, rejectClo
         {
           action: "ok",
           label: label,
-          icon: "fa-solid fa-arrow-right", // This will be styled in CSS
+          icon: "fa-solid fa-arrow-right",
           default: true,
           callback: callback ?? ((event, button, dialog) => true),
         },

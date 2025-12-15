@@ -263,8 +263,8 @@ async function PokemonCenter(regionConfig) {
   const allTokensSelect = currentScene.tokens.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b);
 
   const tokenUuid = await new Promise(async (resolve)=>{
-    Dialog.prompt({
-      title: 'Select Nurse Token',
+    foundry.applications.api.DialogV2.wait({
+      window: { title: 'Select Nurse Token' },
       content: `
           <div class="form-group">
             <label for="token">Nurse Token</label>
@@ -273,7 +273,13 @@ async function PokemonCenter(regionConfig) {
             </select>
           </div>
       `,
-      callback: (html) => resolve(html.find('[name="token"]')?.val() ?? null),
+      buttons: [{
+        action: "ok",
+        label: "OK",
+        default: true,
+        callback: (event, button, dialog) => resolve(button.form.elements.token?.value ?? null),
+      }],
+      close: () => resolve(null),
     }).catch(()=>{
       resolve(null);
     });

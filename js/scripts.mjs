@@ -3,6 +3,7 @@ import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing, tokenScene, centerTok
 import { VolumeSettings } from "./settings.mjs";
 import * as socket from "./socket.mjs";
 import { getAllFollowing } from "./module-compatibility/follow-me.mjs";
+import { PokemonPrompt, PokemonConfirm } from "./dialog.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
@@ -15,25 +16,19 @@ async function PokemonCenter(nurse, doHeal) {
 
   const talk = async function(text, ms=1500) {
     Interact();
-    await Dialog.prompt({
+    await PokemonPrompt({
       content: `<p>${game.i18n.localize(text)}</p>`,
-      options: {
-        pokemon: true,
-      },
     });
   }
   await talk("POKEMON-ASSETS.PokemonCenter.Welcome1");
   await talk("POKEMON-ASSETS.PokemonCenter.Welcome2");
 
   Interact();
-  if (await new Promise((resolve)=>Dialog.confirm({
+  if (await new Promise((resolve)=>PokemonConfirm({
     title: "Pokemon Center Nurse",
     content: game.i18n.localize("POKEMON-ASSETS.PokemonCenter.Question"),
     yes: ()=>resolve(false),
     no: ()=>resolve(true),
-    options: {
-      pokemon: true,
-    },
   }))) {
     await talk("POKEMON-ASSETS.PokemonCenter.Goodbye");
     return;
@@ -774,11 +769,10 @@ async function PickUpItem(tile, actor, items, message) {
   const itemObjects = (await Promise.all(items.map(uuid=>fromUuid(uuid)))).map(item=>item.toObject());
   
   const awardItems = game.modules.get(MODULENAME)?.api?.scripts?.AwardItems;
-  Dialog.prompt({ content: message, options: { pokemon: true }, callback: async ()=>{
+  PokemonPrompt({ content: message, callback: async ()=>{
     DeleteTile(tile.uuid).then(()=>awardItems(actor, itemObjects)).catch(()=>{
-      Dialog.prompt({
+      PokemonPrompt({
         content: `Oops! Someone else grabbed ${items.length > 1 ? "them" : "it"} first!`,
-        options: { pokemon: true }
       });
     })
   }});
@@ -980,36 +974,27 @@ export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
     let confirm = skipQuery;
     if (!skipQuery) {
       Interact();
-      confirm = await new Promise((resolve)=>Dialog.confirm({
+      confirm = await new Promise((resolve)=>PokemonConfirm({
         title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
         content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CanUse`),
         yes: ()=>resolve(true),
         no: ()=>resolve(false),
-        options: {
-          pokemon: true,
-        },
       }));
     }
     if (confirm) {
       Interact();
-      await Dialog.prompt({
+      await PokemonPrompt({
         title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
         content: game.i18n.format(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Used`, { name: who?.name}),
-        options: {
-          pokemon: true,
-        },
       });
       return true;
     };
     return false;
   } else {
     Interact();
-    Dialog.prompt({
+    PokemonPrompt({
       title: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.Title`),
       content: game.i18n.localize(`POKEMON-ASSETS.FieldMoves.${fieldMove}.CannotUse`),
-      options: {
-        pokemon: true,
-      },
     });
     return false;
   }
@@ -1211,8 +1196,8 @@ async function UserChooseDirections({ prompt, directions } = { prompt: "Select a
     directions = ["upleft", "up", "upright", "left", "right", "downleft", "down", "downright"];
   }
   const selectedDirections = await new Promise(async (resolve)=>{
-    Dialog.prompt({
-      title: 'Select Directions',
+    foundry.applications.api.DialogV2.wait({
+      window: { title: 'Select Directions' },
       content: `
           <p>${prompt}</p>
           <div class="directional-chooser">
@@ -1227,7 +1212,16 @@ async function UserChooseDirections({ prompt, directions } = { prompt: "Select a
             <label class="downright"><input type="checkbox" name="downright" ${directions.includes("downright") ? "checked" : ""}><span><i class="fa-solid fa-arrow-down-right"></i></span></label>
           </div>
       `,
-      callback: (html) => resolve(html.find('.directional-chooser input[type="checkbox"]:checked').toArray().map(el=>el.name).filter(n=>n!=="all") ?? null),
+      buttons: [{
+        action: "ok",
+        label: "OK",
+        default: true,
+        callback: (event, button, dialog) => {
+          const checked = $(dialog.element).find('.directional-chooser input[type="checkbox"]:checked').toArray().map(el=>el.name).filter(n=>n!=="all");
+          resolve(checked ?? null);
+        },
+      }],
+      close: () => resolve(null),
     }).catch(()=>{
       resolve(null);
     });
@@ -1237,11 +1231,10 @@ async function UserChooseDirections({ prompt, directions } = { prompt: "Select a
 }
 
 async function ShowPopup(username, message) {
-  return Dialog.wait({
-    title: `Message From: ${username}`,
+  return foundry.applications.api.DialogV2.wait({
+    window: { title: `Message From: ${username}` },
     content: message,
-    close: ()=>{},
-    buttons: {}, // no buttons
+    buttons: [],
   });
 }
 
