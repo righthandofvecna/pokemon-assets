@@ -210,7 +210,8 @@ async function OnCreateToken(token, options) {
 }
 
 function OnRenderPokeroleActorSheet(sheet, html, context) {
-  if (!isActorPokemon(sheet.object)) return;
+  console.log("OnRenderPokeroleActorSheet", ...arguments)
+  if (!isActorPokemon(sheet.actor ?? sheet.object)) return;
 
   // add a pokeball field to the sheet
   const ball = sheet.actor.getFlag(MODULENAME, "pokeballImage") ?? game.settings.get(MODULENAME, "defaultBallImage");
