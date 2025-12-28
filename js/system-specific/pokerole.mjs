@@ -209,6 +209,40 @@ async function OnCreateToken(token, options) {
   await sequence.play();
 }
 
+/**
+ * Gets all the party members of the given actor (trainer or pokemon)
+ * @param {Actor} actor 
+ */
+function GetParty(actor) {
+  if (isActorPokemon(actor)) {
+    // If it's a pokemon, return just itself
+    return [actor];
+  }
+  
+  // If it's a trainer, get all pokemon owned by this trainer
+  const trainerId = actor.uuid;
+  const party = game.actors.filter(a => 
+    a.getFlag(MODULENAME, "trainerId") === trainerId
+  );
+  
+  return [actor, ...party];
+}
+
+/**
+ * Returns a function which takes in an actor and returns a boolean, true if the actor has the given move
+ * @param {string} moveName 
+ */
+function HasMoveFunction(moveName) {
+  /**
+   * Returns whether or not the actor can use the move "slug"
+   * @param {Actor} actor
+   * @return true if the actor can use the given move
+   */
+  return function (actor) {
+    return actor.itemTypes?.move?.some(m => m.system.learned && m.name == moveName) ?? false;
+  };
+}
+
 function OnRenderPokeroleActorSheet(sheet, html, context) {
   console.log("OnRenderPokeroleActorSheet", ...arguments)
   if (!isActorPokemon(sheet.actor ?? sheet.object)) return;
@@ -357,5 +391,19 @@ export function register() {
   }
 
   api.logic ??= {};
+  api.logic.FieldMoveParty ??= (token)=>GetParty(token.actor);
+  api.logic.CanUseRockSmash ??= HasMoveFunction("Rock Smash");
+  api.logic.CanUseCut ??= HasMoveFunction("Cut");
+  api.logic.CanUseStrength ??= HasMoveFunction("Strength");
+  api.logic.CanUseRockClimb ??= HasMoveFunction("Rock Climb");
+  api.logic.CanUseWaterfall ??= HasMoveFunction("Waterfall");
+  api.logic.CanUseWhirlpool ??= HasMoveFunction("Whirlpool");
+
   api.logic.ActorCry ??= ActorCry;
+  api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny ?? false;
+
+  api.logic.isPokemon ??= (actor)=>isActorPokemon(actor);
+
+  api.scripts ??= {};
+  api.scripts.HasMoveFunction ??= HasMoveFunction;
 };
