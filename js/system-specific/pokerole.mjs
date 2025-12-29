@@ -244,32 +244,47 @@ function HasMoveFunction(moveName) {
 }
 
 function OnRenderPokeroleActorSheet(sheet, html, context) {
-  console.log("OnRenderPokeroleActorSheet", ...arguments)
+  console.log("OnRenderPokeroleActorSheet", ...arguments) // DEBUG
   if (!isActorPokemon(sheet.actor ?? sheet.object)) return;
 
-  // add a pokeball field to the sheet
+  // Create fieldset with both pokeball and trainer fields
   const ball = sheet.actor.getFlag(MODULENAME, "pokeballImage") ?? game.settings.get(MODULENAME, "defaultBallImage");
-  const pbf = $(`<div class="pokeball-field" data-tooltip="POKEMON-ASSETS.Fields.Pokeball.hint">${game.i18n.localize("POKEMON-ASSETS.Fields.Pokeball.label")}: <img src="${ball}"></div>`);
-  $(html).find(".species-data:last-child .pokedex-number-name").after(pbf);
-  $(pbf).on("click", (event) => {
-    event.preventDefault();
-    new FilePicker({
-      type: "image",
-      callback: (path) => {
-        if (!path) return;
-        sheet.actor.setFlag(MODULENAME, "pokeballImage", path)
-      },
-    }).browse(ball);
-  });
-
-  // Add a trainer field to the sheet
-  const trainer = sheet.actor.getFlag(MODULENAME, "trainerId") ?? null;
-  fromUuid(trainer).then(trainer=>{
-    const name = trainer?.name ?? game.i18n.localize("POKEMON-ASSETS.Settings.Trainer.none");
-    $(html).find(".species-data:last-child .pokedex-number-name").after(`<div class="trainer" data-tooltip="POKEMON-ASSETS.Settings.Trainer.hint">${game.i18n.localize("POKEMON-ASSETS.Settings.Trainer.label")}: ${name}</div>`);
-    // add a drop hook
-    const trainerDiv = $(html).find(".trainer").get(0);
-    trainerDiv.addEventListener("drop", async (event) => {
+  const trainerId = sheet.actor.getFlag(MODULENAME, "trainerId") ?? null;
+  
+  fromUuid(trainerId).then(async (trainer) => {
+    const trainerLink = await (async ()=>{
+      if (trainer) return await foundry.applications.ux.TextEditor.implementation.enrichHTML(trainer.link);
+      return `<span>${game.i18n.localize("POKEMON-ASSETS.Settings.Trainer.none")}</span>`;
+    })()
+    
+    const fieldset = $(`
+      <fieldset class="pokemon-assets-flags">
+        <legend>Pokemon Assets Flags</legend>
+        <div class="trainer" data-tooltip="POKEMON-ASSETS.Settings.Trainer.hint">
+          <label>${game.i18n.localize("POKEMON-ASSETS.Settings.Trainer.label")}:</label> ${trainerLink}
+        </div>
+        <div class="pokeball-field" data-tooltip="POKEMON-ASSETS.Fields.Pokeball.hint">
+          <label>${game.i18n.localize("POKEMON-ASSETS.Fields.Pokeball.label")}:</label> <img src="${ball}" />
+        </div>
+      </fieldset>
+    `);
+    
+    $(html).find(".species-data:last-child .pokedex-number-name").after(fieldset);
+    
+    // Add pokeball click handler
+    fieldset.find(".pokeball-field").on("click", (event) => {
+      event.preventDefault();
+      new FilePicker({
+        type: "image",
+        callback: (path) => {
+          if (!path) return;
+          sheet.actor.setFlag(MODULENAME, "pokeballImage", path);
+        },
+      }).browse(ball);
+    });
+    
+    // Add trainer drop handler
+    fieldset.find(".trainer").get(0).addEventListener("drop", async (event) => {
       event.preventDefault();
       const data = TextEditor.getDragEventData(event);
       if (data.type !== "Actor") {
