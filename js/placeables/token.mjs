@@ -167,7 +167,7 @@ async function OnRenderTokenConfig(config, html, context) {
     })();
 
     const ratio = (height / width) * (data.animationframes / directions);
-    const scale = form.querySelector("input[name='scale']")?.value ?? 1;
+    const scale = form.querySelector("range-picker[name='scale'], input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
       switch (data.sheetstyle) {
         case "pmd":
