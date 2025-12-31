@@ -95,3 +95,31 @@ export function getCombatsForScene(sceneId) {
 	return game.combats.contents.filter(c=>c?.active && c?.combatants?.contents?.some(p=>p.sceneId === sceneId)) ?? [];
 }
 
+// Direction functions
+export function getAngleFromDirection(d) {
+	switch (d) {
+		case "down": return 0;
+		case "left": return 90;
+		case "right": return 270;
+		case "up": return 180;
+		case "downleft": return 45;
+		case "downright": return 315;
+		case "upleft": return 135;
+		case "upright": return 225;
+	}
+	return 0;
+}
+
+export function getDirectionFromAngle(angle) {
+	switch (( 8 + Math.floor(((angle + 22.5) % 360) / 45) ) % 8) {
+		case 0: return "down";
+		case 1: return "downleft";
+		case 2: return "left";
+		case 3: return "upleft";
+		case 4: return "up";
+		case 5: return "upright";
+		case 6: return "right";
+		case 7: return "downright";
+	}
+	return "down";
+}

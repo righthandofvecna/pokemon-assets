@@ -1,4 +1,4 @@
-import { MODULENAME, angleDiff } from "../utils.mjs";
+import { MODULENAME, angleDiff, getDirectionFromAngle } from "../utils.mjs";
 import { VolumeSettings } from "../settings.mjs";
 import * as socket from "../socket.mjs";
 
@@ -21,7 +21,13 @@ async function TokenDocument_preUpdate(wrapped, changed, options, user) {
   const angle = ((a)=>isNaN(a) ? this.rotation : a)(((Math.atan2(-dx, dy) * 180 / Math.PI) + 360) % 360);
   const stopped = lwp.x != changed.x || lwp.y != changed.y;
   const bumped = stopped && angleDiff(angle, this.rotation) < 45;
-  if (stopped) { changed.rotation = angle; }
+  if (stopped) { 
+    const obj = this.object
+    if (game.settings.get("core", "tokenAutoRotate") || obj?.isSpritesheet) { changed.rotation = angle; }
+    else if (obj) {
+      obj.direction = getDirectionFromAngle(angle);
+    }
+  }
   if (bumped && this._pushing) this.object._tryPush?.(dx, dy);
   if (bumped && game.settings.get(MODULENAME, "playCollisionSound")) {
     new Sequence({ moduleName: "pokemon-assets", softFail: true })

@@ -1,5 +1,5 @@
 
-import { isTheGM, MODULENAME, sleep, snapToGrid, isFacing, tokenScene, centerTokenMovement } from "./utils.mjs";
+import { isTheGM, MODULENAME, sleep, snapToGrid, tokenScene, centerTokenMovement } from "./utils.mjs";
 import { VolumeSettings } from "./settings.mjs";
 import * as socket from "./socket.mjs";
 import { getAllFollowing } from "./module-compatibility/follow-me.mjs";

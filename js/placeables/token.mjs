@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene, angleDiff } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene, getAngleFromDirection, getDirectionFromAngle } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 import { PokemonSheets } from "../pokemon-sheets.mjs";
@@ -255,7 +255,7 @@ function OnPreUpdateToken(doc, change, options) {
 
   const dx = nx - ox;
   const dy = ny - oy;
-  if ((dx !== 0 || dy !== 0) && !options.teleport) { // && !game.settings.get("core", "tokenAutoRotate")) {
+  if ((dx !== 0 || dy !== 0) && !options.teleport && !game.settings.get("core", "tokenAutoRotate")) {
     change.rotation = getAngleFromDirection(getDirection(dx, dy));
   };
 
@@ -273,34 +273,6 @@ function getDirection(dx, dy) {
   return result ?? "down";
 }
 
-function getAngleFromDirection(d) {
-  switch (d) {
-    case "down": return 0;
-    case "left": return 90;
-    case "right": return 270;
-    case "up": return 180;
-    case "downleft": return 45;
-    case "downright": return 315;
-    case "upleft": return 135;
-    case "upright": return 225;
-  }
-  return 0;
-}
-
-function getDirectionFromAngle(angle) {
-  switch (( 8 + Math.floor(((angle + 22.5) % 360) / 45) ) % 8) {
-    case 0: return "down";
-    case 1: return "downleft";
-    case 2: return "left";
-    case 3: return "upleft";
-    case 4: return "up";
-    case 5: return "upright";
-    case 6: return "right";
-    case 7: return "downright";
-  }
-  return "down";
-}
-
 
 function OnCreateCombatant(combatant) {
   if (!isTheGM()) return;
@@ -311,15 +283,11 @@ function OnCreateCombatant(combatant) {
 }
 
 
-
-
 /** 
- * Initialize all the edges for tokens when the canvas refreshes
- * @deprecated This function is no longer used as token collision uses TokenLayer methods instead
- * Kept for backward compatibility with tiles
+ * Initialize all the edges for tiles when the canvas refreshes
  */
 function OnInitializeEdges() {
-  // Token edges are deprecated - only process tiles if they still use edges
+  // Token edges are deprecated - Tiles still use edges for collision detection
   for (const tile of canvas.tiles.placeables) {
     tile?.initializeEdges?.();
   }
