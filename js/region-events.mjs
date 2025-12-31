@@ -132,6 +132,9 @@ async function runAsMacro_socket(selfUuid, speaker, actorUuid, tokenUuid, charac
  * Trigger the "tokenInteract" region behavior for all selected tokens
  */
 async function OnInteract() {
+  // check if focus is on something that we don't want to trigger interact from
+  if (document.activeElement.closest("dialog, #chat-notifications, #sidebar") !== null) return;
+
   const selected = game.canvas.tokens.placeables.filter(o => o.controlled).map(o => o.document);
   if (selected.length === 0) return;
 
