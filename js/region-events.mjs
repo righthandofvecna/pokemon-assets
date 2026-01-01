@@ -145,15 +145,15 @@ async function OnInteract() {
   }
 
   // send interact event
-  selected.forEach(token=>{
+  for (const token of selected) {
     if (!token.movable) return;
-    token.regions.forEach(region=>{
+    for (const region of token.regions) {
       // if has tokenInteract
       if (region.behaviors.some(b=>b.getFlag(MODULENAME, "hasTokenInteract"))) {
-        region._triggerEvent("tokenInteract", { token });
+        return region._triggerEvent("tokenInteract", { token });
       }
-    });
-  });
+    };
+  };
 
   // if we only have one token selected, do the other "interact" behavior as well.
   if (selected.length !== 1) return;
@@ -185,7 +185,7 @@ async function OnInteract() {
 
     if (facingTokens.length > 0) {
       Interact();
-      facingTokens.forEach(ip=>game.itempiles.API.renderItemPileInterface(ip.document, { inspectingTarget: token?.actor?.uuid }));
+      return game.itempiles.API.renderItemPileInterface(facingTokens.at(0)?.document, { inspectingTarget: token?.actor?.uuid });
     }
   };
 
@@ -221,49 +221,41 @@ async function OnInteract() {
     const hasFieldMoveWhirlpool = fieldMoveParty.find(logic.CanUseWhirlpool);
     const hasFieldMoveStrength = fieldMoveParty.find(logic.CanUseStrength);
 
+    if (withScript.length > 0) {
+      const tile = withScript.at(0);
+      const interactionSound = tile?.document?.flags?.[MODULENAME]?.interactionSound;
+      if (interactionSound) {
+        Interact({ sound: interactionSound });
+      };
+      return runAsMacro(tile?.document);
+    }
+
     if (smashable.length > 0 && await UseFieldMove("RockSmash", hasFieldMoveRockSmash, !!hasFieldMoveRockSmash && game.settings.get(MODULENAME, "canUseRockSmash"), token._smashing)) {
-      smashable.forEach(async (rs)=>{
-        // set a volatile local variable that this token is currently using Rock Smash
-        token._smashing = true;
-        await soc.executeAsGM("triggerRockSmash", rs.document.uuid);
-      });
+      const tile = smashable.at(0);
+      token._smashing = true;
+      return soc.executeAsGM("triggerRockSmash", tile.document.uuid);
     }
 
     if (cuttable.length > 0 && await UseFieldMove("Cut", hasFieldMoveCut, !!hasFieldMoveCut && game.settings.get(MODULENAME, "canUseCut"), token._cutting)) {
-      cuttable.forEach(async (rs)=>{
-        // set a volatile local variable that this token is currently using Cut
-        token._cutting = true;
-        await soc.executeAsGM("triggerCut", rs.document.uuid);
-      });
+      const tile = cuttable.at(0);
+      token._cutting = true;
+      return soc.executeAsGM("triggerCut", tile.document.uuid);
     }
 
     if (whirlpool.length > 0 && await UseFieldMove("Whirlpool", hasFieldMoveWhirlpool, !!hasFieldMoveWhirlpool && game.settings.get(MODULENAME, "canUseWhirlpool"), token._whirlpool)) {
-      whirlpool.forEach(async (rs)=>{
-        // set a volatile local variable that this token is currently using Whirlpool
-        token._whirlpool = true;
-        await soc.executeAsGM("triggerWhirlpool", rs.document.uuid);
-      });
+      const tile = whirlpool.at(0);
+      token._whirlpool = true;
+      return soc.executeAsGM("triggerWhirlpool", tile.document.uuid);
     }
 
     if (pushable.length > 0 && await UseFieldMove("Strength", hasFieldMoveStrength, !!hasFieldMoveStrength && game.settings.get(MODULENAME, "canUseStrength"), token._pushing)) {
-      pushable.forEach(async (rs)=>{
-        // set a volatile local variable that this token is currently using Strength
-        token._pushing = true;
-      });
-    }
-
-    if (withScript.length > 0) {
-      withScript.forEach(async (tile)=>{
-        const interactionSound = tile?.document?.flags?.[MODULENAME]?.interactionSound;
-        if (interactionSound) {
-          Interact({ sound: interactionSound });
-        };
-        await runAsMacro(tile?.document);
-      });
+      const tile = pushable.at(0);
+      token._pushing = true;
+      return soc.executeAsGM("triggerStrength", tile.document.uuid);
     }
   }
 
-  const foundryGridDirections = requireFacing ? [getGridDirectionFromAngle(token.rotation)] : [CONST.MOVEMENT_DIRECTIONS.UP, CONST.MOVEMENT_DIRECTIONS.RIGHT, CONST.MOVEMENT_DIRECTIONS.DOWN, CONST.MOVEMENT_DIRECTIONS.LEFT];
+  const foundryGridDirections = requireFacing ? [getGridDirectionFromAngle(token.rotation)] : [CONST.MOVEMENT_DIRECTIONS.UP, CONST.MOVEMENT_DIRECTIONS.DOWN, CONST.MOVEMENT_DIRECTIONS.RIGHT, CONST.MOVEMENT_DIRECTIONS.LEFT];
 
   // check if we are facing/adjacent to a Surf region
   if (!tObj.surfing) {
@@ -284,7 +276,7 @@ async function OnInteract() {
         token._surfing = true;
         // update the token's position to be on the water
         const topLeftEntry = canvas.grid.getTopLeftPoint(entry);
-        await token.update({ x: topLeftEntry.x, y: topLeftEntry.y }, {
+        return token.update({ x: topLeftEntry.x, y: topLeftEntry.y }, {
           movement: {
             [token.id]: {
               constrainOptions: {
@@ -297,28 +289,30 @@ async function OnInteract() {
           }
         });
       }
+      return;
     }
   }
 
   
   // check if we're facing a wall/door
-  const shifted = game.canvas.grid.getShiftedPoint({ x: tx, y: ty, elevation: token.elevation }, foundryGridDirection);
-  const collides = token.object.checkCollision(shifted, { mode: "closest" });
-  if (!collides) return;
-  const walls = collides.edges.filter(e=>e.object instanceof foundry.canvas.placeables.Wall);
-  // open unlocked doors
-  if (walls.size > 0) {
-    for (const wall of walls.map(e=>e.object.document)) {
-      if (wall.door === CONST.WALL_DOOR_TYPES.NONE) continue;
-      if (wall.door === CONST.WALL_DOOR_TYPES.SECRET && wall.ds === CONST.WALL_DOOR_STATES.LOCKED) continue;
+  for (const foundryGridDirection of foundryGridDirections) {
+    const shifted = game.canvas.grid.getShiftedPoint({ x: tx, y: ty, elevation: token.elevation }, foundryGridDirection);
+    const collides = token.object.checkCollision(shifted, { mode: "closest" });
+    if (!collides) return;
+    const walls = collides.edges.filter(e=>e.object instanceof foundry.canvas.placeables.Wall);
+    // open unlocked doors
+    if (walls.size > 0) {
+      for (const wall of walls.map(e=>e.object.document)) {
+        if (wall.door === CONST.WALL_DOOR_TYPES.NONE) continue;
+        if (wall.door === CONST.WALL_DOOR_TYPES.SECRET && wall.ds === CONST.WALL_DOOR_STATES.LOCKED) continue;
 
-      // check what state the door is in
-      if (wall.ds === CONST.WALL_DOOR_STATES.LOCKED) {
-        wall.object._playDoorSound("test");
-        continue;
+        // check what state the door is in
+        if (wall.ds === CONST.WALL_DOOR_STATES.LOCKED) {
+          return wall.object._playDoorSound("test");
+        }
+
+        return wall.update({ds: wall.ds === CONST.WALL_DOOR_STATES.CLOSED ? CONST.WALL_DOOR_STATES.OPEN : CONST.WALL_DOOR_STATES.CLOSED}, { sound: true });
       }
-
-      wall.update({ds: wall.ds === CONST.WALL_DOOR_STATES.CLOSED ? CONST.WALL_DOOR_STATES.OPEN : CONST.WALL_DOOR_STATES.CLOSED}, { sound: true });
     }
   }
 }
