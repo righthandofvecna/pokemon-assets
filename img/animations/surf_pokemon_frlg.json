@@ -9,17 +9,17 @@
             "frame": {
                 "x": 0,
                 "y": 0,
-                "w": 24,
+                "w": 26,
                 "h": 22
             },
             "sourceSize": {
-                "w": 24,
+                "w": 26,
                 "h": 22
             },
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
-                "w": 24,
+                "w": 26,
                 "h": 22
             }
         },
@@ -27,17 +27,17 @@
             "frame": {
                 "x": 0,
                 "y": 22,
-                "w": 24,
+                "w": 26,
                 "h": 22
             },
             "sourceSize": {
-                "w": 24,
+                "w": 26,
                 "h": 22
             },
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
-                "w": 24,
+                "w": 26,
                 "h": 22
             }
         },
@@ -45,17 +45,17 @@
             "frame": {
                 "x": 0,
                 "y": 44,
-                "w": 24,
+                "w": 26,
                 "h": 22
             },
             "sourceSize": {
-                "w": 24,
+                "w": 26,
                 "h": 22
             },
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
-                "w": 24,
+                "w": 26,
                 "h": 22
             }
         },
@@ -63,17 +63,17 @@
             "frame": {
                 "x": 0,
                 "y": 66,
-                "w": 24,
+                "w": 26,
                 "h": 22
             },
             "sourceSize": {
-                "w": 24,
+                "w": 26,
                 "h": 22
             },
             "spriteSourceSize": {
                 "x": 0,
                 "y": 0,
-                "w": 24,
+                "w": 26,
                 "h": 22
             }
         }
@@ -90,6 +90,18 @@
         ],
         "left": [
             "surf_pokemon_frlg.png_left"
-        ]       
+        ],
+        "upleft": [
+            "surf_pokemon_frlg.png_left"
+        ],
+        "upright": [
+            "surf_pokemon_frlg.png_right"
+        ],
+        "downleft": [
+            "surf_pokemon_frlg.png_down"
+        ],
+        "downright": [
+            "surf_pokemon_frlg.png_down"
+        ]      
     }
 }

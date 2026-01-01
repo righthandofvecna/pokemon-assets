@@ -304,6 +304,8 @@ export function register() {
     #idle;
     #run;
     #surfingCached;
+    #surfSprite;
+    #surfTextures;
 
     constructor(document) {
       super(document);
@@ -329,6 +331,8 @@ export function register() {
       this.#textures = null;
       this.#textureSrc = null;
       this.#direction = "down";
+      this.#surfSprite = null;
+      this.#surfTextures = null;
     }
 
     get isSpritesheet() {
@@ -428,6 +432,9 @@ export function register() {
       // draw the indicators (caught/uncaught/etc)
       this.indicators ||= this.addChild(new PIXI.Container());
       await this._drawIndicators();
+
+      // draw the surf sprite
+      await this._drawSurfSprite();
     }
 
     async playFromSpritesheet() {
@@ -521,6 +528,7 @@ export function register() {
           });
         }
       }
+      this._refreshSurfSprite();
     }
 
     set localOpacity(opacity) {
@@ -730,7 +738,69 @@ export function register() {
           refreshMesh: true,
         });
       }
+      
+      // Update surf sprite
+      this._refreshSurfSprite();
+      
       return super._onAnimationUpdate(changed, context);
+    }
+
+    /**
+     * Draw or update the surf sprite underneath the token when surfing.
+     * @protected
+     */
+    async _drawSurfSprite() {
+      // Load surf textures if not already loaded
+      if (!this.#surfTextures) {
+        const surfSheet = await PIXI.Assets.load(`modules/${MODULENAME}/img/animations/surf_pokemon_frlg.json`);
+        this.#surfTextures = surfSheet.animations;
+      }
+
+      // Create surf sprite if it doesn't exist
+      if (!this.#surfSprite) {
+        this.#surfSprite = new PIXI.AnimatedSprite([PIXI.Texture.EMPTY]);
+        this.#surfSprite.anchor.set(0.5, 0.5);
+        this.#surfSprite.zIndex = -1; // Render underneath the main token
+        this.addChild(this.#surfSprite);
+      }
+
+      this._refreshSurfSprite();
+    }
+
+    /**
+     * Refresh the surf sprite visibility, texture, and position.
+     * @protected
+     */
+    _refreshSurfSprite() {
+      if (!this.#surfSprite || !this.#surfTextures) return;
+
+      const isSurfing = this.surfing;
+      
+      // Only show surf sprite when surfing
+      this.#surfSprite.visible = isSurfing;
+      
+      if (!this.#surfSprite.visible) return;
+
+      // Get the appropriate directional texture
+      const direction = this.#direction || "down";
+      const textures = this.#surfTextures[direction];
+      
+      if (textures && textures.length > 0) {
+        this.#surfSprite.textures = textures;
+        this.#surfSprite.gotoAndStop(0); // Use first frame
+      }
+
+      // Scale the surf sprite to match token width
+      const tokenWidth = this.document.width * canvas.grid.size;
+      const tokenHeight = this.document.height * canvas.grid.size;
+      const surfTexture = this.#surfSprite.texture;
+      if (surfTexture && surfTexture.width > 0) {
+        const scale = 1.2 * tokenWidth / surfTexture.width;
+        this.#surfSprite.scale.set(scale, scale);
+      }
+
+      // Position the surf sprite centered horizontally and 75% down the token's height
+      this.#surfSprite.position.set(tokenWidth * 0.5, tokenHeight * 0.75);
     }
 
     /**
