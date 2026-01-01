@@ -303,6 +303,7 @@ export function register() {
     #localOpacity;
     #idle;
     #run;
+    #surfingCached;
 
     constructor(document) {
       super(document);
@@ -313,6 +314,12 @@ export function register() {
       this.#localOpacity = 1;
       this.#idle = false;
       this.#run = false;
+      this.#surfingCached = {
+        i: undefined,
+        j: undefined,
+        k: undefined,
+        value: undefined,
+      }
     }
 
     /** @override */
@@ -440,6 +447,19 @@ export function register() {
 
     get isometric() {
       return game.modules.get("isometric-perspective")?.active && tokenScene(this.document)?.flags?.["isometric-perspective"]?.isometricEnabled;
+    }
+
+    get surfing() {
+      const offset = game.canvas.grid.getOffset({
+        ...this.center,
+        elevation: this.document.elevation,
+      });
+      if (this.#surfingCached !== undefined && this.#surfingCached.i === offset.i && this.#surfingCached.j === offset.j && this.#surfingCached.k === offset.k) return this.#surfingCached.value;
+      this.#surfingCached = {
+        ...offset,
+        value: canvas.scene.regions.contents.some(r=>r.behaviors.contents.some(b=>b.type == `${MODULENAME}.surf` && !b.disabled) && r.testPoint(game.canvas.grid.getCenterPoint(offset))),
+      }
+      return this.#surfingCached.value;
     }
 
     get direction() {
@@ -699,6 +719,8 @@ export function register() {
 
       if (this.document._sliding) { // slide with one leg out
         this.#index = 1;
+      } else if (this.surfing) { // surfing animation
+        this.#index = 0; // stand on surfboard
       }
 
       const newTexture = this.#getTexture();

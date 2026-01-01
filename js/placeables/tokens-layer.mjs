@@ -8,6 +8,7 @@ export function register() {
   class TokenLayerPokemonAssets extends foundry.canvas.layers.TokenLayer {
     /**
      * Determine whether the provided grid space is being occupied by a token which should block the provided token
+     * or the space is terrain that is currently impassable
      * @param {GridOffset3D} gridSpace            The grid space to check
      * @param {Token} token                       The token being moved
      * @param {object} [options]                  Additional options
@@ -15,6 +16,14 @@ export function register() {
      * @returns {boolean} Whether the moving token should be blocked
      */
     isOccupiedGridSpaceBlocking(gridSpace, token, { preview=false }={}) {
+      // Get all scene regions with a "Surf" behavior
+      const surfRegions = canvas.scene.regions.contents.filter(r=>r.behaviors.contents.some(b=>b.type == `${MODULENAME}.surf` && !b.disabled));
+      const grid = canvas.grid;
+      const centerSpace = grid.getCenterPoint(gridSpace);
+      const isInSurfRegion = surfRegions.some(region => region.testPoint(centerSpace));
+      if (isInSurfRegion && !token?.surfing) {
+        return true; // Always block movement in surf regions when not surfing
+      }
       if (!game.settings.get(MODULENAME, "tokenCollision")) return false;
       
       const found = this.#getRelevantOccupyingTokens(gridSpace, token, { preview });

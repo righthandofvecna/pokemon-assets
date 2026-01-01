@@ -169,5 +169,6 @@
     },
     "SCENE.TABS.SHEET.puzzle": "Puzzle",
     "TILE.TABS.puzzle": "Puzzle",
-    "PTR2E.ActorSheet.Buttons.perkList": "Open Perk List"
+    "PTR2E.ActorSheet.Buttons.perkList": "Open Perk List",
+    "TYPES.RegionBehavior.pokemon-assets.surf": "Surf Region"
 }

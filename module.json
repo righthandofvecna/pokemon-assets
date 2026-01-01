@@ -80,6 +80,11 @@
       "flags": {}
     }
   ],
+  "documentTypes": {
+    "RegionBehavior": {
+      "surf": {}
+    }
+  },
   "socket": true,
   "url": "https://github.com/righthandofvecna/pokemon-assets",
   "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",
