@@ -158,6 +158,10 @@ function OnPreCreateActor(actor, data) {
     img: `modules/pokemon-assets/img/trainers-profile/${img}`,
     prototypeToken: _getTokenChangesForSpritesheet(`modules/pokemon-assets/img/trainers-overworld/${img}`),
   }
+  if (updates.prototypeToken?.flags?.[MODULENAME]?.spritesheet && game.settings.get(MODULENAME, "trainersAlwaysOneGridSpace")) {
+    updates.prototypeToken.flags.ptr2e ??= {};
+    updates.prototypeToken.flags.ptr2e.linkToActorSize = false;
+  }
   foundry.utils.mergeObject(data, foundry.utils.deepClone(updates));
   actor.updateSource(updates);
 }

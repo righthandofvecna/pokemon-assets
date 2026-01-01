@@ -636,6 +636,7 @@ export class ArtSettings extends ArbitrarySettingsMenu {
 		"autoSetTokenSprite",
 		"autoMatchTokenSprite",
 		"autoOverrideMegaEvolutionSprite",
+		"trainersAlwaysOneGridSpace",
 		"defaultBallImage",
 	];
 
@@ -662,6 +663,10 @@ export class ArtSettings extends ArbitrarySettingsMenu {
 		if (!["ptu"].includes(game.system.id)) {
 			// If the system is not PTU, remove the autoOverrideMegaEvolutionSprite setting
 			delete context.settings.autoOverrideMegaEvolutionSprite;
+		}
+		if (!["ptr2e"].includes(game.system.id)) {
+			// If the system is not PTR2e, remove the trainersAlwaysOneGridSpace setting
+			delete context.settings.trainersAlwaysOneGridSpace;
 		}
 		return context;
 	}
@@ -706,7 +711,17 @@ export class ArtSettings extends ArbitrarySettingsMenu {
 			requiresReload: true,
 			config: false,
 			hint: "Automatically set the token sprite of a mega-evolved Pokemon to one defined in this module."
-		}); // PTU only?
+		}); // PTU only
+
+		game.settings.register(MODULENAME, "trainersAlwaysOneGridSpace", {
+			name: "Trainers Always One Grid Space",
+			default: true,
+			type: Boolean,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Don't auto-scale trainer tokens down to 0.5x0.5 grid spaces. Only applies to newly created trainers.",
+		}); // PTR2e only
 
 		const BALL_IMG_DEFAULT = (()=>{
 			switch (game.system.id) {
