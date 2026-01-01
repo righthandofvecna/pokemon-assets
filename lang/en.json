@@ -85,6 +85,10 @@
                 "canUseHeadbutt": {
                     "label": "Headbutt",
                     "hint": "Whether a Pokémon that knows Headbutt (or trainer that owns such a Pokémon) can use it to hit trees."
+                },
+                "canUseSurf": {
+                    "label": "Surf",
+                    "hint": "Whether a Pokémon that knows Surf (or trainer that owns such a Pokémon) can use it to surf on water."
                 }
             }
         },
@@ -130,6 +134,12 @@
                 "CannotUse": "A Pokémon could be in this tree.",
                 "CanUse": "A Pokémon could be in this tree. Do you want to headbutt it?",
                 "Used": "{name} used Headbutt!"
+            },
+            "Surf": {
+                "Title": "Surf",
+                "CannotUse": "The water is a deep blue...",
+                "CanUse": "The water is a deep blue... Would you like to surf on it?",
+                "Used": "{name} used Surf!"
             }
         },
         "PokemonCenter": {

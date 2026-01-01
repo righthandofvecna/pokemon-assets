@@ -16,6 +16,7 @@ export function register() {
      * @returns {boolean} Whether the moving token should be blocked
      */
     isOccupiedGridSpaceBlocking(gridSpace, token, { preview=false }={}) {
+      console.log("Checking token collision for", token, "at grid space", gridSpace, ...arguments);
       // Get all scene regions with a "Surf" behavior
       const surfRegions = canvas.scene.regions.contents.filter(r=>r.behaviors.contents.some(b=>b.type == `${MODULENAME}.surf` && !b.disabled));
       const grid = canvas.grid;

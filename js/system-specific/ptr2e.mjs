@@ -600,6 +600,7 @@ export function register() {
   api.logic.CanUseRockClimb ??= HasMoveFunction("rock-climb");
   api.logic.CanUseWaterfall ??= HasMoveFunction("waterfall");
   api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
+  api.logic.CanUseSurf ??= HasMoveFunction("surf");
 
   api.logic.ActorCry ??= ActorCry;
   api.logic.ActorCatchable ??= ActorCatchable;

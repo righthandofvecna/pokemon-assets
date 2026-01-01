@@ -14,6 +14,7 @@ export function register() {
   api.logic.CanUseRockClimb ??= (actor)=>true;
   api.logic.CanUseWaterfall ??= (actor)=>true;
   api.logic.CanUseWhirlpool ??= (actor)=>true;
+  api.logic.CanUseSurf ??= (actor)=>true;
 
   api.logic.ActorCry ??= async (actor)=>null;
   api.logic.ActorCatchable ??= (actor)=>true;

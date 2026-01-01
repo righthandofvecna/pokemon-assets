@@ -938,6 +938,7 @@ async function TriggerClimb(climbType, to, ...args) {
             constrainOptions: {
               ignoreWalls: true,
               ignoreCost: true,
+              ignoreTokens: true,
               history: false,
             }
           }
@@ -959,6 +960,7 @@ async function TriggerClimb(climbType, to, ...args) {
             constrainOptions: {
               ignoreWalls: true,
               ignoreCost: true,
+              ignoreTokens: true,
               history: false,
             }
           }

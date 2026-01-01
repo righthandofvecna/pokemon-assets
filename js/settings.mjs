@@ -322,7 +322,7 @@ export class VolumeSettings extends foundry.applications.api.HandlebarsApplicati
  */
 export class FieldMoveSettings extends ArbitrarySettingsMenu {
 	
-	static FIELD_MOVES = ["canUseRockSmash", "canUseCut", "canUseWhirlpool", "canUseStrength", "canUseRockClimb", "canUseWaterfall"];
+	static FIELD_MOVES = ["canUseRockSmash", "canUseCut", "canUseWhirlpool", "canUseStrength", "canUseRockClimb", "canUseWaterfall", "canUseSurf"];
 	static SETTINGS_TO_INCLUDE = FieldMoveSettings.FIELD_MOVES;
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(

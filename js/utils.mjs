@@ -123,3 +123,16 @@ export function getDirectionFromAngle(angle) {
 	}
 	return "down";
 }
+
+export function getGridDirectionFromAngle(angle) {
+	switch (( 8 + Math.floor(((angle + 22.5) % 360) / 45) ) % 8) {
+	  case 0: return CONST.MOVEMENT_DIRECTIONS.DOWN;
+		case 1: return CONST.MOVEMENT_DIRECTIONS.DOWN_LEFT;
+		case 2: return CONST.MOVEMENT_DIRECTIONS.LEFT;
+		case 3: return CONST.MOVEMENT_DIRECTIONS.UP_LEFT;
+		case 4: return CONST.MOVEMENT_DIRECTIONS.UP;
+		case 5: return CONST.MOVEMENT_DIRECTIONS.UP_RIGHT;
+		case 6: return CONST.MOVEMENT_DIRECTIONS.RIGHT;
+		case 7: return CONST.MOVEMENT_DIRECTIONS.DOWN_RIGHT;
+	}
+}

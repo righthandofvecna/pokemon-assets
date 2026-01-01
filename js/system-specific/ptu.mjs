@@ -666,6 +666,7 @@ export function register() {
   module.api.logic.CanUseRockClimb ??= HasMoveFunction("rock-climb");
   module.api.logic.CanUseWaterfall ??= HasMoveFunction("waterfall");
   module.api.logic.CanUseWhirlpool ??= HasMoveFunction("whirlpool");
+  module.api.logic.CanUseSurf ??= HasMoveFunction("surf");
 
   module.api.logic.ActorCry ??= ActorCry;
   module.api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny;

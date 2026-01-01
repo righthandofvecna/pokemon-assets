@@ -1,5 +1,5 @@
 
-import { MODULENAME, sleep, isFacing } from "./utils.mjs";
+import { MODULENAME, sleep, isFacing, getGridDirectionFromAngle } from "./utils.mjs";
 import { UseFieldMove, Interact } from "./scripts.mjs";
 import * as socket from "./socket.mjs";
 
@@ -166,6 +166,11 @@ async function OnInteract() {
   const tokenBounds = { x: tx, y: ty, w: Math.max(tObj.w, sizeX), h: Math.max(tObj.h, sizeY), r: token.rotation};
   const requireFacing = !!tObj?.isSpritesheet;
 
+  // let's wait until we lift the enter key
+  do {
+    await sleep(100);
+  } while (game.keyboard.downKeys.has("Enter"));
+
   // check if we are facing/adjacent to an item pile
   if (game.modules.get("item-piles")?.active) {
     const facingTokens = game.canvas.tokens.placeables.filter(o=>{
@@ -200,10 +205,6 @@ async function OnInteract() {
     );
   });
   if (facingTiles.length > 0) {
-    // let's wait until we lift the enter key
-    do {
-      await sleep(100);
-    } while (game.keyboard.downKeys.has("Enter"));
 
     const smashable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.smashable);
     const cuttable = facingTiles.filter(t=>t?.document?.flags?.[MODULENAME]?.cuttable);
@@ -261,12 +262,50 @@ async function OnInteract() {
       });
     }
   }
+
+  const foundryGridDirections = requireFacing ? [getGridDirectionFromAngle(token.rotation)] : [CONST.MOVEMENT_DIRECTIONS.UP, CONST.MOVEMENT_DIRECTIONS.RIGHT, CONST.MOVEMENT_DIRECTIONS.DOWN, CONST.MOVEMENT_DIRECTIONS.LEFT];
+
+  // check if we are facing/adjacent to a Surf region
+  if (!tObj.surfing) {
+    const surfRegions = game.canvas.scene.regions.filter(region=>region.behaviors.some(b=>b.type == `${MODULENAME}.surf` && !b.disabled));
+    // if requireFacing, only consider regions we're facing
+    const entry = surfRegions.flatMap(region=>foundryGridDirections.map(dir=>{
+      const checkPoint = game.canvas.grid.getShiftedPoint({ x: tx, y: ty, elevation: token.elevation }, dir);
+      if (region.testPoint(checkPoint) && !token.object.checkCollision(checkPoint, { mode: "closest" })) {
+        return checkPoint;
+      }
+      return undefined;
+    })).filter(r=>r).at(0);
+    if (entry) {
+      const logic = game.modules.get(MODULENAME).api.logic;
+      const fieldMoveParty = logic.FieldMoveParty(token);
+      const hasFieldMoveSurf = fieldMoveParty.find(logic.CanUseSurf);
+      if (await UseFieldMove("Surf", hasFieldMoveSurf, !!hasFieldMoveSurf && game.settings.get(MODULENAME, "canUseSurf"), token._surfing)) {
+        token._surfing = true;
+        // update the token's position to be on the water
+        const topLeftEntry = canvas.grid.getTopLeftPoint(entry);
+        await token.update({ x: topLeftEntry.x, y: topLeftEntry.y }, {
+          movement: {
+            [token.id]: {
+              constrainOptions: {
+                ignoreWalls: true,
+                ignoreCost: true,
+                ignoreTokens: true,
+                history: false,
+              }
+            }
+          }
+        });
+      }
+    }
+  }
+
   
   // check if we're facing a wall/door
-  const shifted = game.canvas.grid.getShiftedPoint({ x: tx, y: ty }, token.rotation + 90);
+  const shifted = game.canvas.grid.getShiftedPoint({ x: tx, y: ty, elevation: token.elevation }, foundryGridDirection);
   const collides = token.object.checkCollision(shifted, { mode: "closest" });
   if (!collides) return;
-  const walls = collides.edges.filter(e=>e.object instanceof Wall);
+  const walls = collides.edges.filter(e=>e.object instanceof foundry.canvas.placeables.Wall);
   // open unlocked doors
   if (walls.size > 0) {
     for (const wall of walls.map(e=>e.object.document)) {
