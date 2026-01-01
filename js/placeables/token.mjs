@@ -29,14 +29,22 @@ async function OnRenderTokenConfig(config, html, context) {
     const predefinedSheetSettings = PokemonSheets.getSheetSettings(src);
     const isPredefined = predefinedSheetSettings !== undefined;
 
+    function getHiddenBoolOrFlag(flagName, defaultValue) {
+      const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.${flagName}']`);
+      if (hiddenField?.value !== undefined) {
+        return hiddenField.value === "true";
+      }
+      return token.getFlag(MODULENAME, flagName) ?? defaultValue;
+    }
+
     const data = {
       spritesheet: isPredefined || (form.querySelector(`input[name='flags.${MODULENAME}.spritesheet']`)?.checked ?? token.getFlag(MODULENAME, "spritesheet")),
       sheetstyle: form.querySelector(`select[name='flags.${MODULENAME}.sheetstyle']`)?.value ?? token.getFlag(MODULENAME, "sheetstyle") ?? "dlru",
       animationframes: (parseInt(form.querySelector(`input[name='flags.${MODULENAME}.animationframes']`)?.value) || token.getFlag(MODULENAME, "animationframes")) ?? 4,
       separateidle: form.querySelector(`input[name='flags.${MODULENAME}.separateidle']`)?.checked ?? token.getFlag(MODULENAME, "separateidle") ?? false,
       noidle: form.querySelector(`input[name='flags.${MODULENAME}.noidle']`)?.checked ?? token.getFlag(MODULENAME, "noidle") ?? false,
-      unlockedanchor: token.getFlag(MODULENAME, "unlockedanchor") ?? false,
-      unlockedfit: token.getFlag(MODULENAME, "unlockedfit") ?? false,
+      unlockedanchor: getHiddenBoolOrFlag("unlockedanchor", false),
+      unlockedfit: getHiddenBoolOrFlag("unlockedfit", false),
       ...(predefinedSheetSettings ?? {}),
       MODULENAME,
     };
@@ -80,26 +88,34 @@ async function OnRenderTokenConfig(config, html, context) {
       }
     }
 
+    // Add hidden fields for unlockedanchor and unlockedfit flags
+    if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`)) {
+      $(form).append(`<input type="hidden" name="flags.${MODULENAME}.unlockedanchor" value="${data.unlockedanchor}" />`);
+    }
+    if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`)) {
+      $(form).append(`<input type="hidden" name="flags.${MODULENAME}.unlockedfit" value="${data.unlockedfit}" />`);
+    }
+
     $(form).find(".toggle-link-anchor-to-sheet").remove();
     const unlockedAnchorLink = $(`<a class="toggle-link-anchor-to-sheet" title="${data.unlockedanchor ? "Base Anchors on Sheet" : "Manual Anchors"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedanchor ? "fa-lock-open" : "fa-lock"}"></i></a>`);
     $(form).find('[name="texture.anchorX"]').closest('.form-group').find('> label').append(unlockedAnchorLink);
     $(unlockedAnchorLink).on("click", ()=>{
-      token.setFlag(MODULENAME, "unlockedanchor", !data.unlockedanchor);
+      const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`);
+      hiddenField.value = hiddenField.value === "true" ? "false" : "true";
+      refreshConfig();
     });
-    if (!data.unlockedanchor) {
-      $(form).find('[name="texture.anchorX"]').prop("readonly", true);
-      $(form).find('[name="texture.anchorY"]').prop("readonly", true);
-    }
+    $(form).find('[name="texture.anchorX"]').prop("readonly", !data.unlockedanchor);
+    $(form).find('[name="texture.anchorY"]').prop("readonly", !data.unlockedanchor);
 
     $(form).find(".toggle-link-fit-to-sheet").remove();
     const unlockedFitLink = $(`<a class="toggle-link-fit-to-sheet" title="${data.unlockedfit ? "Base Fit on Sheet" : "Manual Fit"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedfit ? "fa-lock-open" : "fa-lock"}"></i></a>`);
     $(form).find('[name="texture.fit"]').closest('.form-group').find('> label').append(unlockedFitLink);
     $(unlockedFitLink).on("click", ()=>{
-      token.setFlag(MODULENAME, "unlockedfit", !data.unlockedfit);
+      const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`);
+      hiddenField.value = hiddenField.value === "true" ? "false" : "true";
+      refreshConfig();
     });
-    if (!data.unlockedfit) {
-      $(form).find('[name="texture.fit"]').prop("readonly", true);
-    }
+    $(form).find('[name="texture.fit"]').prop("readonly", !data.unlockedfit);
 
     // additional spritesheet-specific configurations
     data.showframes = SHEET_STYLE?.frames === undefined;
@@ -130,17 +146,16 @@ async function OnRenderTokenConfig(config, html, context) {
       }
       return;
     } else {
+      // create a hidden field to disable autoscaling for certain systems
       switch (game.system.id) {
         case "ptu":
-          if (token?.flags?.ptu?.autoscale) {
-            await token.setFlag("ptu", "autoscale", false).then(()=>refreshConfig({ updateScale }));
-            return;
+          if (!form.querySelector("input[name='flags.ptu.autoscale']")) {
+            $(form).append(`<input name="flags.ptu.autoscale" type="hidden" value="false" />`);
           }
           break;
         case "ptr2e":
-          if (token?.flags?.ptr2e?.autoscale) {
-            await token.setFlag("ptr2e", "autoscale", false).then(()=>refreshConfig({ updateScale }));
-            return;
+          if (!form.querySelector("input[name='flags.ptr2e.autoscale']")) {
+            $(form).append(`<input name="flags.ptr2e.autoscale" type="hidden" value="false" />`);
           }
           break;
       }
