@@ -1,4 +1,4 @@
-import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene, angleDiff } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene, getAngleFromDirection, getDirectionFromAngle } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 import { PokemonSheets } from "../pokemon-sheets.mjs";
@@ -29,14 +29,22 @@ async function OnRenderTokenConfig(config, html, context) {
     const predefinedSheetSettings = PokemonSheets.getSheetSettings(src);
     const isPredefined = predefinedSheetSettings !== undefined;
 
+    function getHiddenBoolOrFlag(flagName, defaultValue) {
+      const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.${flagName}']`);
+      if (hiddenField?.value !== undefined) {
+        return hiddenField.value === "true";
+      }
+      return token.getFlag(MODULENAME, flagName) ?? defaultValue;
+    }
+
     const data = {
       spritesheet: isPredefined || (form.querySelector(`input[name='flags.${MODULENAME}.spritesheet']`)?.checked ?? token.getFlag(MODULENAME, "spritesheet")),
       sheetstyle: form.querySelector(`select[name='flags.${MODULENAME}.sheetstyle']`)?.value ?? token.getFlag(MODULENAME, "sheetstyle") ?? "dlru",
       animationframes: (parseInt(form.querySelector(`input[name='flags.${MODULENAME}.animationframes']`)?.value) || token.getFlag(MODULENAME, "animationframes")) ?? 4,
       separateidle: form.querySelector(`input[name='flags.${MODULENAME}.separateidle']`)?.checked ?? token.getFlag(MODULENAME, "separateidle") ?? false,
       noidle: form.querySelector(`input[name='flags.${MODULENAME}.noidle']`)?.checked ?? token.getFlag(MODULENAME, "noidle") ?? false,
-      unlockedanchor: token.getFlag(MODULENAME, "unlockedanchor") ?? false,
-      unlockedfit: token.getFlag(MODULENAME, "unlockedfit") ?? false,
+      unlockedanchor: getHiddenBoolOrFlag("unlockedanchor", false),
+      unlockedfit: getHiddenBoolOrFlag("unlockedfit", false),
       ...(predefinedSheetSettings ?? {}),
       MODULENAME,
     };
@@ -80,26 +88,34 @@ async function OnRenderTokenConfig(config, html, context) {
       }
     }
 
+    // Add hidden fields for unlockedanchor and unlockedfit flags
+    if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`)) {
+      $(form).append(`<input type="hidden" name="flags.${MODULENAME}.unlockedanchor" value="${data.unlockedanchor}" />`);
+    }
+    if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`)) {
+      $(form).append(`<input type="hidden" name="flags.${MODULENAME}.unlockedfit" value="${data.unlockedfit}" />`);
+    }
+
     $(form).find(".toggle-link-anchor-to-sheet").remove();
     const unlockedAnchorLink = $(`<a class="toggle-link-anchor-to-sheet" title="${data.unlockedanchor ? "Base Anchors on Sheet" : "Manual Anchors"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedanchor ? "fa-lock-open" : "fa-lock"}"></i></a>`);
     $(form).find('[name="texture.anchorX"]').closest('.form-group').find('> label').append(unlockedAnchorLink);
     $(unlockedAnchorLink).on("click", ()=>{
-      token.setFlag(MODULENAME, "unlockedanchor", !data.unlockedanchor);
+      const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`);
+      hiddenField.value = hiddenField.value === "true" ? "false" : "true";
+      refreshConfig();
     });
-    if (!data.unlockedanchor) {
-      $(form).find('[name="texture.anchorX"]').prop("readonly", true);
-      $(form).find('[name="texture.anchorY"]').prop("readonly", true);
-    }
+    $(form).find('[name="texture.anchorX"]').prop("readonly", !data.unlockedanchor);
+    $(form).find('[name="texture.anchorY"]').prop("readonly", !data.unlockedanchor);
 
     $(form).find(".toggle-link-fit-to-sheet").remove();
     const unlockedFitLink = $(`<a class="toggle-link-fit-to-sheet" title="${data.unlockedfit ? "Base Fit on Sheet" : "Manual Fit"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedfit ? "fa-lock-open" : "fa-lock"}"></i></a>`);
     $(form).find('[name="texture.fit"]').closest('.form-group').find('> label').append(unlockedFitLink);
     $(unlockedFitLink).on("click", ()=>{
-      token.setFlag(MODULENAME, "unlockedfit", !data.unlockedfit);
+      const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`);
+      hiddenField.value = hiddenField.value === "true" ? "false" : "true";
+      refreshConfig();
     });
-    if (!data.unlockedfit) {
-      $(form).find('[name="texture.fit"]').prop("readonly", true);
-    }
+    $(form).find('[name="texture.fit"]').prop("readonly", !data.unlockedfit);
 
     // additional spritesheet-specific configurations
     data.showframes = SHEET_STYLE?.frames === undefined;
@@ -130,17 +146,16 @@ async function OnRenderTokenConfig(config, html, context) {
       }
       return;
     } else {
+      // create a hidden field to disable autoscaling for certain systems
       switch (game.system.id) {
         case "ptu":
-          if (token?.flags?.ptu?.autoscale) {
-            await token.setFlag("ptu", "autoscale", false).then(()=>refreshConfig({ updateScale }));
-            return;
+          if (!form.querySelector("input[name='flags.ptu.autoscale']")) {
+            $(form).append(`<input name="flags.ptu.autoscale" type="hidden" value="false" />`);
           }
           break;
         case "ptr2e":
-          if (token?.flags?.ptr2e?.autoscale) {
-            await token.setFlag("ptr2e", "autoscale", false).then(()=>refreshConfig({ updateScale }));
-            return;
+          if (!form.querySelector("input[name='flags.ptr2e.autoscale']")) {
+            $(form).append(`<input name="flags.ptr2e.autoscale" type="hidden" value="false" />`);
           }
           break;
       }
@@ -167,7 +182,7 @@ async function OnRenderTokenConfig(config, html, context) {
     })();
 
     const ratio = (height / width) * (data.animationframes / directions);
-    const scale = form.querySelector("input[name='scale']")?.value ?? 1;
+    const scale = form.querySelector("range-picker[name='scale'], input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
       switch (data.sheetstyle) {
         case "pmd":
@@ -255,7 +270,7 @@ function OnPreUpdateToken(doc, change, options) {
 
   const dx = nx - ox;
   const dy = ny - oy;
-  if ((dx !== 0 || dy !== 0) && !options.teleport) { // && !game.settings.get("core", "tokenAutoRotate")) {
+  if ((dx !== 0 || dy !== 0) && !options.teleport && !game.settings.get("core", "tokenAutoRotate")) {
     change.rotation = getAngleFromDirection(getDirection(dx, dy));
   };
 
@@ -273,34 +288,6 @@ function getDirection(dx, dy) {
   return result ?? "down";
 }
 
-function getAngleFromDirection(d) {
-  switch (d) {
-    case "down": return 0;
-    case "left": return 90;
-    case "right": return 270;
-    case "up": return 180;
-    case "downleft": return 45;
-    case "downright": return 315;
-    case "upleft": return 135;
-    case "upright": return 225;
-  }
-  return 0;
-}
-
-function getDirectionFromAngle(angle) {
-  switch (( 8 + Math.floor(((angle + 22.5) % 360) / 45) ) % 8) {
-    case 0: return "down";
-    case 1: return "downleft";
-    case 2: return "left";
-    case 3: return "upleft";
-    case 4: return "up";
-    case 5: return "upright";
-    case 6: return "right";
-    case 7: return "downright";
-  }
-  return "down";
-}
-
 
 function OnCreateCombatant(combatant) {
   if (!isTheGM()) return;
@@ -311,15 +298,11 @@ function OnCreateCombatant(combatant) {
 }
 
 
-
-
 /** 
- * Initialize all the edges for tokens when the canvas refreshes
- * @deprecated This function is no longer used as token collision uses TokenLayer methods instead
- * Kept for backward compatibility with tiles
+ * Initialize all the edges for tiles when the canvas refreshes
  */
 function OnInitializeEdges() {
-  // Token edges are deprecated - only process tiles if they still use edges
+  // Token edges are deprecated - Tiles still use edges for collision detection
   for (const tile of canvas.tiles.placeables) {
     tile?.initializeEdges?.();
   }
@@ -335,6 +318,9 @@ export function register() {
     #localOpacity;
     #idle;
     #run;
+    #surfingCached;
+    #surfSprite;
+    #surfTextures;
 
     constructor(document) {
       super(document);
@@ -345,6 +331,12 @@ export function register() {
       this.#localOpacity = 1;
       this.#idle = false;
       this.#run = false;
+      this.#surfingCached = {
+        i: undefined,
+        j: undefined,
+        k: undefined,
+        value: undefined,
+      }
     }
 
     /** @override */
@@ -354,6 +346,8 @@ export function register() {
       this.#textures = null;
       this.#textureSrc = null;
       this.#direction = "down";
+      this.#surfSprite = null;
+      this.#surfTextures = null;
     }
 
     get isSpritesheet() {
@@ -453,6 +447,9 @@ export function register() {
       // draw the indicators (caught/uncaught/etc)
       this.indicators ||= this.addChild(new PIXI.Container());
       await this._drawIndicators();
+
+      // draw the surf sprite
+      await this._drawSurfSprite();
     }
 
     async playFromSpritesheet() {
@@ -472,6 +469,19 @@ export function register() {
 
     get isometric() {
       return game.modules.get("isometric-perspective")?.active && tokenScene(this.document)?.flags?.["isometric-perspective"]?.isometricEnabled;
+    }
+
+    get surfing() {
+      const offset = game.canvas.grid.getOffset({
+        ...this.center,
+        elevation: this.document.elevation,
+      });
+      if (this.#surfingCached !== undefined && this.#surfingCached.i === offset.i && this.#surfingCached.j === offset.j && this.#surfingCached.k === offset.k) return this.#surfingCached.value;
+      this.#surfingCached = {
+        ...offset,
+        value: canvas.scene.regions.contents.some(r=>r.behaviors.contents.some(b=>b.type == `${MODULENAME}.surf` && !b.disabled) && r.testPoint(game.canvas.grid.getCenterPoint(offset))),
+      }
+      return this.#surfingCached.value;
     }
 
     get direction() {
@@ -533,6 +543,7 @@ export function register() {
           });
         }
       }
+      this._refreshSurfSprite();
     }
 
     set localOpacity(opacity) {
@@ -731,6 +742,8 @@ export function register() {
 
       if (this.document._sliding) { // slide with one leg out
         this.#index = 1;
+      } else if (this.surfing) { // surfing animation
+        this.#index = 0; // stand on surfboard
       }
 
       const newTexture = this.#getTexture();
@@ -740,7 +753,69 @@ export function register() {
           refreshMesh: true,
         });
       }
+      
+      // Update surf sprite
+      this._refreshSurfSprite();
+      
       return super._onAnimationUpdate(changed, context);
+    }
+
+    /**
+     * Draw or update the surf sprite underneath the token when surfing.
+     * @protected
+     */
+    async _drawSurfSprite() {
+      // Load surf textures if not already loaded
+      if (!this.#surfTextures) {
+        const surfSheet = await PIXI.Assets.load(`modules/${MODULENAME}/img/animations/surf_pokemon_frlg.json`);
+        this.#surfTextures = surfSheet.animations;
+      }
+
+      // Create surf sprite if it doesn't exist
+      if (!this.#surfSprite) {
+        this.#surfSprite = new PIXI.AnimatedSprite([PIXI.Texture.EMPTY]);
+        this.#surfSprite.anchor.set(0.5, 0.5);
+        this.#surfSprite.zIndex = -1; // Render underneath the main token
+        this.addChild(this.#surfSprite);
+      }
+
+      this._refreshSurfSprite();
+    }
+
+    /**
+     * Refresh the surf sprite visibility, texture, and position.
+     * @protected
+     */
+    _refreshSurfSprite() {
+      if (!this.#surfSprite || !this.#surfTextures) return;
+
+      const isSurfing = this.surfing;
+      
+      // Only show surf sprite when surfing
+      this.#surfSprite.visible = isSurfing;
+      
+      if (!this.#surfSprite.visible) return;
+
+      // Get the appropriate directional texture
+      const direction = this.#direction || "down";
+      const textures = this.#surfTextures[direction];
+      
+      if (textures && textures.length > 0) {
+        this.#surfSprite.textures = textures;
+        this.#surfSprite.gotoAndStop(0); // Use first frame
+      }
+
+      // Scale the surf sprite to match token width
+      const tokenWidth = this.document.width * canvas.grid.size;
+      const tokenHeight = this.document.height * canvas.grid.size;
+      const surfTexture = this.#surfSprite.texture;
+      if (surfTexture && surfTexture.width > 0) {
+        const scale = 1.2 * tokenWidth / surfTexture.width;
+        this.#surfSprite.scale.set(scale, scale);
+      }
+
+      // Position the surf sprite centered horizontally and 75% down the token's height
+      this.#surfSprite.position.set(tokenWidth * 0.5, tokenHeight * 0.75);
     }
 
     /**
