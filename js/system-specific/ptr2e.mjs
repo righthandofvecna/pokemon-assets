@@ -104,8 +104,7 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
       return "";
     })();
     const gender = (()=>{
-      if (config.gender == "male") return "m";
-      if (config.gender == "female") return "f";
+      if (config.female) return "f";
       return "";
     })();
     const { img } = PokemonSheets.getPokemon({
