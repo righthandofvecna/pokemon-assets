@@ -104,8 +104,7 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
       return "";
     })();
     const gender = (()=>{
-      if (config.gender == "male") return "m";
-      if (config.gender == "female") return "f";
+      if (config.female) return "f";
       return "";
     })();
     const { img } = PokemonSheets.getPokemon({
@@ -157,6 +156,10 @@ function OnPreCreateActor(actor, data) {
   const updates = {
     img: `modules/pokemon-assets/img/trainers-profile/${img}`,
     prototypeToken: _getTokenChangesForSpritesheet(`modules/pokemon-assets/img/trainers-overworld/${img}`),
+  }
+  if (updates.prototypeToken?.flags?.[MODULENAME]?.spritesheet && game.settings.get(MODULENAME, "trainersAlwaysOneGridSpace")) {
+    updates.prototypeToken.flags.ptr2e ??= {};
+    updates.prototypeToken.flags.ptr2e.linkToActorSize = false;
   }
   foundry.utils.mergeObject(data, foundry.utils.deepClone(updates));
   actor.updateSource(updates);
