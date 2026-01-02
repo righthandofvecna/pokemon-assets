@@ -244,7 +244,6 @@ function HasMoveFunction(moveName) {
 }
 
 function OnRenderPokeroleActorSheet(sheet, html, context) {
-  console.log("OnRenderPokeroleActorSheet", ...arguments) // DEBUG
   if (!isActorPokemon(sheet.actor ?? sheet.object)) return;
 
   // Create fieldset with both pokeball and trainer fields
