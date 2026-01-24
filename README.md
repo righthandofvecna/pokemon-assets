@@ -17,6 +17,12 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 - Isometric Perspective module support
 - A more efficient Follow Me! module replacement
 
+## Supported Systems
+- [Pokemon Tabletop Reunited](https://github.com/pokemon-tabletop-reunited/ptr1e)
+- [Pokemon Tabletop Reunited (2e)](https://github.com/pokemon-tabletop-reunited/ptr2e)
+- [Pokerole](https://github.com/Pokerole-Software-Development/foundry-pokerole)
+- [Pokemon 5e](https://github.com/MissingGlitch/pokemon5e-foundry-module) (expansion for D&D 5e)
+
 ## Usage
 
 ### Animated Spritesheets
