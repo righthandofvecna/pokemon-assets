@@ -140,7 +140,7 @@ async function ActorCry(actor) {
     return "";
   })();
   const mega = (()=>{
-    if (name.includes("Mega X ")) return "MEGA_X";
+    if (name.includes("Mega X ")) return "_MEGA_X";
     if (name.includes("Mega Y ")) return "_MEGA_Y";
     if (name.includes("Mega ")) return "_MEGA";
     return "";
