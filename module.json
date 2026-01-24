@@ -61,6 +61,14 @@
         "compatibility": {
           "verified": "0.5.3"
         }
+      },
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "5.0.0",
+          "verified": "5.2.5"
+        }
       }
     ]
   },
