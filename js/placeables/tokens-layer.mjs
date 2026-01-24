@@ -5,7 +5,7 @@ import { getAllInFollowChain } from "../module-compatibility/follow-me.mjs";
  * Extended TokenLayer for handling token collision detection
  */
 export function register() {
-  class TokenLayerPokemonAssets extends foundry.canvas.layers.TokenLayer {
+  class TokenLayerPokemonAssets extends CONFIG.Canvas.layers.tokens.layerClass {
     /**
      * Determine whether the provided grid space is being occupied by a token which should block the provided token
      * or the space is terrain that is currently impassable
@@ -16,7 +16,6 @@ export function register() {
      * @returns {boolean} Whether the moving token should be blocked
      */
     isOccupiedGridSpaceBlocking(gridSpace, token, { preview=false }={}) {
-      console.log("Checking token collision for", token, "at grid space", gridSpace, ...arguments);
       // Get all scene regions with a "Surf" behavior
       const surfRegions = canvas.scene.regions.contents.filter(r=>r.behaviors.contents.some(b=>b.type == `${MODULENAME}.surf` && !b.disabled));
       const grid = canvas.grid;
