@@ -209,6 +209,7 @@ function OnCreateToken(token, options) {
   (async ()=>{
     if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
     if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
+    if (token.hidden) return; // don't play the animation if the token is hidden
 
     const actor = token.actor;
     if (!actor || actor.type !== "pokemon") return;

@@ -36,9 +36,18 @@ To set up a token to use animated spritesheets, open the Prototype Token setting
 - **4-directions, Diagonal (Digimon)** - 4 diagonal directions only
 
 #### Third-Party Spritesheet Generators
-- **Nihey** - For spritesheets from [Nihey's Retro Sprite Creator](https://retro-sprite-creator.nihey.org/character/new)
-- **Universal LPC** - For [Universal LPC Spritesheet Generator](https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator) (download as single image). Note: Because Universal LPC sheets contain many animations, you may experience performance issues with large numbers of these tokens. To improve performance, isolate the walking animation and use one of the standard sheet styles.
-- **Memao** - For [Sleeping Robot's Memao Sprite Creator](https://sleepingrobot.itch.io/memao-sprite-creator)
+
+#### Nihey
+For spritesheets from [Nihey's Retro Sprite Creator](https://retro-sprite-creator.nihey.org/character/new)
+
+##### Universal LPC
+For [Universal LPC Spritesheet Generator](https://liberatedpixelcup.github.io/Universal-LPC-Spritesheet-Character-Generator) (download as single image). Note: Because Universal LPC sheets contain many animations, you may experience performance issues with large numbers of these tokens. To improve performance, isolate the walking animation and use one of the standard sheet styles.
+
+##### Memao
+For [Sleeping Robot's Memao Sprite Creator](https://sleepingrobot.itch.io/memao-sprite-creator)
+
+##### Top Down Sprite Maker (by Jordan Bunke)
+For [TDSM](https://flinkerflitzer.itch.io/tdsm), three sheet styles have been added in this module to support this generator. When exporting, use the default sequencing and layout (horizontal animation orientation, and don't check `multiple animations per row`).
 
 ### Setting Sprites
 

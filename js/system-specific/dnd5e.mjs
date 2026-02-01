@@ -123,7 +123,7 @@ function OnUpdateActor(actor, updates, options) {
     const lowHp = hp <= (actor?.system?.attributes?.hp?.max ?? 0) / 5;
 
     const token = game.scenes.active.tokens.find(t=>t.actor.uuid === actor.uuid);
-    game.modules.get("pokemon-assets").api.scripts.IndicateDamage(actor, token, lowHp);
+    game.modules.get(MODULENAME).api.scripts.IndicateDamage(actor, token, lowHp);
     return;
   }
 }
@@ -190,6 +190,7 @@ async function ActorCry(actor) {
 async function OnCreateToken(token, options) {
   if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
   if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
+  if (token.hidden) return; // don't play the animation if the token is hidden
   
   const actor = token.actor;
   if (!isActorPokemon(actor)) return;

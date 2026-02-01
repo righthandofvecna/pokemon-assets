@@ -453,7 +453,8 @@ async function HandleIce() {
  * @param {boolean} lowHp if below 1/5 hp, we should play the alert
  */
 async function IndicateDamage(actor, token, lowHp) {
-  const sceneVisible = token?.scene?.id === canvas?.scene?.id;
+  const scene = tokenScene(token);
+  const sceneVisible = scene?.id === canvas?.scene?.id;
   if (!sceneVisible) return;
 
   const sequence = new Sequence({ moduleName: "pokemon-assets", softFail: true });

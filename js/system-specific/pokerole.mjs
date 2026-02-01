@@ -182,6 +182,7 @@ async function ActorCry(actor) {
 async function OnCreateToken(token, options) {
   if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
   if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
+  if (token.hidden) return; // don't play the animation if the token is hidden
   
   const actor = token.actor;
   if (!isActorPokemon(actor)) return;

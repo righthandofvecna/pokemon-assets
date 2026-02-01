@@ -173,15 +173,15 @@ async function OnRenderTokenConfig(config, html, context) {
     const texture = await foundry.canvas.loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
     const { width, height } = texture ?? {};
     if (!width || !height) return;
-    const directions = (()=>{
+    const verticalFrames = (()=>{
       switch (data.sheetstyle) {
         case "pmd":
         case "eight": return 8;
-        default: return 4;
+        default: return SHEET_STYLE?.verticalFrames ?? 4;
       }
     })();
 
-    const ratio = (height / width) * (data.animationframes / directions);
+    const ratio = (height / width) * (data.animationframes / verticalFrames);
     const scale = form.querySelector("range-picker[name='scale'], input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
       switch (data.sheetstyle) {
@@ -243,14 +243,15 @@ async function OnUpdateToken(token, changes, metadata, user) {
   const needsRedraw = changes?.texture?.src ||
                       changes?.flags?.[MODULENAME]?.sheetstyle ||
                       changes?.flags?.[MODULENAME]?.animationframes ||
-                      changes?.flags?.[MODULENAME]?.spritesheet;
+                      changes?.flags?.[MODULENAME]?.spritesheet !== undefined;
   
   if (!needsRedraw) return;
 
   const tokenObj = token?.object;
   if (!tokenObj) return;
 
-  // Trigger a full redraw - cache invalidation is handled by _onUpdate
+  // Trigger a full redraw - cache invalidation is handled by _onUpdate'
+  tokenObj.renderable = true;
   tokenObj.clear();
   await tokenObj.draw();
 }
@@ -606,6 +607,22 @@ export function register() {
      * @returns {Promise<void>}                   A promise which resolves once the animation has finished or stopped
      */
     _PRIVATE_animate(to, options, chained) {
+      // Check if this is a movement animation (not just an idle frame animation)
+      const isMovement = (to.x !== undefined) || (to.y !== undefined) || (to.rotation !== undefined && to.frame === undefined);
+      
+      // Terminate only idle frame animations when movement starts
+      if (isMovement && !chained && this.#idle) {
+        // Find and stop only idle animations (frame-only)
+        for (const [name, context] of this.animationContexts.entries()) {
+          // Check if this is a frame-only animation (idle)
+          if (context.to && context.to.frame !== undefined && !context.to.x && !context.to.y) {
+            CanvasAnimation.terminateAnimation(name);
+            this.animationContexts.delete(name);
+          }
+        }
+        this.#idle = false;
+      }
+      
       let from = this._PRIVATE_animationData;
       from.frame = 0;
       options.movementSpeed ??= (()=>{
@@ -617,10 +634,10 @@ export function register() {
         } else {
           const { sizeX, sizeY } = game?.scenes?.active?.grid ?? { sizeX: 100, sizeY: 100 };
           const manhattan = (Math.abs((to.x ?? from.x) - from.x) / sizeX) + (Math.abs((to.y ?? from.y) - from.y) / sizeY);
-          if (manhattan < (game.settings.get(MODULENAME, "runDistance") ?? 5)) {
+          if (manhattan != 0 && manhattan < (game.settings.get(MODULENAME, "runDistance") ?? 5)) {
             this.#run = false;
             desiredSpeed = game.settings.get(MODULENAME, "walkSpeed") ?? 4;
-          } else {
+          } else if (manhattan != 0) {
             this.#run = true;
             desiredSpeed = game.settings.get(MODULENAME, "runSpeed") ?? 8;
           }
