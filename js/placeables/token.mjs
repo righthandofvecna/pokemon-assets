@@ -250,7 +250,8 @@ async function OnUpdateToken(token, changes, metadata, user) {
   const tokenObj = token?.object;
   if (!tokenObj) return;
 
-  // Trigger a full redraw - cache invalidation is handled by _onUpdate
+  // Trigger a full redraw - cache invalidation is handled by _onUpdate'
+  tokenObj.renderable = true;
   tokenObj.clear();
   await tokenObj.draw();
 }
