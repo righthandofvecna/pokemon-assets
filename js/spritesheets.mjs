@@ -425,6 +425,25 @@ function sliceTDSM_Gen4(sheetKey, slicingInfo, frames) {
   sliceFromAnimList(animList, dirOrder, sheetKey, slicingInfo, frames)
 }
 
+/**
+ * A function to slice a spritesheet into its component frames.
+ * 
+ * For the Jordan Bunke's "Top Down Sprite Maker" PixelCitizen style
+ * 
+ * @param {*} sheetKey 
+ * @param {*} slicingInfo 
+ * @param {*} frames 
+ */
+function sliceTDSM_PixelCitizen(sheetKey, slicingInfo, frames) {
+  const animList = [
+    ["idle", [0, 1, 2, 3]],
+    ["", [0, 1, 2, 3, 4, 5]],
+    ["run", [0, 1, 2, 3, 4, 5]],
+  ];
+  const dirOrder = ["down", "left", "right", "up"];
+  sliceFromAnimList(animList, dirOrder, sheetKey, slicingInfo, frames)
+}
+
 
 export class SpritesheetGenerator {
 
@@ -485,6 +504,14 @@ export class SpritesheetGenerator {
       frames: 3, // force this to be 3 for tdsm4
       includesIdle: true, // this style includes an idle animation
       verticalFrames: 5 * 4, // this style has 7 animations of 4 directions each
+    },
+    tdsmpc: {
+      label: "TDSM PixelCitizen Style",
+      hint: "Jordan Bunke's Top Down Sprite Maker PixelCitizen style",
+      slicer: sliceTDSM_PixelCitizen,
+      frames: 6, // force this to be 6 for tdsmpc
+      includesIdle: true, // this style includes an idle animation
+      verticalFrames: 3 * 4, // this style has 3 animations of 4 directions each
     },
     // Legacy aliases for backwards compatibility
     trainer: {
