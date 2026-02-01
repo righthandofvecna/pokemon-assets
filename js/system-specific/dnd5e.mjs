@@ -123,7 +123,7 @@ function OnUpdateActor(actor, updates, options) {
     const lowHp = hp <= (actor?.system?.attributes?.hp?.max ?? 0) / 5;
 
     const token = game.scenes.active.tokens.find(t=>t.actor.uuid === actor.uuid);
-    game.modules.get("pokemon-assets").api.scripts.IndicateDamage(actor, token, lowHp);
+    game.modules.get(MODULENAME).api.scripts.IndicateDamage(actor, token, lowHp);
     return;
   }
 }
