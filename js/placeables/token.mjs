@@ -173,15 +173,15 @@ async function OnRenderTokenConfig(config, html, context) {
     const texture = await foundry.canvas.loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
     const { width, height } = texture ?? {};
     if (!width || !height) return;
-    const directions = (()=>{
+    const verticalFrames = (()=>{
       switch (data.sheetstyle) {
         case "pmd":
         case "eight": return 8;
-        default: return 4;
+        default: return SHEET_STYLE?.verticalFrames ?? 4;
       }
     })();
 
-    const ratio = (height / width) * (data.animationframes / directions);
+    const ratio = (height / width) * (data.animationframes / verticalFrames);
     const scale = form.querySelector("range-picker[name='scale'], input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
       switch (data.sheetstyle) {

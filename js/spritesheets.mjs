@@ -423,6 +423,7 @@ export class SpritesheetGenerator {
       label: "8-directions (Mystery Dungeon Style)",
       hint: "8-direction spritesheet with Down, DownRight, Right, UpRight, Up, UpLeft, Left, DownLeft rows",
       slicer: sliceEight,
+      verticalFrames: 8,
     },
     diagonal: {
       label: "4-directions, Diagonal (Digimon)",
@@ -454,6 +455,7 @@ export class SpritesheetGenerator {
       slicer: sliceTDSM_Gen3,
       frames: 4, // force this to be 4 for tdsm3
       includesIdle: true, // this style includes an idle animation
+      verticalFrames: 7 * 4, // this style has 7 animations of 4 directions each
     },
     // Legacy aliases for backwards compatibility
     trainer: {
