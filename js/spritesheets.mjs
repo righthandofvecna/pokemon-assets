@@ -452,6 +452,8 @@ export class SpritesheetGenerator {
       label: "TDSM Gen3 Style",
       hint: "Jordan Bunke's Top Down Sprite Maker Gen3 style",
       slicer: sliceTDSM_Gen3,
+      frames: 4, // force this to be 4 for tdsm3
+      includesIdle: true, // this style includes an idle animation
     },
     // Legacy aliases for backwards compatibility
     trainer: {
