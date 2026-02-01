@@ -40,7 +40,15 @@ function OnCreateToken(token) {
   })();
 }
 
-
+function Token_onCreate(data, options, userId) {
+  foundry.canvas.placeables.PlaceableObject.prototype._onCreate.call(this, data, options, userId);
+  this.initializeSources(); // Update vision and lighting sources
+  // do not assume control of the token on creation
+  // if ( !game.user.isGM && this.isOwner && !this.document.hidden && !canvas.tokens.controlled.length ) {
+  //   this.control({pan: true}); // Assume control
+  // }
+  canvas.perception.update({refreshOcclusion: true});
+}
 
 export function register() {
   Hooks.on("canvasReady", OnCanvasReady);
@@ -54,4 +62,8 @@ export function register() {
 		config: true,
 		hint: "When dropping a token onto a scene that has an actively running combat, prompt the GM to add it to the combat tracker."
 	});
+
+  if (!game.settings.get(MODULENAME, "autoControlOwnedToken")) {
+    libWrapper.register(MODULENAME, "foundry.canvas.placeables.Token.prototype._onCreate", Token_onCreate, "OVERRIDE");
+  }
 }

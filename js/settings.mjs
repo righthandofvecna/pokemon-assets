@@ -97,6 +97,15 @@ export function register() {
 		hint: "Allows players to mark tokens (defaulting to the 'L' key) as tokens to automatically follow when they move."
 	});
 
+	game.settings.register(MODULENAME, "autoControlOwnedToken", {
+		name: "Auto Control Owned Token",
+		default: true,
+		type: Boolean,
+		scope: "user",
+		config: true,
+		hint: "Automatically take control of tokens you own when they are created if you're not already controlling a token."
+	});
+
 	//
 	// Hidden settings we don't want to show in the settings menu, but are used by the module
 	//
