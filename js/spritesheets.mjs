@@ -404,6 +404,27 @@ function sliceTDSM_Gen3(sheetKey, slicingInfo, frames) {
   }
 }
 
+/**
+ * A function to slice a spritesheet into its component frames.
+ * 
+ * For the Jordan Bunke's "Top Down Sprite Maker" Gen4 style
+ * 
+ * @param {*} sheetKey 
+ * @param {*} slicingInfo 
+ * @param {*} frames 
+ */
+function sliceTDSM_Gen4(sheetKey, slicingInfo, frames) {
+  const animList = [
+    ["", [1, 0, 1, 2]],
+    ["idle", [0]],
+    ["run", [1, 0, 1, 2]],
+    ["surf", [0]],
+    ["swim", [1, 0, 1, 2]],
+  ];
+  const dirOrder = ["down", "left", "right", "up"];
+  sliceFromAnimList(animList, dirOrder, sheetKey, slicingInfo, frames)
+}
+
 
 export class SpritesheetGenerator {
 
@@ -456,6 +477,14 @@ export class SpritesheetGenerator {
       frames: 4, // force this to be 4 for tdsm3
       includesIdle: true, // this style includes an idle animation
       verticalFrames: 7 * 4, // this style has 7 animations of 4 directions each
+    },
+    tdsm4: {
+      label: "TDSM Gen4 Style",
+      hint: "Jordan Bunke's Top Down Sprite Maker Gen4 style",
+      slicer: sliceTDSM_Gen4,
+      frames: 3, // force this to be 3 for tdsm4
+      includesIdle: true, // this style includes an idle animation
+      verticalFrames: 5 * 4, // this style has 7 animations of 4 directions each
     },
     // Legacy aliases for backwards compatibility
     trainer: {
