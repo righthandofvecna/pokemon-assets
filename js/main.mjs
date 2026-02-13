@@ -8,7 +8,7 @@ import * as audio from "./audio.mjs";
 import * as controls from "./controls.mjs";
 import * as dialog from "./dialog.mjs";
 import * as placeables from "./placeables/index.mjs";
-import * as tokenConfig from "./token-config.mjs";
+import * as configs from "./configs/index.mjs";
 import * as spritesheets from "./spritesheets.mjs";
 import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
@@ -31,7 +31,7 @@ Hooks.on("init", ()=>{
     ["controls", controls],
     ["dialog", dialog],
     ["placeables", placeables],
-    ["tokenConfig", tokenConfig],
+    ["configs", configs],
     ["spritesheets", spritesheets],
     ["scripts", scripts],
     ["pixelate", pixelate],

@@ -1,6 +1,6 @@
-import { MODULENAME } from "./utils.mjs";
-import { SpritesheetGenerator } from "./spritesheets.mjs";
-import { PokemonSheets } from "./pokemon-sheets.mjs";
+import { MODULENAME } from "../utils.mjs";
+import { SpritesheetGenerator } from "../spritesheets.mjs";
+import { PokemonSheets } from "../pokemon-sheets.mjs";
 
 /**
  * Add the spritesheet settings to the token config page
