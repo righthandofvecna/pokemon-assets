@@ -259,6 +259,7 @@ function TokenConfig_attachPartListeners(wrapped, partId, htmlElement, options) 
   wrapped(partId, htmlElement, options);
 
   if (partId === "puzzle") {
+    // Sounds
     $(htmlElement).find(`select[name="flags.${MODULENAME}.interactionSound"]`).on("change", function() {
       const custom = $(htmlElement).find("option.custom-interaction").get(0).value;
       const customInput = $(htmlElement).find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
@@ -284,6 +285,16 @@ function TokenConfig_attachPartListeners(wrapped, partId, htmlElement, options) 
         custom.value = value;
       }
     });
+
+    // Dialogue/Script Switching
+    $(htmlElement).find(`[name="flags.${MODULENAME}.dialogue"]`).on("change", function() {
+      const dialogue = $(this).val();
+      if (dialogue) {
+        $(htmlElement).find(`[name="flags.${MODULENAME}.script"]`).closest(`fieldset`).hide();
+      } else {
+        $(htmlElement).find(`[name="flags.${MODULENAME}.script"]`).closest(`fieldset`).show();
+      }
+    });
   }
 }
 
@@ -303,5 +314,5 @@ export function register() {
     icon: "fa-solid fa-puzzle-piece",
   });
   libWrapper.register(MODULENAME, "foundry.applications.sheets.TokenConfig.prototype._preparePartContext", TokenConfig_preparePartContext, "WRAPPER");
-  // libWrapper.register(MODULENAME, "foundry.applications.sheets.TokenConfig.prototype._attachPartListeners", TokenConfig_attachPartListeners, "WRAPPER");
+  libWrapper.register(MODULENAME, "foundry.applications.sheets.TokenConfig.prototype._attachPartListeners", TokenConfig_attachPartListeners, "WRAPPER");
 }

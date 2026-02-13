@@ -18,8 +18,14 @@
         <file-picker class="custom-interaction" type="audio" value="{{#if pa.isCustomSound}}{{pa.customSound}}{{/if}}"></file-picker>
       </div>
     </div> --}}
+    <div class="form-group">
+      <label>Dialogue</label>
+      <div class="form-fields">
+        <textarea name="flags.pokemon-assets.dialogue">{{{pa.dialogue}}}</textarea>
+      </div>
+    </div>
     {{#if pa.permissions.MACRO_SCRIPT}}
-    <fieldset>
+    <fieldset {{#if pa.dialogue}}style="display:none"{{/if}}>
       <legend>{{ localize "POKEMON-ASSETS.Fields.InteractionScript.label" }}</legend>
       <label>Execute as GM? <input type="checkbox" name="flags.pokemon-assets.scriptGm" {{#if pa.scriptGm}}checked{{/if}}></label>
       {{formInput pa.scriptField value=pa.script language="javascript" elementType="code-mirror"

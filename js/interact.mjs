@@ -1,4 +1,4 @@
-import { MODULENAME, sleep, isAdjacent, getGridDirectionFromAngle } from "./utils.mjs";
+import { MODULENAME, sleep, isAdjacent, getGridDirectionFromAngle, getDirectionFromAngle } from "./utils.mjs";
 import { UseFieldMove, Interact } from "./scripts.mjs";
 import * as socket from "./socket.mjs";
 
@@ -60,6 +60,30 @@ async function runAsMacro_socket(selfUuid, speaker, actorUuid, tokenUuid, charac
 }
 
 /**
+ * Get all the tokens that this one is facing (or adjacent to, if the token doesn't have facing)
+ * @param {*} token 
+ * @param {*} filter 
+ * @returns 
+ */
+function getFacingTokens(token, filter=()=>true) {
+  const tObj = token.object;
+  const { x: tx, y: ty } = canvas.grid.getCenterPoint(tObj.center);
+  const { sizeX, sizeY } = canvas.grid;
+  const tokenBounds = { x: tx, y: ty, w: Math.max(tObj.w, sizeX), h: Math.max(tObj.h, sizeY), r: token.rotation};
+  const requireFacing = tObj?.hasFacing ?? false;
+
+  return game.canvas.tokens.placeables.filter(o=>{
+      if (o === tObj || !filter(o)) return false;
+      const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
+      return isAdjacent(
+        tokenBounds,
+        { x: ox, y: oy, w: Math.max(o.w, sizeX), h: Math.max(o.h, sizeY) },
+        requireFacing,
+      );
+    });
+}
+
+/**
  * Trigger the "tokenInteract" region behavior for all selected tokens
  */
 async function OnInteract() {
@@ -104,15 +128,7 @@ async function OnInteract() {
 
   // check if we are facing/adjacent to an item pile
   if (game.modules.get("item-piles")?.active) {
-    const facingTokens = game.canvas.tokens.placeables.filter(o=>{
-      if (o === tObj || !o.document?.flags?.["item-piles"]?.data?.enabled) return false;
-      const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
-      return isAdjacent(
-        tokenBounds,
-        { x: ox, y: oy, w: Math.max(o.w, sizeX), h: Math.max(o.h, sizeY) },
-        requireFacing,
-      );
-    });
+    const facingTokens = getFacingTokens(token, o=>o.document?.flags?.["item-piles"]?.data?.enabled);
 
     if (facingTokens.length > 0) {
       Interact();
@@ -120,22 +136,24 @@ async function OnInteract() {
     }
   };
   // check if we are facing/adjacent to a token with an interaction script
-  const facingTokens = game.canvas.tokens.placeables.filter(o=>{
-    if (o === tObj) return false;
-    const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
-    const adjacent = isAdjacent(
-      tokenBounds,
-      { x: ox, y: oy, w: Math.max(o.w, sizeX), h: Math.max(o.h, sizeY) },
-      requireFacing,
-    );
-    if (!adjacent) return false;
-    const hasInteractionScript = !!o.document?.flags?.[MODULENAME]?.script;
-    return hasInteractionScript;
-  });
+  const facingTokens = getFacingTokens(token, o=>!!o.document?.flags?.[MODULENAME]?.script || !!o.document?.flags?.[MODULENAME]?.dialogue);
 
   if (facingTokens.length > 0) {
-    Interact();
-    return runAsMacro(facingTokens.at(0)?.document);
+    const facingDoc = facingTokens.at(0)?.document;
+    if (facingDoc?.flags?.[MODULENAME]?.dialogue) {
+      // set the direction of the facing token
+      const oldDirection = facingDoc.object.direction;
+      facingDoc.object.direction = getDirectionFromAngle((Math.atan2(canvas.grid.getCenterPoint(facingTokens.at(0).center).y - ty, canvas.grid.getCenterPoint(facingTokens.at(0).center).x - tx) * 180 / Math.PI) + 90);
+      await game.modules.get(MODULENAME).api.PokemonPrompt({
+        title: facingDoc.name,
+        content: `<p>${facingDoc.flags[MODULENAME].dialogue}</p>`,
+      });
+      facingDoc.object.direction = oldDirection;
+      return;
+    } else {
+      Interact();
+      return runAsMacro(facingTokens.at(0)?.document);
+    }
   }
 
   // check if we are facing/adjacent to an tile (either with Rock Smash or Cut or Strength)
