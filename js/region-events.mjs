@@ -164,7 +164,7 @@ async function OnInteract() {
   const { x: tx, y: ty } = canvas.grid.getCenterPoint(tObj.center);
   const { sizeX, sizeY } = canvas.grid;
   const tokenBounds = { x: tx, y: ty, w: Math.max(tObj.w, sizeX), h: Math.max(tObj.h, sizeY), r: token.rotation};
-  const requireFacing = !!tObj?.isSpritesheet;
+  const requireFacing = tObj?.hasFacing ?? false;
 
   // let's wait until we lift the enter key
   do {

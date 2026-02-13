@@ -21,7 +21,7 @@ async function TokenDocument_preUpdate(wrapped, changed, options, user) {
   const dy = lwp.y - this.y;
   const angle = ((a)=>isNaN(a) ? this.rotation : a)(((Math.atan2(-dx, dy) * 180 / Math.PI) + 360) % 360);
   const stopped = lwp.x != changed.x || lwp.y != changed.y;
-  const bumped = stopped && (angleDiff(angle, this.rotation) < 45 || !obj?.isSpritesheet);
+  const bumped = stopped && (angleDiff(angle, this.rotation) < 45 || !obj?.hasFacing);
   if (stopped) { 
     if (game.settings.get("core", "tokenAutoRotate") || obj?.isSpritesheet) { changed.rotation = angle; }
     else if (obj) {

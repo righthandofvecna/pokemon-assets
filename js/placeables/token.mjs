@@ -130,6 +130,10 @@ export function register() {
         return this.document.getFlag(MODULENAME, "spritesheet");
       }
 
+      get hasFacing() {
+        return this.isSpritesheet || !this.document.lockRotation;
+      }
+
       get sheetStyle() {
         return this.document.getFlag(MODULENAME, "sheetstyle") ?? "dlru";
       }
@@ -894,7 +898,7 @@ export function register() {
       }
     });
   });
-  
+
   Hooks.on("updateToken", OnUpdateToken);
   Hooks.on("preUpdateToken", OnPreUpdateToken);
   Hooks.on("initializeEdges", OnInitializeEdges);
