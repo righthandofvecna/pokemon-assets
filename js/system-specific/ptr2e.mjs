@@ -122,6 +122,29 @@ async function ImageResolver_createFromSpeciesData(wrapped, config, ...args) {
 }
 
 
+async function RegenerateActorTokenImg(actor) {
+  if (!actor) return;
+  const species = actor.itemTypes.species[0];
+  if (!species) return;
+  const config = game.ptr.data.artMap.get(species.system.slug);
+  if (!config) return;
+  const tokenResolver = await game.ptr.util.image.createFromSpeciesData(
+    {
+      dexId: species.system.number,
+      shiny: actor.system.shiny,
+      forms: species.system.form ? [...species.system.form.split("-"), "token"] : ["token"],
+    },
+    config
+  );
+  const src = tokenResolver?.result ?? null;
+  if (!src || src == "icons/svg/mystery-man.svg") return;
+  return {
+    "texture.src": src,
+    ..._getTokenChangesForSpritesheet(src),
+  }
+}
+
+
 function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
   if (!src || !PokemonSheets.hasSheetSettings(src)) return;
@@ -615,6 +638,7 @@ export function register() {
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
+  api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
 
   ptr2eSheet.register();
   ptr2eFixes.register();

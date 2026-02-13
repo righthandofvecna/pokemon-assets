@@ -63,6 +63,15 @@ export function register() {
 	});
 	HomebrewSettings.initSettings();
 
+	game.settings.registerMenu(MODULENAME, "control-panel", {
+		name: "Control Panel",
+		label: "Control Panel",
+		icon: "fa-solid fa-wrench",
+		hint: "Advanced tools for managing Pokemon Assets module features.",
+		restricted: true,
+		type: ControlPanelMenu,
+	});
+
 	//
 	// Non-Menu Settings
 	//
@@ -907,5 +916,64 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 			config: false,
 			hint: "The settings for homebrew spritesheets."
 		});
+	}
+}
+
+
+export class ControlPanelMenu extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+
+	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+		super.DEFAULT_OPTIONS,
+		{
+			classes: ["sheet", "pokemon-assets", "settings", "control-panel"],
+			position: {
+				height: 'auto',
+				width: 500,
+			},
+			window: {
+				title: "Control Panel",
+				minimizable: false,
+				resizable: false,
+			},
+			actions: {
+				"regenerateImages": ControlPanelMenu.#regenerateImages,
+				"disableSpritesheets": ControlPanelMenu.#disableSpritesheets,
+			},
+		},
+		{ inplace: false }
+	);
+
+	static PARTS = {
+		modifiers: {
+				id: "control-panel",
+				template: "modules/pokemon-assets/templates/control-panel.hbs",
+		},
+	};
+
+	async _prepareContext() {
+		return {
+			tools: [
+				{
+					action: "regenerateImages",
+					label: "Regenerate All Images",
+					icon: "fa-solid fa-image",
+					description: "Regenerates all token and actor images for Pokemon and trainers based on current settings.",
+				},
+				{
+					action: "disableSpritesheets",
+					label: "Disable All Spritesheets",
+					icon: "fa-solid fa-ban",
+					description: "Disables spritesheet animations for all tokens in the world.",
+				},
+			],
+		};
+	}
+
+	static async #regenerateImages(event, button) {
+		await game.modules.get(MODULENAME).api.migration.RegenerateAllImages();
+	}
+
+	static async #disableSpritesheets(event, button) {
+		await game.modules.get(MODULENAME).api.migration.DisableAllSpritesheets();
 	}
 }

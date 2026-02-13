@@ -49,6 +49,15 @@ function _getPokemonSprite(actor, data={}) {
   });
 }
 
+async function RegenerateActorTokenImg(actor) {
+  const { img, settings } = _getPokemonSprite(actor);
+  if (!img) return;
+  return {
+    "texture.src": img,
+    ...settings,
+  }
+}
+
 function OnPreCreateActor(actor, data) {
   if (isActorPokemon(actor, data)) {
     if (!game.settings.get(MODULENAME, "autoSetTokenSprite")) return;
@@ -284,6 +293,7 @@ export function register() {
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
+  api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
 
   CONFIG.DND5E.characterFlags.pokeball = {
     name: "Pokeball",
