@@ -9,6 +9,16 @@ import { PokemonSheets } from "../pokemon-sheets.mjs";
  * @param {*} context 
  */
 async function OnRenderTokenConfig(config, html, context) {
+  _renderTokenAppearanceTab(config, html, context);
+}
+
+/**
+ * Render the appearance tab changes for spritesheet settings
+ * @param {*} config 
+ * @param {*} html 
+ * @param {*} context 
+ */
+async function _renderTokenAppearanceTab(config, html, context) {
   const form = $(html).find("form").get(0) ?? config.form;
   const token = config.token;
 
