@@ -478,6 +478,10 @@ function TilesLayer_onClickLeft2(wrapper, event) {
       });
       break;
     case "headbutt-tree":
+      if (game.tables.size === 0) {
+        ui.notifications.error("You must have at least one Roll Table in your world to add a Headbutt Tree.");
+        return;
+      }
       (new Promise(async (resolve)=>{
         foundry.applications.api.DialogV2.wait({
           window: { title: 'Pokemon To Spawn' },
@@ -485,7 +489,7 @@ function TilesLayer_onClickLeft2(wrapper, event) {
               <div class="form-group">
                 <label for="text">Species Rolltable</label>
                 <select name="species">
-                  ${game.tables.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b)}
+                  ${game.tables.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b, "")}
                 </select>
               </div>
           `,
