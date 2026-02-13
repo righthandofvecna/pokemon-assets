@@ -21,30 +21,31 @@ import * as system from "./system-specific/index.mjs";
 import * as socket from "./socket.mjs";
 
 Hooks.on("init", ()=>{
-  for (const m of [migration,
-    settings,
-    config,
-    preload,
-    actor,
-    audio,
-    controls,
-    dialog,
-    placeables,
-    tokenConfig,
-    spritesheets,
-    scripts,
-    pixelate,
-    pokemonSheets,
-    regionEvents,
-    canvas,
-    filePicker,
-    moduleCompatibility,
-    system,
-    socket]) {
+  for (const [name, m] of [
+    ["migration", migration],
+    ["settings", settings],
+    ["config", config],
+    ["preload", preload],
+    ["actor", actor],
+    ["audio", audio],
+    ["controls", controls],
+    ["dialog", dialog],
+    ["placeables", placeables],
+    ["tokenConfig", tokenConfig],
+    ["spritesheets", spritesheets],
+    ["scripts", scripts],
+    ["pixelate", pixelate],
+    ["pokemonSheets", pokemonSheets],
+    ["regionEvents", regionEvents],
+    ["canvas", canvas],
+    ["filePicker", filePicker],
+    ["moduleCompatibility", moduleCompatibility],
+    ["system", system],
+    ["socket", socket]]) {
     try {
       m.register();
     } catch (e) {
-      console.error(`?.register():`, e);
+      console.error(`${name}.register():`, e);
     }
   }
 })
