@@ -31,8 +31,8 @@ async function OnRenderTokenConfig(config, html, context) {
 
     function getHiddenBoolOrFlag(flagName, defaultValue) {
       const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.${flagName}']`);
-      if (hiddenField?.value !== undefined) {
-        return hiddenField.value === "true";
+      if (hiddenField?.checked !== undefined) {
+        return hiddenField.checked;
       }
       return token.getFlag(MODULENAME, flagName) ?? defaultValue;
     }
@@ -90,10 +90,10 @@ async function OnRenderTokenConfig(config, html, context) {
 
     // Add hidden fields for unlockedanchor and unlockedfit flags
     if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`)) {
-      $(form).append(`<input type="hidden" name="flags.${MODULENAME}.unlockedanchor" value="${data.unlockedanchor}" />`);
+      $(form).append(`<input type="checkbox" style="display:none" name="flags.${MODULENAME}.unlockedanchor" ${data.unlockedanchor ? "checked" : ""} />`);
     }
     if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`)) {
-      $(form).append(`<input type="hidden" name="flags.${MODULENAME}.unlockedfit" value="${data.unlockedfit}" />`);
+      $(form).append(`<input type="checkbox" style="display:none" name="flags.${MODULENAME}.unlockedfit" ${data.unlockedfit ? "checked" : ""} />`);
     }
 
     $(form).find(".toggle-link-anchor-to-sheet").remove();
@@ -101,7 +101,7 @@ async function OnRenderTokenConfig(config, html, context) {
     $(form).find('[name="texture.anchorX"]').closest('.form-group').find('> label').append(unlockedAnchorLink);
     $(unlockedAnchorLink).on("click", ()=>{
       const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`);
-      hiddenField.value = hiddenField.value === "true" ? "false" : "true";
+      hiddenField.checked = !hiddenField.checked;
       refreshConfig();
     });
     $(form).find('[name="texture.anchorX"]').prop("readonly", !data.unlockedanchor);
@@ -112,7 +112,7 @@ async function OnRenderTokenConfig(config, html, context) {
     $(form).find('[name="texture.fit"]').closest('.form-group').find('> label').append(unlockedFitLink);
     $(unlockedFitLink).on("click", ()=>{
       const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`);
-      hiddenField.value = hiddenField.value === "true" ? "false" : "true";
+      hiddenField.checked = !hiddenField.checked;
       refreshConfig();
     });
     $(form).find('[name="texture.fit"]').prop("readonly", !data.unlockedfit);
