@@ -21,12 +21,25 @@ async function RegenerateAllImages() {
     return;
   }
 
+  const regen = async (actor) => {
+    const tokenUpdate = await RegenerateActorTokenImg(actor);
+    if (!tokenUpdate) return;
+    if (!game.settings.get(MODULENAME, "allowTokenArtPastBounds")) {
+      tokenUpdate["scale"] = 1;
+      tokenUpdate["texture.scaleX"] = tokenUpdate["texture.scaleY"] = 1;
+      tokenUpdate["texture.fit"] = "fill";
+      tokenUpdate["texture.anchorX"] = 0.5;
+      tokenUpdate["texture.anchorY"] = 0.5;
+    }
+    return tokenUpdate;
+  }
+
   const progressNotify = ui.notifications.info("Updating all world actors...", { progress: true, permanent: true, pct: 0 });
 
   const batchedActorUpdates = [];
   // update all the actors in the world
   for (const actor of game.actors) {
-    const tokenUpdate = await RegenerateActorTokenImg(actor);
+    const tokenUpdate = await regen(actor);
     if (!tokenUpdate) continue;
     batchedActorUpdates.push({"prototypeToken": foundry.utils.expandObject(tokenUpdate), _id: actor.id});
   }
@@ -40,7 +53,7 @@ async function RegenerateAllImages() {
   for (const scene of game.scenes) {
     const batchedTokenUpdates = [];
     for (const token of scene.tokens) {
-      const tokenUpdate = await RegenerateActorTokenImg(token.actor ?? token.baseActor);
+      const tokenUpdate = await regen(token.actor ?? token.baseActor);
       if (!tokenUpdate) continue;
       batchedTokenUpdates.push({...tokenUpdate, _id: token.id});
     }
