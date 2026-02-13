@@ -159,6 +159,10 @@
             "Pokeball": {
                 "label": "Pokéball",
                 "hint": "The image used for this actor's Pokéball."
+            },
+            "InteractionScript": {
+                "label": "Interaction Script",
+                "hint": "A script that runs when the object is interacted with."
             }
         },
         "FIELDS.shield.short": "SH",
