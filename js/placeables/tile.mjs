@@ -1,5 +1,4 @@
-import { MODULENAME, listenFilepickerChange } from "../utils.mjs";
-import { SOUNDS } from "../audio.mjs";
+import { MODULENAME } from "../utils.mjs";
 import { registerSocket } from "../socket.mjs";
 
 
@@ -132,53 +131,6 @@ async function Tile_animate(to, { duration, easing, name, ontick, ...options }={
 }
 
 
-async function TileConfig_preparePartContext(wrapped, partId, context, options) {
-  context = await wrapped(partId, context, options);
-  if (partId === "puzzle") {
-    const tile = context.document;
-    const pa = tile?.flags?.[MODULENAME] ?? {};
-    pa.isCustomSound = pa.interactionSound && !Object.keys(SOUNDS).some(v=>v === pa.interactionSound);
-    pa.sounds = SOUNDS;
-    context.pa = pa;
-    console.log("puzzle part context", context);
-  }
-  return context;
-}
-
-
-function TileConfig_attachPartListeners(wrapped, partId, htmlElement, options) {
-  wrapped(partId, htmlElement, options);
-
-  if (partId === "puzzle") {
-    $(htmlElement).find(`select[name="flags.${MODULENAME}.interactionSound"]`).on("change", function() {
-      const custom = $(htmlElement).find("option.custom-interaction").get(0).value;
-      const customInput = $(htmlElement).find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
-      if (this.value === custom) {
-        $(htmlElement).find(`.custom-sound`).show();
-        if (this.value == "custom") {
-          customInput.value = "";
-        } else {
-          customInput.value = this.value;
-        }
-      } else {
-        $(htmlElement).find(`.custom-sound`).hide();
-        customInput.value = "";
-      }
-    });
-
-    listenFilepickerChange($(htmlElement).find(`.custom-interaction`), function(value) {
-      const custom = $(htmlElement).find("option.custom-interaction").get(0);
-      const select = $(htmlElement).find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
-      if (!value) {
-        select.value = "custom";
-      } else {
-        custom.value = value;
-      }
-    });
-  }
-}
-
-
 export function register() {
   CONFIG.Tile.objectClass.prototype.initializeEdges = Tile_initializeEdges;
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onCreate", Tile_onCreate, "WRAPPER");
@@ -186,22 +138,6 @@ export function register() {
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onDelete", Tile_onDelete, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._getShiftedPosition", Tile_getShiftedPosition, "WRAPPER");
   CONFIG.Tile.objectClass.prototype.animate = Tile_animate;
-
-  // Tile Configuration Page
-  const TileConfig = foundry.applications.sheets.TileConfig;
-  TileConfig.PARTS.puzzle = {
-    template: "modules/pokemon-assets/templates/tile-settings.hbs"
-  }
-  const footer = TileConfig.PARTS.footer;
-  delete TileConfig.PARTS.footer;
-  TileConfig.PARTS.footer = footer;
-
-  TileConfig.TABS.sheet.tabs.push({
-    id: "puzzle",
-    icon: "fa-solid fa-puzzle-piece",
-  });
-  libWrapper.register(MODULENAME, "foundry.applications.sheets.TileConfig.prototype._preparePartContext", TileConfig_preparePartContext, "WRAPPER");
-  libWrapper.register(MODULENAME, "foundry.applications.sheets.TileConfig.prototype._attachPartListeners", TileConfig_attachPartListeners, "WRAPPER");
 
   // register Push Tile socket
   registerSocket("pushTile", PushTile);

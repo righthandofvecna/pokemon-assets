@@ -8,11 +8,13 @@ import * as audio from "./audio.mjs";
 import * as controls from "./controls.mjs";
 import * as dialog from "./dialog.mjs";
 import * as placeables from "./placeables/index.mjs";
+import * as configs from "./configs/index.mjs";
 import * as spritesheets from "./spritesheets.mjs";
 import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
 import * as pokemonSheets from "./pokemon-sheets.mjs";
 import * as regionEvents from "./region-events.mjs";
+import * as interact from "./interact.mjs";
 import * as canvas from "./canvas.mjs";
 import * as filePicker from "./file-picker.mjs";
 import * as moduleCompatibility from "./module-compatibility/index.mjs";
@@ -20,29 +22,32 @@ import * as system from "./system-specific/index.mjs";
 import * as socket from "./socket.mjs";
 
 Hooks.on("init", ()=>{
-  for (const m of [migration,
-    settings,
-    config,
-    preload,
-    actor,
-    audio,
-    controls,
-    dialog,
-    placeables,
-    spritesheets,
-    scripts,
-    pixelate,
-    pokemonSheets,
-    regionEvents,
-    canvas,
-    filePicker,
-    moduleCompatibility,
-    system,
-    socket]) {
+  for (const [name, m] of [
+    ["migration", migration],
+    ["settings", settings],
+    ["config", config],
+    ["preload", preload],
+    ["actor", actor],
+    ["audio", audio],
+    ["controls", controls],
+    ["dialog", dialog],
+    ["placeables", placeables],
+    ["configs", configs],
+    ["spritesheets", spritesheets],
+    ["scripts", scripts],
+    ["pixelate", pixelate],
+    ["pokemonSheets", pokemonSheets],
+    ["regionEvents", regionEvents],
+    ["interact", interact],
+    ["canvas", canvas],
+    ["filePicker", filePicker],
+    ["moduleCompatibility", moduleCompatibility],
+    ["system", system],
+    ["socket", socket]]) {
     try {
       m.register();
     } catch (e) {
-      console.error(`?.register():`, e);
+      console.error(`${name}.register():`, e);
     }
   }
 })

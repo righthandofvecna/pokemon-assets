@@ -177,6 +177,13 @@ async function Dialog_confirm_wrapper(wrapped, config = {}) {
 }
 
 export function register() {
+  const MODULE = game.modules.get(MODULENAME);
+
+  MODULE.api ??= {};
+  MODULE.api.PokemonDialogV2 = PokemonDialogV2;
+  MODULE.api.PokemonPrompt = PokemonPrompt;
+  MODULE.api.PokemonConfirm = PokemonConfirm;
+
   libWrapper.register(MODULENAME, "Dialog.prompt", Dialog_prompt_wrapper, "MIXED");
   libWrapper.register(MODULENAME, "Dialog.confirm", Dialog_confirm_wrapper, "MIXED");
 }

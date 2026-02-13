@@ -488,6 +488,7 @@ export class SpritesheetGenerator {
       slicer: sliceMemao,
       frames: 6, // force this to be 6 for memao
       includesIdle: true, // this style includes an idle animation
+      verticalFrames: 12,
     },
     tdsm3: {
       label: "TDSM Gen3 Style",

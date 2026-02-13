@@ -15,14 +15,14 @@ async function TokenDocument_preUpdate(wrapped, changed, options, user) {
   await wrapped(changed, options, user);
   const lwp = options.movement?.[this.id]?.waypoints?.at(-1) ?? changed;
   if (!lwp || options?._movement?.[this.id]?.pending?.waypoints?.length > 0) return;
+  const obj = this.object;
   // update direction
   const dx = lwp.x - this.x;
   const dy = lwp.y - this.y;
   const angle = ((a)=>isNaN(a) ? this.rotation : a)(((Math.atan2(-dx, dy) * 180 / Math.PI) + 360) % 360);
   const stopped = lwp.x != changed.x || lwp.y != changed.y;
-  const bumped = stopped && angleDiff(angle, this.rotation) < 45;
+  const bumped = stopped && (angleDiff(angle, this.rotation) < 45 || !obj?.hasFacing);
   if (stopped) { 
-    const obj = this.object
     if (game.settings.get("core", "tokenAutoRotate") || obj?.isSpritesheet) { changed.rotation = angle; }
     else if (obj) {
       obj.direction = getDirectionFromAngle(angle);

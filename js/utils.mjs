@@ -61,6 +61,30 @@ export function isFacing(a, b) {
   return Math.floor(_norm_angle(direction + 22.5) / 8) == Math.floor(_norm_angle(a.r + 22.5) / 8);
 }
 
+/**
+ * 
+ * @param {object} a the thing that has the rotation
+ * @param {number} a.x
+ * @param {number} a.y
+ * @param {number} a.w
+ * @param {number} a.h
+ * @param {number} a.r
+ * @param {object} b the thing we want to check for adjacency
+ * @param {number} b.x
+ * @param {number} b.y
+ * @param {number} b.w
+ * @param {number} b.h
+ * @param {boolean} requireFacing whether or not we should require a to be facing b
+ */
+export function isAdjacent(a, b, requireFacing=true) {
+  if (!((Math.abs(b.x - a.x) * 2 <= a.w + b.w) && (Math.abs(b.y - a.y) * 2 <= a.h + b.h))) {
+    return false;
+  }
+  if (!requireFacing) return true;
+  // check facing
+  return isFacing(a, b);
+}
+
 export function tokenScene(token) {
 	return token?.scene ?? token?.parent ?? game.scenes.active;
 }

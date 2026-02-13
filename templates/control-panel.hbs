@@ -1,0 +1,13 @@
+<div class="control-panel-tools">
+	<p class="hint">Advanced tools for managing Pokemon Assets module features.</p>
+	
+	{{#each tools}}
+	<div class="tool-item">
+		<button type="button" data-action="{{action}}" class="tool-button">
+			<i class="{{icon}}"></i>
+			<span class="tool-label">{{label}}</span>
+		</button>
+		<p class="tool-description">{{description}}</p>
+	</div>
+	{{/each}}
+</div>

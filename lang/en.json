@@ -159,6 +159,10 @@
             "Pokeball": {
                 "label": "Pokéball",
                 "hint": "The image used for this actor's Pokéball."
+            },
+            "InteractionScript": {
+                "label": "Interaction Script",
+                "hint": "A script that runs when the object is interacted with."
             }
         },
         "FIELDS.shield.short": "SH",
@@ -179,6 +183,7 @@
     },
     "SCENE.TABS.SHEET.puzzle": "Puzzle",
     "TILE.TABS.puzzle": "Puzzle",
+    "TOKEN.TABS.puzzle": "Puzzle",
     "PTR2E.ActorSheet.Buttons.perkList": "Open Perk List",
     "TYPES.RegionBehavior.pokemon-assets.surf": "Surf Region"
 }

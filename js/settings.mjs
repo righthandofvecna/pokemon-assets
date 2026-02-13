@@ -63,6 +63,15 @@ export function register() {
 	});
 	HomebrewSettings.initSettings();
 
+	game.settings.registerMenu(MODULENAME, "control-panel", {
+		name: "Control Panel",
+		label: "Control Panel",
+		icon: "fa-solid fa-wrench",
+		hint: "Advanced tools for managing Pokemon Assets module features.",
+		restricted: true,
+		type: ControlPanelMenu,
+	});
+
 	//
 	// Non-Menu Settings
 	//
@@ -95,6 +104,15 @@ export function register() {
 		requiresReload: true,
 		config: true,
 		hint: "Allows players to mark tokens (defaulting to the 'L' key) as tokens to automatically follow when they move."
+	});
+
+	game.settings.register(MODULENAME, "autoControlOwnedToken", {
+		name: "Auto Control Owned Token",
+		default: true,
+		type: Boolean,
+		scope: "user",
+		config: true,
+		hint: "Automatically take control of tokens you own when they are created if you're not already controlling a token."
 	});
 
 	//
@@ -637,6 +655,7 @@ export class ArtSettings extends ArbitrarySettingsMenu {
 		"autoMatchTokenSprite",
 		"autoOverrideMegaEvolutionSprite",
 		"trainersAlwaysOneGridSpace",
+		"allowTokenArtPastBounds",
 		"defaultBallImage",
 	];
 
@@ -701,6 +720,16 @@ export class ArtSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "Automatically set the token sprite of a Trainer to the matching overworld spritesheet when you set the trainer's profile sprite."
+		});
+
+		game.settings.register(MODULENAME, "allowTokenArtPastBounds", {
+			name: "Allow Token Art Past Bounds",
+			default: true,
+			type: Boolean,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Whether the scale and positioning settings in the Token Config menu automatically extends the art above the grid space the token is standing on. This mainly affects trainer sprites."
 		});
 
 		game.settings.register(MODULENAME, "autoOverrideMegaEvolutionSprite", {
@@ -887,5 +916,64 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 			config: false,
 			hint: "The settings for homebrew spritesheets."
 		});
+	}
+}
+
+
+export class ControlPanelMenu extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+
+	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+		super.DEFAULT_OPTIONS,
+		{
+			classes: ["sheet", "pokemon-assets", "settings", "control-panel"],
+			position: {
+				height: 'auto',
+				width: 500,
+			},
+			window: {
+				title: "Control Panel",
+				minimizable: false,
+				resizable: false,
+			},
+			actions: {
+				"regenerateImages": ControlPanelMenu.#regenerateImages,
+				"disableSpritesheets": ControlPanelMenu.#disableSpritesheets,
+			},
+		},
+		{ inplace: false }
+	);
+
+	static PARTS = {
+		modifiers: {
+				id: "control-panel",
+				template: "modules/pokemon-assets/templates/control-panel.hbs",
+		},
+	};
+
+	async _prepareContext() {
+		return {
+			tools: [
+				{
+					action: "regenerateImages",
+					label: "Regenerate All Images",
+					icon: "fa-solid fa-image",
+					description: "Regenerates all token and actor images for Pokemon and trainers based on current settings.",
+				},
+				{
+					action: "disableSpritesheets",
+					label: "Disable All Spritesheets",
+					icon: "fa-solid fa-ban",
+					description: "Disables spritesheet animations for all tokens in the world.",
+				},
+			],
+		};
+	}
+
+	static async #regenerateImages(event, button) {
+		await game.modules.get(MODULENAME).api.migration.RegenerateAllImages();
+	}
+
+	static async #disableSpritesheets(event, button) {
+		await game.modules.get(MODULENAME).api.migration.DisableAllSpritesheets();
 	}
 }

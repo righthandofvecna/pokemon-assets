@@ -60,11 +60,15 @@ export class PokemonSheets {
       ...spritesheetSettings
     };
     data.spritesheet = true;
+
     const settings = {
       "flags.pokemon-assets": data,
       "texture.src": src,
     };
-    if ("scale" in data || "anchor" in data) {
+    if (!game.settings.get(MODULENAME, "allowTokenArtPastBounds")) {
+      delete data.scale;
+      delete data.anchor;
+    } else if ("scale" in data || "anchor" in data) {
       data.scale ??= 1;
       data.anchor ??= 0.5
       if (game.system.id == "ptr2e") settings["flags.ptr2e.autoscale"] = false;

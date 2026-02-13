@@ -91,6 +91,25 @@ function OnPreCreateActor(actor, data) {
   
 }
 
+async function RegenerateActorTokenImg(actor) {
+  const { img, settings } = _getPokemonSprite(actor);
+  if (img) return {
+    "texture.src": img,
+    ...settings,
+  }
+
+  // check if the current actor image is a trainer
+  if (actor.img.startsWith("modules/pokemon-assets/img/trainers-profile/")) {
+    const trainerImg = `modules/pokemon-assets/img/trainers-overworld/${actor.img.substring(44)}`;
+    if (PokemonSheets.hasSheetSettings(trainerImg)) {
+      return {
+        "texture.src": trainerImg,
+        ..._getTokenChangesForSpritesheet(trainerImg),
+      }
+    }
+  }
+}
+
 function OnPreCreateToken(token, tokenData) {
   let src = tokenData?.texture?.src ?? token?.texture?.src;
   if ((!src || !PokemonSheets.hasSheetSettings(src)) && isActorPokemon(token.actor) && token.actor?.prototypeToken?.flags?.[MODULENAME]?.spritesheet === undefined) {
@@ -102,11 +121,13 @@ function OnPreCreateToken(token, tokenData) {
 
 function OnPreUpdateActor(actor, updates, options) {
   options.oldhp ??= actor?.system?.hp?.value;
+  options.actorId ??= actor?.uuid;
 }
 
 function OnUpdateActor(actor, updates, options) {
+  if (actor.uuid !== options.actorId) return;
   const hp = updates?.system?.hp?.value ?? actor?.system?.hp?.value ?? 0;
-  if (hp && hp < (options.oldhp ?? 0)) {
+  if (hp && hp < (options.oldhp ?? hp)) {
     if (!game.settings.get(MODULENAME, "playDamageAnimation")) return;
     // check if the target fainted
     if (hp <= 0) return;
@@ -422,4 +443,5 @@ export function register() {
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
+  api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
 };

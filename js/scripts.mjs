@@ -1234,10 +1234,9 @@ async function UserChooseDirections({ prompt, directions } = { prompt: "Select a
 }
 
 async function ShowPopup(username, message) {
-  return foundry.applications.api.DialogV2.wait({
+  return foundry.applications.api.DialogV2.prompt({
     window: { title: `Message From: ${username}` },
     content: message,
-    buttons: [],
   });
 }
 

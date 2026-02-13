@@ -241,6 +241,28 @@ function OnCreateToken(token, options) {
   })();
 }
 
+async function RegenerateActorTokenImg(actor) {
+  if (!actor) return;
+  // check if the current actor image is a trainer
+  if (actor.img.startsWith("modules/pokemon-assets/img/trainers-profile/")) {
+    const trainerImg = `modules/pokemon-assets/img/trainers-overworld/${actor.img.substring(44)}`;
+    if (PokemonSheets.hasSheetSettings(trainerImg)) {
+      return {
+        "texture.src": trainerImg,
+        ..._getTokenChangesForSpritesheet(trainerImg),
+      }
+    }
+  }
+
+  // for Pokemon
+  const species = actor.itemTypes.species?.at(0);
+  if (!species) return;
+
+  const actorUpdates = foundry.utils.expandObject(_getPrototypeTokenUpdates(actor, species));
+  if (actorUpdates.prototypeToken === undefined) return;
+  return foundry.utils.flattenObject(actorUpdates.prototypeToken);
+}
+
 /**
  * Test if a particular file path resolves
  * @param {string} filePath - The file path to test
@@ -676,6 +698,7 @@ export function register() {
 
   module.api.scripts ??= {};
   module.api.scripts.HasMoveFunction ??= HasMoveFunction;
+  module.api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
 
   try {
     fixLockAndKey();
