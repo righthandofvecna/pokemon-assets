@@ -1,6 +1,8 @@
-import { MODULENAME } from "../utils.mjs";
+import { MODULENAME, listenFilepickerChange } from "../utils.mjs";
 import { SpritesheetGenerator } from "../spritesheets.mjs";
 import { PokemonSheets } from "../pokemon-sheets.mjs";
+import { SOUNDS } from "../audio.mjs";
+const { StringField } = foundry.data.fields;
 
 /**
  * Add the spritesheet settings to the token config page
@@ -9,16 +11,6 @@ import { PokemonSheets } from "../pokemon-sheets.mjs";
  * @param {*} context 
  */
 async function OnRenderTokenConfig(config, html, context) {
-  _renderTokenAppearanceTab(config, html, context);
-}
-
-/**
- * Render the appearance tab changes for spritesheet settings
- * @param {*} config 
- * @param {*} html 
- * @param {*} context 
- */
-async function _renderTokenAppearanceTab(config, html, context) {
   const form = $(html).find("form").get(0) ?? config.form;
   const token = config.token;
 
@@ -237,7 +229,79 @@ async function _renderTokenAppearanceTab(config, html, context) {
   $(form).on("change", "[name='scale']", ()=>refreshConfig({updateScale: false}));
 }
 
+/**
+ * Prepare the puzzle context for the token
+ * @param {*} wrapped 
+ * @param {*} partId 
+ * @param {*} context 
+ * @param {*} options 
+ * @returns 
+ */
+async function TokenConfig_preparePartContext(wrapped, partId, context, options) {
+  context = await wrapped(partId, context, options);
+  if (partId === "puzzle") {
+    const token = context.document;
+    const pa = token?.flags?.[MODULENAME] ?? {};
+    // pa.isCustomSound = pa.interactionSound && !Object.keys(SOUNDS).some(v=>v === pa.interactionSound);
+    // pa.sounds = SOUNDS;
+    pa.scriptField = new StringField({}, { parent: { fieldPath: `flags.${MODULENAME}.script` } });
+    // permissions
+    pa.permissions = {
+      MACRO_SCRIPT: game.user.hasPermission("MACRO_SCRIPT"),
+    }
+    context.pa = pa;
+  }
+  return context;
+}
+
+
+function TokenConfig_attachPartListeners(wrapped, partId, htmlElement, options) {
+  wrapped(partId, htmlElement, options);
+
+  if (partId === "puzzle") {
+    $(htmlElement).find(`select[name="flags.${MODULENAME}.interactionSound"]`).on("change", function() {
+      const custom = $(htmlElement).find("option.custom-interaction").get(0).value;
+      const customInput = $(htmlElement).find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
+      if (this.value === custom) {
+        $(htmlElement).find(`.custom-sound`).show();
+        if (this.value == "custom") {
+          customInput.value = "";
+        } else {
+          customInput.value = this.value;
+        }
+      } else {
+        $(htmlElement).find(`.custom-sound`).hide();
+        customInput.value = "";
+      }
+    });
+
+    listenFilepickerChange($(htmlElement).find(`.custom-interaction`), function(value) {
+      const custom = $(htmlElement).find("option.custom-interaction").get(0);
+      const select = $(htmlElement).find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
+      if (!value) {
+        select.value = "custom";
+      } else {
+        custom.value = value;
+      }
+    });
+  }
+}
+
 export function register() {
   Hooks.on("renderTokenConfig", OnRenderTokenConfig);
   Hooks.on("renderPrototypeTokenConfig", OnRenderTokenConfig);
+
+  const TokenConfig = foundry.applications.sheets.TokenConfig;
+  TokenConfig.PARTS.puzzle = {
+    template: "modules/pokemon-assets/templates/token-interaction-settings.hbs"
+  }
+  const footer = TokenConfig.PARTS.footer;
+  delete TokenConfig.PARTS.footer;
+  TokenConfig.PARTS.footer = footer;
+  TokenConfig.TABS.sheet.tabs.push({
+    id: "puzzle",
+    icon: "fa-solid fa-puzzle-piece",
+  });
+  libWrapper.register(MODULENAME, "foundry.applications.sheets.TokenConfig.prototype._preparePartContext", TokenConfig_preparePartContext, "WRAPPER");
+  // libWrapper.register(MODULENAME, "foundry.applications.sheets.TokenConfig.prototype._attachPartListeners", TokenConfig_attachPartListeners, "WRAPPER");
 }

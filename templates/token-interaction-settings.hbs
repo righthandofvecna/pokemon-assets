@@ -1,36 +1,6 @@
 <div class="tab {{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
-    <p class="notes">Additional attributes for controlling how the tile can be interacted with.</p>
-    <div class="form-group">
-      <label>Acts as a Wall</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.pokemon-assets.solid" {{#if pa.solid}}checked{{/if}}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Destroyed by "Rock Smash"</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.pokemon-assets.smashable" {{#if pa.smashable}}checked{{/if}}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Destroyed by "Cut"</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.pokemon-assets.cuttable" {{#if pa.cuttable}}checked{{/if}}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Destroyed by "Whirlpool"</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.pokemon-assets.whirlpool" {{#if pa.whirlpool}}checked{{/if}}>
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Movable by "Strength"</label>
-      <div class="form-fields">
-        <input type="checkbox" name="flags.pokemon-assets.pushable" {{#if pa.pushable}}checked{{/if}}>
-      </div>
-    </div>
-    <div class="form-group">
+    <p class="notes">Additional attributes for controlling how the token can be interacted with.</p>
+    {{!-- <div class="form-group">
       <label>Interaction Sound</label>
       <div class="form-fields">
         <select name="flags.pokemon-assets.interactionSound">
@@ -47,7 +17,7 @@
       <div class="form-fields">
         <file-picker class="custom-interaction" type="audio" value="{{#if pa.isCustomSound}}{{pa.customSound}}{{/if}}"></file-picker>
       </div>
-    </div>
+    </div> --}}
     {{#if pa.permissions.MACRO_SCRIPT}}
     <fieldset>
       <legend>{{ localize "POKEMON-ASSETS.Fields.InteractionScript.label" }}</legend>

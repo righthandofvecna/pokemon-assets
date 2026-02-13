@@ -188,6 +188,24 @@ async function OnInteract() {
       return game.itempiles.API.renderItemPileInterface(facingTokens.at(0)?.document, { inspectingTarget: token?.actor?.uuid });
     }
   };
+  // check if we are facing/adjacent to a token with an interaction script
+  const facingTokens = game.canvas.tokens.placeables.filter(o=>{
+    if (o === tObj) return false;
+    const { x: ox, y: oy } = canvas.grid.getCenterPoint(o.center);
+    const isAdjacent = _is_adjacent(
+      tokenBounds,
+      { x: ox, y: oy, w: Math.max(o.w, sizeX), h: Math.max(o.h, sizeY) },
+      requireFacing,
+    );
+    if (!isAdjacent) return false;
+    const hasInteractionScript = !!o.document?.flags?.[MODULENAME]?.script;
+    return hasInteractionScript;
+  });
+
+  if (facingTokens.length > 0) {
+    Interact();
+    return runAsMacro(facingTokens.at(0)?.document);
+  }
 
   // check if we are facing/adjacent to an tile (either with Rock Smash or Cut or Strength)
   const facingTiles = game.canvas.tiles.placeables.filter(tile=>{

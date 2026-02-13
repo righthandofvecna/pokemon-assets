@@ -11,6 +11,10 @@ async function TileConfig_preparePartContext(wrapped, partId, context, options) 
     pa.isCustomSound = pa.interactionSound && !Object.keys(SOUNDS).some(v=>v === pa.interactionSound);
     pa.sounds = SOUNDS;
     pa.scriptField = new StringField({}, { parent: { fieldPath: `flags.${MODULENAME}.script` } });
+    // permissions
+    pa.permissions = {
+      MACRO_SCRIPT: game.user.hasPermission("MACRO_SCRIPT"),
+    }
     context.pa = pa;
   }
   return context;
