@@ -14,6 +14,7 @@ import * as scripts from "./scripts.mjs";
 import * as pixelate from "./pixelate.mjs";
 import * as pokemonSheets from "./pokemon-sheets.mjs";
 import * as regionEvents from "./region-events.mjs";
+import * as interact from "./interact.mjs";
 import * as canvas from "./canvas.mjs";
 import * as filePicker from "./file-picker.mjs";
 import * as moduleCompatibility from "./module-compatibility/index.mjs";
@@ -37,6 +38,7 @@ Hooks.on("init", ()=>{
     ["pixelate", pixelate],
     ["pokemonSheets", pokemonSheets],
     ["regionEvents", regionEvents],
+    ["interact", interact],
     ["canvas", canvas],
     ["filePicker", filePicker],
     ["moduleCompatibility", moduleCompatibility],
