@@ -45,8 +45,8 @@ async function OnRenderTokenConfig(config, html, context) {
       animationframes: (parseInt(form.querySelector(`input[name='flags.${MODULENAME}.animationframes']`)?.value) || token.getFlag(MODULENAME, "animationframes")) ?? 4,
       separateidle: form.querySelector(`input[name='flags.${MODULENAME}.separateidle']`)?.checked ?? token.getFlag(MODULENAME, "separateidle") ?? false,
       noidle: form.querySelector(`input[name='flags.${MODULENAME}.noidle']`)?.checked ?? token.getFlag(MODULENAME, "noidle") ?? false,
-      unlockedanchor: !allowTokenArtPastBounds && getHiddenBoolOrFlag("unlockedanchor", false),
-      unlockedfit: !allowTokenArtPastBounds && getHiddenBoolOrFlag("unlockedfit", false),
+      unlockedanchor: getHiddenBoolOrFlag("unlockedanchor", false),
+      unlockedfit: getHiddenBoolOrFlag("unlockedfit", false),
       ...(predefinedSheetSettings ?? {}),
       MODULENAME,
     };
@@ -90,15 +90,15 @@ async function OnRenderTokenConfig(config, html, context) {
       }
     }
 
-    // Add hidden fields for unlockedanchor and unlockedfit flags
-    if (allowTokenArtPastBounds && !form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`)) {
-      $(form).append(`<input type="checkbox" style="display:none" name="flags.${MODULENAME}.unlockedanchor" ${data.unlockedanchor ? "checked" : ""} />`);
-    }
-    if (allowTokenArtPastBounds && !form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`)) {
-      $(form).append(`<input type="checkbox" style="display:none" name="flags.${MODULENAME}.unlockedfit" ${data.unlockedfit ? "checked" : ""} />`);
-    }
-
     if (allowTokenArtPastBounds) {
+      // Add hidden fields for unlockedanchor and unlockedfit flags
+      if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`)) {
+        $(form).append(`<input type="checkbox" style="display:none" name="flags.${MODULENAME}.unlockedanchor" ${data.unlockedanchor ? "checked" : ""} />`);
+      }
+      if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`)) {
+        $(form).append(`<input type="checkbox" style="display:none" name="flags.${MODULENAME}.unlockedfit" ${data.unlockedfit ? "checked" : ""} />`);
+      }
+
       $(form).find(".toggle-link-anchor-to-sheet").remove();
       const unlockedAnchorLink = $(`<a class="toggle-link-anchor-to-sheet" title="${data.unlockedanchor ? "Base Anchors on Sheet" : "Manual Anchors"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedanchor ? "fa-lock-open" : "fa-lock"}"></i></a>`);
       $(form).find('[name="texture.anchorX"]').closest('.form-group').find('> label').append(unlockedAnchorLink);
