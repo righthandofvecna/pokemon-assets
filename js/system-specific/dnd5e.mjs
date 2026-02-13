@@ -195,7 +195,7 @@ async function OnCreateToken(token, options) {
   const actor = token.actor;
   if (!isActorPokemon(actor)) return;
   const scene = tokenScene(token);
-  const trainerId = actor.getFlag(MODULENAME, "trainerId"); // TODO: add this
+  const trainerId = actor?.flags?.dnd5e?.trainer;
   const source = trainerId ? scene?.tokens?.find(t=>t.actor?.uuid == trainerId || t.baseActor?.uuid == trainerId) : null;
   const isTrained = !!trainerId;
 
@@ -207,7 +207,7 @@ async function OnCreateToken(token, options) {
 
     if (source) {
       const ballImg = await (async ()=>{
-        return actor.getFlag(MODULENAME, "pokeballImage") ?? game.settings.get(MODULENAME, "defaultBallImage");
+        return actor?.flags?.dnd5e?.pokeball ?? game.settings.get(MODULENAME, "defaultBallImage");
       })();
       sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
     }
@@ -233,6 +233,20 @@ function HasMoveFunction(moveId) {
   };
 }
 
+/**
+ * Gets the party of the given actor.
+ * @param {*} actor 
+ * @returns 
+ */
+function GetParty(actor) {
+  const trainerId = actor?.flags?.dnd5e?.trainer || actor.uuid;
+  const trainer = game.actors.find(a=>a.uuid === trainerId);
+  if (!trainer) return [actor];
+  const party = game.actors.filter(a=>a.flags?.dnd5e?.trainer === trainerId);
+  party.unshift(trainer);
+  return party;
+}
+
 
 export function register() {
   Hooks.on("preCreateToken", OnPreCreateToken);
@@ -254,7 +268,7 @@ export function register() {
   // }
 
   api.logic ??= {};
-  // api.logic.FieldMoveParty ??= (token)=>GetParty(token.actor);
+  api.logic.FieldMoveParty ??= (token)=>GetParty(token.actor);
   api.logic.CanUseRockSmash ??= HasMoveFunction("rock-smash");
   api.logic.CanUseCut ??= HasMoveFunction("cut");
   api.logic.CanUseStrength ??= HasMoveFunction("strength");
@@ -270,4 +284,18 @@ export function register() {
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
+
+  CONFIG.DND5E.characterFlags.pokeball = {
+    name: "Pokeball",
+    hint: "Which Pokeball image to use when summoning this Pokémon. This is a filepath to the image to use.",
+    section: "NPC",
+    type: String,
+  };
+
+  CONFIG.DND5E.characterFlags.trainer = {
+    name: "Trainer UUID",
+    hint: "Which Trainer is associated with this Pokémon. The UUID of the Trainer Actor can be obtained by left-clicking the 'Copy Document UUID' button on the Trainer's character sheet.",
+    section: "NPC",
+    type: String,
+  };
 };
