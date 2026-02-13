@@ -49,10 +49,10 @@
       </div>
     </div>
     <div class="form-group stacked">
-      <label>Interaction Script</label>
+      <label>{{ localize "POKEMON-ASSETS.Fields.InteractionScript.label" }}</label>
       <label>Execute as GM? <input type="checkbox" name="flags.pokemon-assets.scriptGm" {{#if pa.scriptGm}}checked{{/if}}></label>
-      <div class="form-fields">
-        <textarea type="checkbox" name="flags.pokemon-assets.script">{{{pa.script}}}</textarea>
-      </div>
+      {{formInput pa.scriptField value=pa.script language="javascript" elementType="code-mirror"
+        aria=(object label=(localize pa.scriptField.label))}}
+      <p class="hint">{{ localize "POKEMON-ASSETS.Fields.InteractionScript.hint" }}</p>
     </div>
   </div>
