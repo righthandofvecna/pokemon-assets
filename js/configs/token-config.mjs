@@ -14,6 +14,8 @@ async function OnRenderTokenConfig(config, html, context) {
   const form = $(html).find("form").get(0) ?? config.form;
   const token = config.token;
 
+  const allowTokenArtPastBounds = game.settings.get(MODULENAME, "allowTokenArtPastBounds");
+
   /**
    * Recalculate all the computed fields, create them if they don't exist, and update them.
    */
@@ -43,8 +45,8 @@ async function OnRenderTokenConfig(config, html, context) {
       animationframes: (parseInt(form.querySelector(`input[name='flags.${MODULENAME}.animationframes']`)?.value) || token.getFlag(MODULENAME, "animationframes")) ?? 4,
       separateidle: form.querySelector(`input[name='flags.${MODULENAME}.separateidle']`)?.checked ?? token.getFlag(MODULENAME, "separateidle") ?? false,
       noidle: form.querySelector(`input[name='flags.${MODULENAME}.noidle']`)?.checked ?? token.getFlag(MODULENAME, "noidle") ?? false,
-      unlockedanchor: getHiddenBoolOrFlag("unlockedanchor", false),
-      unlockedfit: getHiddenBoolOrFlag("unlockedfit", false),
+      unlockedanchor: !allowTokenArtPastBounds && getHiddenBoolOrFlag("unlockedanchor", false),
+      unlockedfit: !allowTokenArtPastBounds && getHiddenBoolOrFlag("unlockedfit", false),
       ...(predefinedSheetSettings ?? {}),
       MODULENAME,
     };
@@ -89,33 +91,35 @@ async function OnRenderTokenConfig(config, html, context) {
     }
 
     // Add hidden fields for unlockedanchor and unlockedfit flags
-    if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`)) {
+    if (allowTokenArtPastBounds && !form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`)) {
       $(form).append(`<input type="checkbox" style="display:none" name="flags.${MODULENAME}.unlockedanchor" ${data.unlockedanchor ? "checked" : ""} />`);
     }
-    if (!form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`)) {
+    if (allowTokenArtPastBounds && !form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`)) {
       $(form).append(`<input type="checkbox" style="display:none" name="flags.${MODULENAME}.unlockedfit" ${data.unlockedfit ? "checked" : ""} />`);
     }
 
-    $(form).find(".toggle-link-anchor-to-sheet").remove();
-    const unlockedAnchorLink = $(`<a class="toggle-link-anchor-to-sheet" title="${data.unlockedanchor ? "Base Anchors on Sheet" : "Manual Anchors"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedanchor ? "fa-lock-open" : "fa-lock"}"></i></a>`);
-    $(form).find('[name="texture.anchorX"]').closest('.form-group').find('> label').append(unlockedAnchorLink);
-    $(unlockedAnchorLink).on("click", ()=>{
-      const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`);
-      hiddenField.checked = !hiddenField.checked;
-      refreshConfig();
-    });
-    $(form).find('[name="texture.anchorX"]').prop("readonly", !data.unlockedanchor);
-    $(form).find('[name="texture.anchorY"]').prop("readonly", !data.unlockedanchor);
+    if (allowTokenArtPastBounds) {
+      $(form).find(".toggle-link-anchor-to-sheet").remove();
+      const unlockedAnchorLink = $(`<a class="toggle-link-anchor-to-sheet" title="${data.unlockedanchor ? "Base Anchors on Sheet" : "Manual Anchors"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedanchor ? "fa-lock-open" : "fa-lock"}"></i></a>`);
+      $(form).find('[name="texture.anchorX"]').closest('.form-group').find('> label').append(unlockedAnchorLink);
+      $(unlockedAnchorLink).on("click", ()=>{
+        const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedanchor']`);
+        hiddenField.checked = !hiddenField.checked;
+        refreshConfig();
+      });
+      $(form).find('[name="texture.anchorX"]').prop("readonly", !data.unlockedanchor);
+      $(form).find('[name="texture.anchorY"]').prop("readonly", !data.unlockedanchor);
 
-    $(form).find(".toggle-link-fit-to-sheet").remove();
-    const unlockedFitLink = $(`<a class="toggle-link-fit-to-sheet" title="${data.unlockedfit ? "Base Fit on Sheet" : "Manual Fit"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedfit ? "fa-lock-open" : "fa-lock"}"></i></a>`);
-    $(form).find('[name="texture.fit"]').closest('.form-group').find('> label').append(unlockedFitLink);
-    $(unlockedFitLink).on("click", ()=>{
-      const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`);
-      hiddenField.checked = !hiddenField.checked;
-      refreshConfig();
-    });
-    $(form).find('[name="texture.fit"]').prop("readonly", !data.unlockedfit);
+      $(form).find(".toggle-link-fit-to-sheet").remove();
+      const unlockedFitLink = $(`<a class="toggle-link-fit-to-sheet" title="${data.unlockedfit ? "Base Fit on Sheet" : "Manual Fit"}" style="margin-left: 0.3em;"><i class="fa-solid fa-fw ${data.unlockedfit ? "fa-lock-open" : "fa-lock"}"></i></a>`);
+      $(form).find('[name="texture.fit"]').closest('.form-group').find('> label').append(unlockedFitLink);
+      $(unlockedFitLink).on("click", ()=>{
+        const hiddenField = form.querySelector(`input[name='flags.${MODULENAME}.unlockedfit']`);
+        hiddenField.checked = !hiddenField.checked;
+        refreshConfig();
+      });
+      $(form).find('[name="texture.fit"]').prop("readonly", !data.unlockedfit);
+    }
 
     // additional spritesheet-specific configurations
     data.showframes = SHEET_STYLE?.frames === undefined;
@@ -128,6 +132,9 @@ async function OnRenderTokenConfig(config, html, context) {
     };
     form.querySelector(".spritesheet-config-aux")?.remove();
     form.querySelector(".spritesheet-config").replaceWith(rendered);
+
+    // If token art past bounds is disallowed, don't do this
+    if (!allowTokenArtPastBounds) return;
 
     // check that the anchoring fields exist
     for (const tf of ["fit", "anchorX", "anchorY"]) {

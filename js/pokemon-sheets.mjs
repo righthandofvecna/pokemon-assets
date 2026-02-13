@@ -60,6 +60,12 @@ export class PokemonSheets {
       ...spritesheetSettings
     };
     data.spritesheet = true;
+
+    if (!game.settings.get(MODULENAME, "allowTokenArtPastBounds")) {
+      delete data.scale;
+      delete data.anchor;
+    }
+
     const settings = {
       "flags.pokemon-assets": data,
       "texture.src": src,

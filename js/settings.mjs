@@ -646,6 +646,7 @@ export class ArtSettings extends ArbitrarySettingsMenu {
 		"autoMatchTokenSprite",
 		"autoOverrideMegaEvolutionSprite",
 		"trainersAlwaysOneGridSpace",
+		"allowTokenArtPastBounds",
 		"defaultBallImage",
 	];
 
@@ -710,6 +711,16 @@ export class ArtSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "Automatically set the token sprite of a Trainer to the matching overworld spritesheet when you set the trainer's profile sprite."
+		});
+
+		game.settings.register(MODULENAME, "allowTokenArtPastBounds", {
+			name: "Allow Token Art Past Bounds",
+			default: true,
+			type: Boolean,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Whether the scale and positioning settings in the Token Config menu automatically extends the art above the grid space the token is standing on. This mainly affects trainer sprites."
 		});
 
 		game.settings.register(MODULENAME, "autoOverrideMegaEvolutionSprite", {
