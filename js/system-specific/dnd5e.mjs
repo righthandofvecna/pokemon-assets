@@ -51,10 +51,20 @@ function _getPokemonSprite(actor, data={}) {
 
 async function RegenerateActorTokenImg(actor) {
   const { img, settings } = _getPokemonSprite(actor);
-  if (!img) return;
-  return {
+  if (img) return {
     "texture.src": img,
     ...settings,
+  }
+
+  // check if the current actor image is a trainer
+  if (actor.img.startsWith("modules/pokemon-assets/img/trainers-profile/")) {
+    const trainerImg = `modules/pokemon-assets/img/trainers-overworld/${actor.img.substring(44)}`;
+    if (PokemonSheets.hasSheetSettings(trainerImg)) {
+      return {
+        "texture.src": trainerImg,
+        ..._getTokenChangesForSpritesheet(trainerImg),
+      }
+    }
   }
 }
 
