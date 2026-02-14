@@ -168,8 +168,8 @@ async function OnRenderTokenConfig(config, html, context) {
       }
     };
 
-    const scaleFormEl = form.querySelector("input[name='scale']");
-    if (updateScale && !!scaleFormEl) {
+    const scaleFormEl = form.querySelector("range-picker[name='scale'], input[name='scale']");
+    if (updateScale && !!scaleFormEl && data.scale !== undefined) {
       scaleFormEl.value = data.scale ?? 1;
       const scaleFormLabel = $(scaleFormEl).next();
       if (scaleFormLabel.is(".range-value")) {
@@ -180,15 +180,9 @@ async function OnRenderTokenConfig(config, html, context) {
     const texture = await foundry.canvas.loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
     const { width, height } = texture ?? {};
     if (!width || !height) return;
-    const verticalFrames = (()=>{
-      switch (data.sheetstyle) {
-        case "pmd":
-        case "eight": return 8;
-        default: return SHEET_STYLE?.verticalFrames ?? 4;
-      }
-    })();
+    const defaultRatio = SHEET_STYLE?.defaultRatio ?? (4 / data.animationframes);
 
-    const ratio = (height / width) * (data.animationframes / verticalFrames);
+    const ratio = (height / width) * defaultRatio;
     const scale = form.querySelector("range-picker[name='scale'], input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
       switch (data.sheetstyle) {
