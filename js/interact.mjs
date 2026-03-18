@@ -141,6 +141,7 @@ async function OnInteract() {
   if (facingTokens.length > 0) {
     const facingDoc = facingTokens.at(0)?.document;
     if (facingDoc?.flags?.[MODULENAME]?.dialogue) {
+      Interact();
       // set the direction of the facing token
       const oldDirection = facingDoc.object.direction;
       facingDoc.object.direction = getDirectionFromAngle((Math.atan2(canvas.grid.getCenterPoint(facingTokens.at(0).center).y - ty, canvas.grid.getCenterPoint(facingTokens.at(0).center).x - tx) * 180 / Math.PI) + 90);

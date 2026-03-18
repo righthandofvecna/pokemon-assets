@@ -13,6 +13,7 @@ This module contains assets for trainers and Pokémon, and some sounds. It also 
 - Sliding Ice, One-Way Jumps, Trainer's "Eyes Meeting" Animations and movement, Pokémon Centers & Computers, and scene-to-scene doors (usable through Foundry v13's "Regions" tool)
 - Breakable Boulders (*Rock Smash*), Destructible Plants (*Cut*), Destructible Whirlpools (*Whirlpool*), Movable Boulders (*Strength*), Climbable Rocks (*Rock Climb*), Climbable Waterfalls (*Waterfall*), and the ability to use their corresponding field moves to destroy/move/interact with them
 - Tile Scripts, which are scripts that run when the user interacts with a tile. A tool for quickly placing signs is also included.
+- Token Scripts, which are scripts that run when the user interacts with a token. You can also add dialogue to a token!
 - Interacting with things like Item Piles with the Enter button (configurable), or opening unlocked doors with Enter
 - Isometric Perspective module support
 - A more efficient Follow Me! module replacement
@@ -75,11 +76,15 @@ For "Field Moves" like *Rock Smash*, *Cut*, and so on, the selected character ne
 
 Select the tool on the Tile layer and double-click the spot you want to place the tile. Click-and-drag functionality will be added in a future update.
 
+### Interactable Tokens
+
+Open the Token Configuration page (double-right click a token) and navigate to the tab with the `🧩 (Puzzle Piece)` icon. You can set dialogue there, or an interaction script that will run when another character faces this token and presses `Enter`. You cannot have both dialogue and an interaction script defined; to show the interaction script controls, remove the dialogue text.
+
 ### Region Tools
 
 On the Regions layer, while editing a region, you can add new behaviors as defined in this module. To add, click the `Behaviors` tab, and then click the `🧩 (Puzzle Piece)` icon. This should bring up a wizard to run you through, step-by-step, adding the following features: Sliding Ice, One-Way-Jumps, "Eyes Meeting", Pokemon Centers & Computers
 
 ## Troubleshooting
 
-- **Token Size Issues**: If tokens don't resize correctly, try refreshing the page. Token resizing via active effect in PTR2e is a known bug that I haven't been able to figure out yet.
+- **Token Size Issues**: If tokens don't resize correctly, try refreshing the page. Token resizing via active effect in PTR2e is a known bug.
 
