@@ -177,7 +177,8 @@ async function OnRenderTokenConfig(config, html, context) {
       }
     }
 
-    const texture = await foundry.canvas.loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
+    const texture = await foundry.canvas.loadTexture(src, {fallback: CONST.DEFAULT_TOKEN}).catch(()=>null);
+    if (!texture) return;
     const { width, height } = texture ?? {};
     if (!width || !height) return;
     const defaultRatio = SHEET_STYLE?.defaultRatio ?? (4 / data.animationframes);
