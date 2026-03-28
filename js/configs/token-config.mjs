@@ -177,7 +177,8 @@ async function OnRenderTokenConfig(config, html, context) {
       }
     }
 
-    const texture = await foundry.canvas.loadTexture(src, {fallback: CONST.DEFAULT_TOKEN});
+    const texture = await foundry.canvas.loadTexture(src, {fallback: CONST.DEFAULT_TOKEN}).catch(()=>null);
+    if (!texture) return;
     const { width, height } = texture ?? {};
     if (!width || !height) return;
     const defaultRatio = SHEET_STYLE?.defaultRatio ?? (4 / data.animationframes);
@@ -185,6 +186,7 @@ async function OnRenderTokenConfig(config, html, context) {
     const ratio = (height / width) * defaultRatio;
     const scale = form.querySelector("range-picker[name='scale'], input[name='scale']")?.value ?? 1;
     const anchorY = (()=>{
+      if (predefinedSheetSettings?.anchor) return predefinedSheetSettings.anchor;
       switch (data.sheetstyle) {
         case "pmd":
         case "eight": return 0.5;

@@ -176,7 +176,7 @@ cosmosully	<@!411407718839222272>	https://twitter.com/cosmosully
 	<@!413387711152390145>	
 ShyStarryRain	<@!576876006636519434>	
 	<@!136619914512433152>	
-SkeleJ64	<@!291732421332697098>	<@291732421332697098>
+SkeleSpider	<@!291732421332697098>	https://linktr.ee/skelespider
 	<@!319728945920475137>	
 G〜	<@!350050109741858829>	https://bsky.app/profile/justtr4sh.pmd.social
 LightBlueBlaze	<@!283045864509800468>	LightBlueBlaze@gmail.com
@@ -259,12 +259,12 @@ Coksi	<@!143644728230019072>	https://coksi.carrd.co/
 CeleryGuy	<@!966056976217935872>	https://celeryguy.tumblr.com
 VOID	<@!224988883182551040>	<@224988883182551040>
 Kawaiitron	<@!412938965713158144>	<@412938965713158144>
-	<@!713792248348672040>	
+mosscoated	<@!713792248348672040>	<@713792248348672040>
 SpectrumStars	<@!1038631037284126741>	https://x.com/numbertism
 FalafelPorpoise	<@!338821717365489665>	https://bsky.app/profile/falafel-porpoise.bsky.social
 Riodise	<@!311963515563016193>	<@311963515563016193>
 Shadowcrafts	<@!1116961261331152986>	shadowcrafts@outlook.com
-rhys	<@!1327394227922931878>	https://bsky.app/profile/arcanerevelation.bsky.social
+rhys	<@!1327394227922931878>	https://bsky.app/profile/geckqua.bsky.social
 CinderedPhoenix	<@!252249733588975616>	ridiculouslybluecinderblock@gmail.com
 Fingernails	<@!862684221848027156>	https://www.demirramon.com/@Fingernails
 snarbs	<@!188463527089012737>	snarbs.art@gmail.com
@@ -286,3 +286,5 @@ lumiscosity	<@!243013084510289921>	https://github.com/lumiscosity
 <ElGian>	<@!770438729575563284>	<gfcobross@gmail.com>
 <SKREE>	<@!350778126919401485>	<https://www.tumblr.com/blog/skree-like-a-pterodactyl>
 Felis-Licht	<@!273594331577974785>	https://www.deviantart.com/felis-licht/
+Ajifer	<@!1042498956082544640>	<@1042498956082544640>
+Johanne2	<@!225949425292410880>	https://github.com/Johanne2
