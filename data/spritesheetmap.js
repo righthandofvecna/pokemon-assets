@@ -4550,10 +4550,16 @@ export default
       "05XX/055X/0555_Zen.png": {
         "animationframes": 4
       },
+      "05XX/055X/0555_galarian.png": {
+        "animationframes": 4
+      },
       "05XX/055X/0555s.png": {
         "animationframes": 4
       },
       "05XX/055X/0555s_Zen.png": {
+        "animationframes": 4
+      },
+      "05XX/055X/0555s_galarian.png": {
         "animationframes": 4
       },
       "05XX/055X/0556.png": {
@@ -6688,6 +6694,9 @@ export default
       "08XX/083X/0832.png": {
         "animationframes": 4
       },
+      "08XX/083X/0832s.png": {
+        "animationframes": 4
+      },
       "08XX/083X/0833.png": {
         "animationframes": 4
       },
@@ -6705,6 +6714,12 @@ export default
       },
       "08XX/083X/0835s.png": {
         "animationframes": 7
+      },
+      "08XX/083X/0836.png": {
+        "animationframes": 4
+      },
+      "08XX/083X/0836s.png": {
+        "animationframes": 4
       },
       "08XX/084X/0840.png": {
         "animationframes": 5
@@ -7888,6 +7903,9 @@ export default
         "animationframes": 4
       },
       "10XX/101X/1010.png": {
+        "animationframes": 4
+      },
+      "10XX/101X/1010s.png": {
         "animationframes": 4
       },
       "10XX/101X/1011.png": {
