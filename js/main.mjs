@@ -17,6 +17,7 @@ import * as regionEvents from "./region-events.mjs";
 import * as interact from "./interact.mjs";
 import * as canvas from "./canvas.mjs";
 import * as filePicker from "./file-picker.mjs";
+import * as chat from "./chat.mjs";
 import * as moduleCompatibility from "./module-compatibility/index.mjs";
 import * as system from "./system-specific/index.mjs";
 import * as socket from "./socket.mjs";
@@ -41,6 +42,7 @@ Hooks.on("init", ()=>{
     ["interact", interact],
     ["canvas", canvas],
     ["filePicker", filePicker],
+    ["chat", chat],
     ["moduleCompatibility", moduleCompatibility],
     ["system", system],
     ["socket", socket]]) {
