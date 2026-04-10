@@ -19,7 +19,7 @@ function onChatMessage(_chatLog, message, chatData) {
     else if (["cry", "crying", ":'("].includes(content)) return "cry";
     else if (["dismayed", "dismay", "oh no", "oh no!", "D:"].includes(content)) return "dismayed";
     else if (["ellipsis", "thinking", "..."].includes(content)) return "ellipsis";
-    else if (["furious", "fury", ">:("].includes(content)) return "furious";
+    else if (["furious", "fury", "rage", "enraged", ">:("].includes(content)) return "furious";
     else if (["grin", "grinning", ":D"].includes(content)) return "grin";
     else if (["happy", "happiness"].includes(content)) return "happy";
     else if (["heart", "love", "<3"].includes(content)) return "heart";
