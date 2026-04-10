@@ -85,6 +85,10 @@ function OnGetSceneControlButtons(controls) {
         {
           heading: "Place",
           reference: "CONTROLS.DoubleClick",
+        },
+        {
+          heading: "Paint",
+          paragraph: "Click and drag to place multiple.",
         }
       ],
     },
@@ -99,6 +103,10 @@ function OnGetSceneControlButtons(controls) {
         {
           heading: "Place",
           reference: "CONTROLS.DoubleClick",
+        },
+        {
+          heading: "Paint",
+          paragraph: "Click and drag to place multiple.",
         }
       ],
     },
@@ -113,6 +121,10 @@ function OnGetSceneControlButtons(controls) {
         {
           heading: "Place",
           reference: "CONTROLS.DoubleClick",
+        },
+        {
+          heading: "Paint",
+          paragraph: "Click and drag to place multiple.",
         }
       ],
     },
@@ -127,6 +139,10 @@ function OnGetSceneControlButtons(controls) {
         {
           heading: "Place",
           reference: "CONTROLS.DoubleClick",
+        },
+        {
+          heading: "Paint",
+          paragraph: "Click and drag to place multiple.",
         }
       ],
     },
@@ -207,10 +223,13 @@ function OnGetSceneControlButtons(controls) {
   };
 }
 
-function TilesLayer_onClickLeft2(wrapper, event) {
-  wrapper(event);
-  const { x, y } = snapToGrid(canvas.mousePosition, canvas.grid)
-  switch (game.activeTool) {
+const SIMPLE_TILE_TOOLS = new Set(["breakable-rock", "cuttable-plant", "movable-boulder", "whirlpool"]);
+const CUSTOM_TILE_TOOLS = new Set([...SIMPLE_TILE_TOOLS, "sign", "item", "headbutt-tree"]);
+
+let _tilePaintDragState = null;
+
+function _handleTilePlacement(toolName, x, y) {
+  switch (toolName) {
     case "breakable-rock":
       canvas.scene.createEmbeddedDocuments("Tile", [{
         "flags.pokemon-assets.solid": true,
@@ -520,6 +539,103 @@ function TilesLayer_onClickLeft2(wrapper, event) {
       });
       break;
     }
+}
+
+function TilesLayer_onClickLeft2(wrapper, event) {
+  wrapper(event);
+  const { x, y } = snapToGrid(canvas.mousePosition, canvas.grid);
+  _handleTilePlacement(game.activeTool, x, y);
+}
+
+function TilesLayer_onDragLeftStart(wrapper, event) {
+  if (!CUSTOM_TILE_TOOLS.has(game.activeTool)) return wrapper(event);
+  const origin = event.interactionData?.origin ?? canvas.mousePosition;
+  const snapped = snapToGrid(origin, canvas.grid);
+  if (SIMPLE_TILE_TOOLS.has(game.activeTool)) {
+    _tilePaintDragState = {
+      tool: game.activeTool,
+      lastCell: `${snapped.x},${snapped.y}`,
+    };
+    _handleTilePlacement(game.activeTool, snapped.x, snapped.y);
+  } else {
+    _tilePaintDragState = {
+      tool: game.activeTool,
+      isDialogTool: true,
+      origin: snapped,
+    };
+  }
+}
+
+function TilesLayer_onDragLeftMove(wrapper, event) {
+  if (!_tilePaintDragState || _tilePaintDragState.isDialogTool) return wrapper(event);
+  const snapped = snapToGrid(canvas.mousePosition, canvas.grid);
+  const cellKey = `${snapped.x},${snapped.y}`;
+  if (cellKey !== _tilePaintDragState.lastCell) {
+    _tilePaintDragState.lastCell = cellKey;
+    _handleTilePlacement(_tilePaintDragState.tool, snapped.x, snapped.y);
+  }
+}
+
+function TilesLayer_onDragLeftDrop(wrapper, event) {
+  const state = _tilePaintDragState;
+  _tilePaintDragState = null;
+  if (!state) return wrapper(event);
+  if (state.isDialogTool) {
+    _handleTilePlacement(state.tool, state.origin.x, state.origin.y);
+  }
+}
+
+function TilesLayer_onDragLeftCancel(wrapper, event) {
+  _tilePaintDragState = null;
+  return wrapper(event);
+}
+
+/**
+ * Convert client (viewport) coordinates to canvas world coordinates.
+ */
+function _clientToCanvasWorld(clientX, clientY) {
+  const canvasEl = document.querySelector("canvas#board");
+  const bounds = canvasEl.getBoundingClientRect();
+  return canvas.stage.toLocal({ x: clientX - bounds.left, y: clientY - bounds.top });
+}
+
+/**
+ * Attach a document-level listener so that pressing and dragging a custom tile
+ * tool button directly onto the canvas places a tile at the drop position.
+ * Uses the renderSceneControls hook to attach directly to each button element,
+ * avoiding any event propagation or delegation issues.
+ */
+function _setupToolbarDragHandling() {
+  Hooks.on("renderSceneControls", (app, element) => {
+    for (const toolName of CUSTOM_TILE_TOOLS) {
+      const btn = element.querySelector(`[data-tool="${toolName}"]`);
+      if (!btn) continue;
+
+      btn.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0) return;
+        let leftButton = false;
+
+        const onLeave = () => { leftButton = true; };
+        btn.addEventListener("pointerleave", onLeave, { once: true });
+
+        document.addEventListener("pointerup", (ev) => {
+          btn.removeEventListener("pointerleave", onLeave);
+          if (!leftButton) return; // Normal click, not a drag — let Foundry handle it
+          if (!canvas?.stage) return;
+
+          const canvasEl = document.querySelector("canvas#board");
+          const canvasBounds = canvasEl.getBoundingClientRect();
+          if (ev.clientX < canvasBounds.left || ev.clientX > canvasBounds.right ||
+              ev.clientY < canvasBounds.top  || ev.clientY > canvasBounds.bottom) return;
+
+          canvas.tiles.activate({ tool: toolName });
+          const worldPoint = _clientToCanvasWorld(ev.clientX, ev.clientY);
+          const snapped = snapToGrid(worldPoint, canvas.grid);
+          _handleTilePlacement(toolName, snapped.x, snapped.y);
+        }, { once: true, capture: true });
+      });
+    }
+  });
 }
 
 function RegionLayer_onClickLeft2(wrapper, event) {
@@ -836,7 +952,12 @@ export function register() {
   if (early_isGM()) {
     Hooks.on("getSceneControlButtons", OnGetSceneControlButtons);
     libWrapper.register(MODULENAME, "foundry.canvas.layers.TilesLayer.prototype._onClickLeft2", TilesLayer_onClickLeft2, "WRAPPER");
+    libWrapper.register(MODULENAME, "foundry.canvas.layers.TilesLayer.prototype._onDragLeftStart", TilesLayer_onDragLeftStart, "MIXED");
+    libWrapper.register(MODULENAME, "foundry.canvas.layers.TilesLayer.prototype._onDragLeftMove", TilesLayer_onDragLeftMove, "MIXED");
+    libWrapper.register(MODULENAME, "foundry.canvas.layers.TilesLayer.prototype._onDragLeftDrop", TilesLayer_onDragLeftDrop, "MIXED");
+    libWrapper.register(MODULENAME, "foundry.canvas.layers.TilesLayer.prototype._onDragLeftCancel", TilesLayer_onDragLeftCancel, "MIXED");
     libWrapper.register(MODULENAME, "foundry.canvas.layers.RegionLayer.prototype._onClickLeft2", RegionLayer_onClickLeft2, "WRAPPER");
+    _setupToolbarDragHandling();
   }
 
   // scene config controls
