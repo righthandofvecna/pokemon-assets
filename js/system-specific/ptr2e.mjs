@@ -201,36 +201,6 @@ function OnPreCreateActor(actor, data) {
 }
 
 
-async function OnCreateToken(token, options) {
-  if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
-  if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
-  if (token.hidden) return; // don't play the animation if the token is hidden
-  
-  const actor = token.actor;
-  if (!actor || actor.type !== "pokemon") return;
-  const isTrained = actor.party?.party?.includes(actor) && actor.party.owner;
-  const source = isTrained ? tokenScene(token)?.tokens.find(t=>t.actor?.id === actor.party.owner.id) : null;
-
-  let sequence = null;
-  if (isTrained) {
-    if (token.object) token.object.localOpacity = 0;
-
-    if (source) {
-      const ballImg = await (async ()=>{
-        const img = `systems/ptr2e/img/item-icons/${actor.system.details.device.toLowerCase()}.webp`;
-        if (actor.system.details.device && await testFilePath(img)) return img;
-        return game.settings.get(MODULENAME, "defaultBallImage");
-      })();
-      sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
-    }
-
-    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
-  } else {
-    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
-  }
-  await sequence.play();
-}
-
 /**
  * Test if a particular file path resolves
  * @param {string} filePath - The file path to test
@@ -520,7 +490,6 @@ export function register() {
 
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateActor", OnPreCreateActor);
-  Hooks.on("createToken", OnCreateToken);
   Hooks.on("updateActor", OnUpdateActor);
   libWrapper.register(MODULENAME, "game.ptr.util.image.createFromSpeciesData", ImageResolver_createFromSpeciesData, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Token.objectClass.prototype._onUpdate", Token_onUpdate, "WRAPPER");
@@ -550,6 +519,18 @@ export function register() {
         removeAllStacks: true,
       });
     }
+  };
+  api.logic.GetSummonSource ??= async (token) => {
+    const actor = token.actor;
+    const isTrained = actor.party?.party?.includes(actor) && actor.party.owner;
+    if (!isTrained) return null;
+    const source = tokenScene(token)?.tokens.find(t=>t.actor?.id === actor.party.owner.id) ?? null;
+    const ballImg = await (async ()=>{
+      const img = `systems/ptr2e/img/item-icons/${actor.system.details.device?.toLowerCase()}.webp`;
+      if (actor.system.details.device && await testFilePath(img)) return img;
+      return game.settings.get(MODULENAME, "defaultBallImage");
+    })();
+    return { source, ballImg };
   };
   /**
    * Return all the actors this token can make use of for the purposes of field moves

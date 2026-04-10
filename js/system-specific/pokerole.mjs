@@ -200,37 +200,6 @@ async function ActorCry(actor) {
   }
 }
 
-async function OnCreateToken(token, options) {
-  if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
-  if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
-  if (token.hidden) return; // don't play the animation if the token is hidden
-  
-  const actor = token.actor;
-  if (!isActorPokemon(actor)) return;
-  const scene = tokenScene(token);
-  const trainerId = actor.getFlag(MODULENAME, "trainerId");
-  const source = trainerId ? scene?.tokens?.find(t=>t.actor?.uuid == trainerId || t.baseActor?.uuid == trainerId) : null;
-  const isTrained = !!trainerId;
-
-  const shiny = false;
-
-  let sequence = null;
-  if (isTrained) {
-    if (token.object) token.object.localOpacity = 0;
-
-    if (source) {
-      const ballImg = await (async ()=>{
-        return actor.getFlag(MODULENAME, "pokeballImage") ?? game.settings.get(MODULENAME, "defaultBallImage");
-      })();
-      sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
-    }
-    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, shiny, sequence);
-  } else {
-    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, shiny, sequence);
-  }
-  await sequence.play();
-}
-
 /**
  * Gets all the party members of the given actor (trainer or pokemon)
  * @param {Actor} actor 
@@ -327,7 +296,6 @@ function OnRenderPokeroleActorSheet(sheet, html, context) {
 export function register() {
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateActor", OnPreCreateActor);
-  Hooks.on("createToken", OnCreateToken);
   Hooks.on("preUpdateActor", OnPreUpdateActor);
   Hooks.on("updateActor", OnUpdateActor);
   Hooks.on("renderPokeroleActorSheet", OnRenderPokeroleActorSheet);
@@ -345,6 +313,14 @@ export function register() {
         'system.ailments': []
       });
     }
+  };
+  api.logic.GetSummonSource ??= async (token) => {
+    const actor = token.actor;
+    const trainerId = actor.getFlag(MODULENAME, "trainerId");
+    if (!trainerId) return null;
+    const source = tokenScene(token)?.tokens?.find(t=>t.actor?.uuid == trainerId || t.baseActor?.uuid == trainerId) ?? null;
+    const ballImg = actor.getFlag(MODULENAME, "pokeballImage") ?? game.settings.get(MODULENAME, "defaultBallImage");
+    return { source, ballImg };
   };
   api.logic.FieldMoveParty ??= (token)=>GetParty(token.actor);
   api.logic.CanUseRockSmash ??= HasMoveFunction("Rock Smash");

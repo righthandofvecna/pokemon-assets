@@ -205,40 +205,6 @@ function OnCreateToken(token, options) {
     token.update(updates);
   })();
 
-  // If the token is a pokemon, play the summoning animation
-  (async ()=>{
-    if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
-    if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
-    if (token.hidden) return; // don't play the animation if the token is hidden
-
-    const actor = token.actor;
-    if (!actor || actor.type !== "pokemon") return;
-    const trainer = (()=>{
-      if (actor.trainer) return actor.trainer;
-      // infer a trainer from the folder structure
-      return actor?.folder?.folder?.contents?.[0] ?? null;
-    })();
-    const source = trainer !== null ? tokenScene(token)?.tokens.find(t=>t.actor?.id === trainer.id) : null;
-
-    let sequence = null;
-    if (trainer !== null) {
-      if (token.object) token.object.localOpacity = 0;
-
-      if (source) {
-        const ballImg = await (async ()=>{
-          const img = `systems/ptu/images/item_icons/${actor.system.pokeball.toLowerCase()}.webp`;
-          if (actor.system.pokeball && testFilePath(img)) return img;
-          return game.settings.get(MODULENAME, "defaultBallImage");
-        })();
-        sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
-      }
-
-      sequence = await game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, actor.system?.shiny ?? false, sequence);
-    } else {
-      sequence = await game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, actor.system?.shiny ?? false, sequence);
-    }
-    sequence.play();
-  })();
 }
 
 async function RegenerateActorTokenImg(actor) {
@@ -604,6 +570,18 @@ export function register() {
     if (actorUpdates.length > 0) {
       await Actor.updateDocuments(actorUpdates);
     }
+  };
+  module.api.logic.GetSummonSource ??= async (token) => {
+    const actor = token.actor;
+    const trainer = actor.trainer ?? actor?.folder?.folder?.contents?.[0] ?? null;
+    if (trainer === null) return null;
+    const source = tokenScene(token)?.tokens.find(t=>t.actor?.id === trainer.id) ?? null;
+    const ballImg = await (async ()=>{
+      const img = `systems/ptu/images/item_icons/${actor.system.pokeball?.toLowerCase()}.webp`;
+      if (actor.system.pokeball && testFilePath(img)) return img;
+      return game.settings.get(MODULENAME, "defaultBallImage");
+    })();
+    return { source, ballImg };
   };
   module.api.logic.FieldMoveParty ??= (token)=>GetParty(token.actor);
   module.api.logic.CanUseRockSmash ??= HasMoveFunction("rock-smash");
