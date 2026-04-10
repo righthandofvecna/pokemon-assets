@@ -252,90 +252,6 @@ async function testFilePath(filePath) {
 
 
 /**
- * Pokemon Center config for PTR2e
- * @param {*} regionConfig 
- */
-async function PokemonCenter(regionConfig) {
-  const currentScene = regionConfig?.options?.document?.parent;
-
-  const allTokensSelect = currentScene.tokens.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b);
-
-  const tokenUuid = await new Promise(async (resolve)=>{
-    foundry.applications.api.DialogV2.wait({
-      window: { title: 'Select Nurse Token' },
-      content: `
-          <div class="form-group">
-            <label for="token">Nurse Token</label>
-            <select name="token">
-              ${allTokensSelect}
-            </select>
-          </div>
-      `,
-      buttons: [{
-        action: "ok",
-        label: "OK",
-        default: true,
-        callback: (event, button, dialog) => resolve(button.form.elements.token?.value ?? null),
-      }],
-      close: () => resolve(null),
-    }).catch(()=>{
-      resolve(null);
-    });
-  });
-
-  if (!tokenUuid) return;
-
-  // get the direction we need to look in order to trigger this
-  // TODO: default to "looking at nurse"
-  const directions = (await game.modules.get("pokemon-assets").api.scripts.UserChooseDirections({
-    prompt: "Which direction(s) should the token be facing in order to be able to speak to the nurse?",
-    directions: ["upleft", "up", "upright"],
-  })) ?? [];
-  if (directions.length === 0) return;
-
-  // create the document
-  const pokemonCenterData = {
-    type: "executeScript",
-    name: "Pokemon Center",
-    flags: {
-      [MODULENAME]: {
-        "hasTokenInteract": true,
-      },
-    },
-    system: {
-      events: [],
-      source: `if (arguments.length < 4) return;
-
-// only for the triggering user
-const regionTrigger = arguments[3];
-if (regionTrigger.user !== game.user) return;
-
-const { token } = arguments[3]?.data;
-if (!token || !game.modules.get("pokemon-assets")?.api?.scripts?.TokenHasDirection(token, ${JSON.stringify(directions)})) return;
-
-const toHeal = game.actors.filter(a=>a.isOwner);
-
-const heal = async function () {
-  for (const actor of toHeal) {
-    if (!actor?.heal) continue;
-    await actor.heal({
-      fractionToHeal: 1,
-      removeWeary: true,
-      removeExposed: true,
-      removeAllStacks: true,
-    });
-  }
-};
-
-await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonCenter(await fromUuid("${tokenUuid}"), heal);`
-    }
-  };
-  await regionConfig.options.document.createEmbeddedDocuments("RegionBehavior", [pokemonCenterData]);
-  return;
-}
-
-
-/**
  * Pokemon Computer config
  * @param {*} regionConfig 
  */
@@ -617,10 +533,6 @@ export function register() {
   const api = module.api;
   api.controls = {
     ...(module.api.controls ?? {}),
-    "pokemonCenter": {
-      "label": "Pokemon Center",
-      "callback": PokemonCenter,
-    },
     "pokemonComputer": {
       "label": "Pokemon Computer",
       "callback": PokemonComputer,
@@ -628,6 +540,17 @@ export function register() {
   }
 
   api.logic ??= {};
+  api.logic.HealParty ??= async (actors) => {
+    for (const actor of actors) {
+      if (!actor?.heal) continue;
+      await actor.heal({
+        fractionToHeal: 1,
+        removeWeary: true,
+        removeExposed: true,
+        removeAllStacks: true,
+      });
+    }
+  };
   /**
    * Return all the actors this token can make use of for the purposes of field moves
    * @param {TokenDocument} token 

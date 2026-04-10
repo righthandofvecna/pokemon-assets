@@ -16,6 +16,8 @@ export function register() {
   api.logic.CanUseWhirlpool ??= (actor)=>true;
   api.logic.CanUseSurf ??= (actor)=>true;
 
+  api.logic.HealParty ??= async (actors) => {};
+
   api.logic.ActorCry ??= async (actor)=>null;
   api.logic.ActorCatchable ??= (actor)=>true;
   api.logic.ActorCatchKey ??= (actor)=>null;
