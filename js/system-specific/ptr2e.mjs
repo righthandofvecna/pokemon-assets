@@ -258,6 +258,23 @@ await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...argum
  * Returns a function which takes in an actor and returns a boolean, true if the actor has the given move
  * @param {string} slug 
  */
+/**
+ * Update the ownership of the given pokemon and assign it to the trainer's party
+ */
+async function AssignPokemonToActor(pokemon, actor) {
+  if (!pokemon || !actor) return;
+  const ownership = foundry.utils.deepClone(pokemon.ownership);
+  for (const playerId of Object.keys(actor.ownership)) {
+    ownership[playerId] = Math.max(ownership[playerId] ?? 0, actor.ownership[playerId]);
+  }
+  const folder = actor.system?.party?.ownerOf ?? actor.folder?.id ?? null;
+  await pokemon.update({
+    ownership,
+    "system.party.partyMemberOf": folder,
+    folder: folder,
+  });
+}
+
 function HasMoveFunction(slug) {
   /**
    * Returns whether or not the actor can use the move "slug"
@@ -552,6 +569,7 @@ export function register() {
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
   api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
+  api.scripts.AssignPokemonToActor ??= AssignPokemonToActor;
 
   ptr2eSheet.register();
   ptr2eFixes.register();
