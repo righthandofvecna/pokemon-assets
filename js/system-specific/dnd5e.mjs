@@ -206,37 +206,6 @@ async function ActorCry(actor) {
   }
 }
 
-async function OnCreateToken(token, options) {
-  if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
-  if (options.teleport || options.keepId) return; // don't play the animation if the token is teleporting
-  if (token.hidden) return; // don't play the animation if the token is hidden
-  
-  const actor = token.actor;
-  if (!isActorPokemon(actor)) return;
-  const scene = tokenScene(token);
-  const trainerId = actor?.flags?.dnd5e?.trainer;
-  const source = trainerId ? scene?.tokens?.find(t=>t.actor?.uuid == trainerId || t.baseActor?.uuid == trainerId) : null;
-  const isTrained = !!trainerId;
-
-  const shiny = false;
-
-  let sequence = null;
-  if (isTrained) {
-    if (token.object) token.object.localOpacity = 0;
-
-    if (source) {
-      const ballImg = await (async ()=>{
-        return actor?.flags?.dnd5e?.pokeball ?? game.settings.get(MODULENAME, "defaultBallImage");
-      })();
-      sequence = game.modules.get("pokemon-assets").api.scripts.ThrowPokeball(source, token, ballImg, true);
-    }
-    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonPokemon(token, shiny, sequence);
-  } else {
-    sequence = await game.modules.get("pokemon-assets").api.scripts.SummonWildPokemon(token, shiny, sequence);
-  }
-  await sequence.play();
-}
-
 /**
  * Returns a function which takes in an actor and returns a boolean, true if the actor has the given move
  * @param {string} moveId 
@@ -270,7 +239,6 @@ function GetParty(actor) {
 export function register() {
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateActor", OnPreCreateActor);
-  Hooks.on("createToken", OnCreateToken);
   Hooks.on("preUpdateActor", OnPreUpdateActor);
   Hooks.on("updateActor", OnUpdateActor);
 
@@ -299,7 +267,16 @@ export function register() {
   api.logic.ActorCry ??= ActorCry;
   // api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny ?? false;
 
-  api.logic.isPokemon ??= (actor)=>isActorPokemon(actor);
+  api.logic.isPokemon ??= (token)=>isActorPokemon(token?.actor);
+
+  api.logic.GetSummonSource ??= async (token) => {
+    const actor = token.actor;
+    const trainerId = actor?.flags?.dnd5e?.trainer;
+    if (!trainerId) return null;
+    const source = tokenScene(token)?.tokens?.find(t=>t.actor?.uuid == trainerId || t.baseActor?.uuid == trainerId) ?? null;
+    const ballImg = actor?.flags?.dnd5e?.pokeball ?? game.settings.get(MODULENAME, "defaultBallImage");
+    return { source, ballImg };
+  };
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;

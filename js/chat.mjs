@@ -7,7 +7,7 @@ import { MODULENAME } from "./utils.mjs";
 function onChatMessage(_chatLog, message, chatData) {
   console.log("Chat message:", ...arguments);
   if (!message.startsWith("/emote")) return;
-  const content = message.replace("/emote", "").trim();
+  const content = message.replace("/emote", "").trim().toLowerCase();
   const TokenReact = game.modules.get(MODULENAME)?.api?.scripts?.TokenReact;
   if (!TokenReact) return;
   const token = game.scenes.get(chatData?.speaker?.scene)?.tokens.get(chatData?.speaker?.token);
@@ -19,9 +19,9 @@ function onChatMessage(_chatLog, message, chatData) {
     else if (["cry", "crying", ":'("].includes(content)) return "cry";
     else if (["dismayed", "dismay", "oh no", "oh no!", "D:"].includes(content)) return "dismayed";
     else if (["ellipsis", "thinking", "..."].includes(content)) return "ellipsis";
-    else if (["furious", "fury", ">:("].includes(content)) return "furious";
+    else if (["furious", "fury", "rage", "enraged", ">:("].includes(content)) return "furious";
     else if (["grin", "grinning", ":D"].includes(content)) return "grin";
-    else if (["happy", "happiness"].includes(content)) return "happy";
+    else if (["happy", "happiness", "joy", "joyful"].includes(content)) return "happy";
     else if (["heart", "love", "<3"].includes(content)) return "heart";
     else if (["pleased", "satisfied", "^_^"].includes(content)) return "pleased";
     else if (["question", "confused", "?"].includes(content)) return "question";

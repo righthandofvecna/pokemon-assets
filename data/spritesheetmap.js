@@ -1973,6 +1973,9 @@ export default
       "02XX/022X/0227.png": {
         "animationframes": 9
       },
+      "02XX/022X/0227_MEGA.png": {
+        "animationframes": 9
+      },
       "02XX/022X/0227s.png": {
         "animationframes": 9
       },
@@ -5830,6 +5833,9 @@ export default
       "07XX/071X/0712s.png": {
         "animationframes": 4
       },
+      "07XX/071X/0713.png": {
+        "animationframes": 4
+      },
       "07XX/071X/0714.png": {
         "animationframes": 8
       },
@@ -5971,6 +5977,9 @@ export default
       "07XX/073X/0730s.png": {
         "animationframes": 7
       },
+      "07XX/073X/0731.png": {
+        "animationframes": 5
+      },
       "07XX/073X/0733.png": {
         "animationframes": 1
       },
@@ -6066,6 +6075,9 @@ export default
       },
       "07XX/074X/0747s.png": {
         "animationframes": 6
+      },
+      "07XX/074X/0748.png": {
+        "animationframes": 5
       },
       "07XX/074X/0749.png": {
         "animationframes": 4
