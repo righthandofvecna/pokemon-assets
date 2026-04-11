@@ -2,12 +2,12 @@ import { MODULENAME } from "../utils.mjs"
 
 
 async function OnCreateToken(tokenDocument, data, userId) {
-  try {
-    const cry = await game.modules.get(MODULENAME).api.logic.ActorCry(tokenDocument.actor);
-    if (cry) {
-      tokenDocument.actor.setFlag('monks-sound-enhancements', 'sound-effect', cry)
-    }
-  } catch (error) { }
+  if (!game.user.isActiveGM) return;
+  const actor = tokenDocument.baseActor ?? tokenDocument.actor;
+  const cry = await game.modules.get(MODULENAME).api.logic.ActorCry(actor);
+  if (cry) {
+    actor.setFlag('monks-sound-enhancements', 'sound-effect', cry)
+  }
 }
 
 export function register() {
