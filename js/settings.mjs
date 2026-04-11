@@ -864,7 +864,6 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 	static async #configureHSS(event, formElement) {
 		const hssKey = formElement.dataset.hss;
 
-		console.log("configureHSS", this, ...arguments, hssKey);
 		const oldHss = game.settings.get(MODULENAME, "homebrewSpritesheetSettings")?.[hssKey] ?? {};
 		const data = {
 			showframes: true,
@@ -875,7 +874,13 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 		data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, option])=>{
 			return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${option.label}</option>`;
 		}, "");
-		const content = await foundry.applications.handlebars.renderTemplate("modules/pokemon-assets/templates/hss-dialog.hbs", data)
+		const content = await foundry.applications.handlebars.renderTemplate("modules/pokemon-assets/templates/hss-dialog.hbs", data);
+
+		const formCallback = (target) => (event, button) => ({
+			target,
+			formData: Object.fromEntries([...button.form.elements].map(e=>[e.name, e]).filter(([n]) => !!n)),
+		});
+
 		const result = await foundry.applications.api.DialogV2.wait({
 			window: {
 				title: `Default Sprite Settings - ${hssKey}`,
@@ -887,14 +892,59 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 					label: "Save",
 					icon: "fa-solid fa-save",
 					default: true,
-					callback: (event, button, dialog)=>Object.fromEntries([...button.form.elements].map(e=>[e.name, e]).filter(([n,v])=>!!n))}
+					callback: formCallback("single"),
+				},
+				{
+					action: "applyAll",
+					label: "Apply to All",
+					icon: "fa-solid fa-copy",
+					callback: formCallback("all"),
+				},
+				{
+					action: "applyUnconfigured",
+					label: "Apply to Unconfigured",
+					icon: "fa-solid fa-wand-magic-sparkles",
+					callback: formCallback("unconfigured"),
+				},
 			]
 		});
 		if (!result) return;
-		const hss = Object.fromEntries(Object.entries(result).map(([k,v])=>[k.substring(k.lastIndexOf(".")+1),v]))
+
+		const { target, formData } = result;
+
+		if (target === "all") {
+			const confirmed = await foundry.applications.api.DialogV2.confirm({
+				window: { title: "Apply to All" },
+				content: "<p>Apply these settings to <strong>all</strong> homebrew spritesheet files, overwriting any existing configuration?</p>",
+			});
+			if (!confirmed) return;
+		} else if (target === "unconfigured") {
+			const confirmed = await foundry.applications.api.DialogV2.confirm({
+				window: { title: "Apply to Unconfigured" },
+				content: "<p>Apply these settings to all homebrew spritesheet files that have <strong>no existing configuration</strong>?</p>",
+			});
+			if (!confirmed) return;
+		}
+
+		const hss = Object.fromEntries(Object.entries(formData).map(([k,v])=>[k.substring(k.lastIndexOf(".")+1),v]));
 		HomebrewSettings.SHEET_SETTINGS.forEach(s=>hss[s.key] = hss[s.key]?.[s.getter] ?? null);
 		const allHss = foundry.utils.deepClone(game.settings.get(MODULENAME, "homebrewSpritesheetSettings"));
-		allHss[hssKey] = hss;
+
+		if (target === "single") {
+			allHss[hssKey] = hss;
+		} else {
+			const src = game.settings.get(MODULENAME, "homebrewSpritesheetFolder");
+			const srcFiles = await getFiles(src);
+			if (srcFiles) {
+				for (const file of srcFiles) {
+					const key = file.substring(src.length + 1);
+					if (target === "all" || !allHss[key]) {
+						allHss[key] = foundry.utils.deepClone(hss);
+					}
+				}
+			}
+		}
+
 		await game.settings.set(MODULENAME, "homebrewSpritesheetSettings", allHss);
 	}
 
