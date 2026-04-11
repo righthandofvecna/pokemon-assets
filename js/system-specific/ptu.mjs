@@ -1,4 +1,4 @@
-import { isTheGM, getFiles, tokenScene, MODULENAME } from "../utils.mjs";
+import { isTheGM, tokenScene, MODULENAME } from "../utils.mjs";
 import { PokemonSheets } from "../pokemon-sheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
@@ -315,10 +315,7 @@ async function ActorCry(actor) {
     return `${cryPath}${dexNum}.mp3`;
   } else {
     // Custom Pokemon
-    const folder = game.settings.get(MODULENAME, "homebrewCryFolder");
-    if (!folder) return null;
-    // check if the file exists
-    const homebrewCries = await getFiles(folder);
+    const homebrewCries = game.settings.get(MODULENAME, "homebrewCryCache") ?? [];
     return homebrewCries.find(f=>f.endsWith(`/${dn}.mp3`)) ?? homebrewCries.find(f=>f.endsWith(`/${slug}.mp3`));
   }
 }

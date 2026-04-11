@@ -1,7 +1,20 @@
 import { MODULENAME, getFiles } from "./utils.mjs";
 import { SpritesheetGenerator } from "./spritesheets.mjs";
 
+export async function refreshHomebrewCryCache() {
+	if (!game.user.isActiveGM) return;
+	const folder = game.settings.get(MODULENAME, "homebrewCryFolder");
+	const files = await getFiles(folder);
+	await game.settings.set(MODULENAME, "homebrewCryCache", files);
+}
+
 export function register() {
+	Hooks.on("ready", () => { if (game.user.isActiveGM) refreshHomebrewCryCache(); });
+	Hooks.on("updateSetting", (setting) => {
+		if (!game.user.isActiveGM) return;
+		if (setting.key !== `${MODULENAME}.homebrewCryFolder`) return;
+		refreshHomebrewCryCache();
+	});
 
 	game.settings.registerMenu(MODULENAME, "volume", {
 		name: "Volume",
@@ -915,6 +928,16 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "The settings for homebrew spritesheets."
+		});
+
+		game.settings.register(MODULENAME, "homebrewCryCache", {
+			name: "Homebrew Cry Cache",
+			default: [],
+			type: Object,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Cached list of files in the homebrew cry folder. Populated by the GM on login or when the folder setting changes."
 		});
 	}
 }
