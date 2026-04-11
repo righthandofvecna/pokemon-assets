@@ -228,317 +228,345 @@ const CUSTOM_TILE_TOOLS = new Set([...SIMPLE_TILE_TOOLS, "sign", "item", "headbu
 
 let _tilePaintDragState = null;
 
+function _placeTileBreakableRock(x, y) {
+  canvas.scene.createEmbeddedDocuments("Tile", [{
+    "flags.pokemon-assets.solid": true,
+    "flags.pokemon-assets.smashable": true,
+    width: canvas.grid.sizeX,
+    height: canvas.grid.sizeY,
+    texture: {
+      src: "modules/pokemon-assets/img/items-overworld/breakable_rock_frlg.png",
+    },
+    x,
+    y,
+  }]);
+}
+
+function _placeTileCuttablePlant(x, y) {
+  canvas.scene.createEmbeddedDocuments("Tile", [{
+    "flags.pokemon-assets.solid": true,
+    "flags.pokemon-assets.cuttable": true,
+    width: canvas.grid.sizeX,
+    height: canvas.grid.sizeY,
+    texture: {
+      src: "modules/pokemon-assets/img/items-overworld/cuttable_plant_frlg.png",
+    },
+    x,
+    y,
+  }]);
+}
+
+function _placeTileMovableBoulder(x, y) {
+  canvas.scene.createEmbeddedDocuments("Tile", [{
+    "flags.pokemon-assets.solid": true,
+    "flags.pokemon-assets.pushable": true,
+    width: canvas.grid.sizeX,
+    height: canvas.grid.sizeY,
+    texture: {
+      src: "modules/pokemon-assets/img/items-overworld/movable_boulder_frlg.png",
+    },
+    x,
+    y,
+  }]);
+}
+
+function _placeTileWhirlpool(x, y) {
+  canvas.scene.createEmbeddedDocuments("Tile", [{
+    "flags.pokemon-assets.solid": true,
+    "flags.pokemon-assets.whirlpool": true,
+    width: canvas.grid.sizeX,
+    height: canvas.grid.sizeY,
+    texture: {
+      src: "modules/pokemon-assets/img/animations/whirlpool_frlg.webm",
+    },
+    x,
+    y,
+  }]);
+}
+
 function _handleTilePlacement(toolName, x, y) {
   switch (toolName) {
     case "breakable-rock":
-      canvas.scene.createEmbeddedDocuments("Tile", [{
-        "flags.pokemon-assets.solid": true,
-        "flags.pokemon-assets.smashable": true,
-        width: canvas.grid.sizeX,
-        height: canvas.grid.sizeY,
-        texture: {
-          src: "modules/pokemon-assets/img/items-overworld/breakable_rock_frlg.png",
-        },
-        x,
-        y,
-      }])
+      _placeTileBreakableRock(x, y);
       break;
     case "cuttable-plant":
-      canvas.scene.createEmbeddedDocuments("Tile", [{
-        "flags.pokemon-assets.solid": true,
-        "flags.pokemon-assets.cuttable": true,
-        width: canvas.grid.sizeX,
-        height: canvas.grid.sizeY,
-        texture: {
-          src: "modules/pokemon-assets/img/items-overworld/cuttable_plant_frlg.png",
-        },
-        x,
-        y,
-      }])
+      _placeTileCuttablePlant(x, y);
       break;
     case "movable-boulder":
-      canvas.scene.createEmbeddedDocuments("Tile", [{
-        "flags.pokemon-assets.solid": true,
-        "flags.pokemon-assets.pushable": true,
-        width: canvas.grid.sizeX,
-        height: canvas.grid.sizeY,
-        texture: {
-          src: "modules/pokemon-assets/img/items-overworld/movable_boulder_frlg.png",
-        },
-        x,
-        y,
-      }])
+      _placeTileMovableBoulder(x, y);
       break;
     case "whirlpool":
-      canvas.scene.createEmbeddedDocuments("Tile", [{
-        "flags.pokemon-assets.solid": true,
-        "flags.pokemon-assets.whirlpool": true,
-        width: canvas.grid.sizeX,
-        height: canvas.grid.sizeY,
-        texture: {
-          src: "modules/pokemon-assets/img/animations/whirlpool_frlg.webm",
-        },
-        x,
-        y,
-      }])
+      _placeTileWhirlpool(x, y);
       break;
     case "sign":
-      (new Promise(async (resolve)=>{
-        foundry.applications.api.DialogV2.wait({
-          window: { title: 'Text to Display' },
-          content: `
-              <div class="form-group">
-                <label for="text">Text to Display</label>
-                <input name="text" type="text" />
-              </div>
-          `,
-          buttons: [{
-            action: "ok",
-            label: "OK",
-            default: true,
-            callback: (event, button, dialog) => resolve(button.form.elements.text?.value ?? null),
-          }],
-          close: () => resolve(null),
-        }).catch(()=>{
-          resolve(null);
-        });
-      })).then((text)=>{
-        if (!text) return;
-        canvas.scene.createEmbeddedDocuments("Tile", [{
-          "flags.pokemon-assets.solid": true,
-          "flags.pokemon-assets.interactionSound": "modules/pokemon-assets/audio/bgs/a-button.mp3",
-          "flags.pokemon-assets.script": `Dialog.prompt({ content: ${JSON.stringify(text)}, options: { pokemon: true }});`,
-          width: canvas.grid.sizeX,
-          height: canvas.grid.sizeY,
-          texture: {
-            src: "modules/pokemon-assets/img/items-overworld/sign_frlg.png",
-          },
-          x,
-          y,
-        }])
-      });
+      _placeTileSign(x, y);
       break;
     case "item":
-      (new Promise(async (resolve)=>{
-        class ItemDialog extends foundry.applications.api.DialogV2 {
-          _onRender(context, options) {
-            super._onRender(context, options);
-            const html = $(this.element);
-            
-            html.find(`select[name="interactionSound"]`).on("change", function() {
-              const custom = $(this).find("option.custom-interaction").get(0).value;
-              const customInput = html.find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
-              if (this.value === custom) {
-                html.find(`.custom-sound`).show();
-                if (this.value == "custom") {
-                  customInput.value = "";
-                } else {
-                  customInput.value = this.value;
-                }
-              } else {
-                html.find(`.custom-sound`).hide();
-                customInput.value = "";
-              }
-            });
-          
-            listenFilepickerChange(html.find(`.custom-interaction`), function(value) {
-              const custom = html.find("option.custom-interaction").get(0);
-              const select = html.find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
-              if (!value) {
-                select.value = "custom";
-              } else {
-                custom.value = value;
-              }
-            });
-
-            //
-            // set up drag and drop area
-            //
-            const dropZone = html.find('#item-drop-zone')[0];
-            const itemsList = html.find('#dropped-items-list');
-            const items = [];
-    
-            // Set up drag and drop handlers
-            dropZone.addEventListener('dragover', (e) => {
-              e.preventDefault();
-              dropZone.style.backgroundColor = '#f0f0f0';
-            });
-    
-            dropZone.addEventListener('dragleave', (e) => {
-              e.preventDefault();
-              dropZone.style.backgroundColor = 'transparent';
-            });
-    
-            dropZone.addEventListener('drop', async (e) => {
-              e.preventDefault();
-              dropZone.style.backgroundColor = 'transparent';
-              
-              const data = TextEditor.getDragEventData(e);
-              const item = await (async ()=>{
-                let item = await fromUuid(data.uuid);
-                if (!item) return null;
-                if (item instanceof RollTable) {
-                  let result = await item.roll();
-                  if (result.results.length != 1) {
-                    return null;
-                  } else {
-                    let r = result.results[0];
-                    let uuid = "";
-                    if (r.type == "pack") {
-                      uuid = `Compendium.${r.documentCollection}.Item.${r.documentId}`;
-                    } else {
-                      return null;
-                    }
-                    item = await fromUuid(uuid);
-                  }
-                }
-                return item;
-              })()
-              if (!item) return;
-    
-              items.push(item.uuid);
-              itemsList.data('items', items);
-    
-              // Update visual list
-              const itemElement = document.createElement('div');
-              itemElement.innerHTML = `
-                <div class="item" style="display: flex; align-items: center; margin: 5px 0;">
-                  <img src="${item.img}" width="24" height="24" style="margin-right: 8px;">
-                  <span>${item.name}</span>
-                  <a class="remove-item" style="margin-left: auto;"><i class="fas fa-times"></i></a>
-                </div>
-              `;
-    
-              // Add remove handler
-              itemElement.querySelector('.remove-item').addEventListener('click', () => {
-                const index = items.indexOf(item);
-                if (index > -1) {
-                  items.splice(index, 1);
-                  itemsList.data('items', items);
-                  itemElement.remove();
-                }
-              });
-    
-              itemsList.append(itemElement);
-            });
-          }
-        }
-        
-        ItemDialog.wait({
-          window: { title: 'Items Contained' },
-          content: `
-              <!--<div class="form-group">
-                <label>Overworld Type</label>
-                <div class="form-fields">
-                  <label><img src="modules/pokemon-assets/img/items-overworld/pokeball.png"></img><input type="radio" name="overworldType" value="item" checked></label>
-                </div>
-              </div>-->
-              <div class="form-group">
-                <label>Interact Sound</label>
-                <div class="form-fields">
-                  <select name="interactionSound">
-                    <option value="">None</option>
-                    ${Object.entries(SOUNDS).map(([k, v])=>`<option value="${k}" ${k === "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3" ? "default selected" : ""}>${v}</option>`).reduce((a, b)=> a + b)}
-                    <option class="custom-interaction" value="custom">Custom</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-group custom-sound" style='display:none'>
-                <label>Custom Interaction Sound</label>
-                <div class="form-fields">
-                  <file-picker class="custom-interaction" type="audio" value=""></file-picker>
-                </div>
-              </div>
-              <div class="form-group">
-                <div id="item-drop-zone" style="min-height: 100px; border: 2px dashed #ccc; padding: 10px; margin-bottom: 10px;">
-                  <p class="drop-text">Drag and drop items here</p>
-                  <div id="dropped-items-list"></div>
-                </div>
-              </div>
-          `,
-          buttons: [{
-            action: "ok",
-            label: "OK",
-            default: true,
-            callback: (event, button, dialog) => {
-              const interactionSound = button.form.elements.interactionSound?.value ?? null;
-              const items = $(dialog.element).find('#dropped-items-list').data('items') || [];
-              resolve({items, interactionSound});
-            },
-          }],
-          close: () => resolve(null),
-        }).catch(()=>{
-          resolve(null);
-        });
-      })).then(async ({items, interactionSound})=>{
-        if (!items) return;
-        const itemFrequency = items.reduce((l,i)=>({...l, [i]: (l[i] ?? 0) + 1}), {});
-        const itemObjects = await Promise.all(Object.keys(itemFrequency).map(uuid=>fromUuid(uuid)));
-        const itemTexts = itemObjects.map((item, i)=>itemFrequency[item.uuid] > 1 ? `${itemFrequency[item.uuid]}&times; ${item.name}` : ("aeiou".includes(item.name.toLowerCase()[0]) ? `an ${item.name}` : `a ${item.name}`));
-        // do a natural join of the item names (eg, "a, b, and c" or "a and b")
-        if (itemTexts.length > 1) {
-          itemTexts[itemTexts.length - 2] += " and " + itemTexts.pop();
-        }
-        const message = `You found ${itemTexts.join(", ")}!`;
-        canvas.scene.createEmbeddedDocuments("Tile", [{
-          "flags.pokemon-assets.solid": true,
-          "flags.pokemon-assets.interactionSound": interactionSound ?? null,
-          "flags.pokemon-assets.script": `const items = [${items.reduce((l,i)=>l+'"'+i+'",', "")}];\ngame.modules.get("${MODULENAME}")?.api?.scripts?.PickUpItem?.(self, actor, items, ${JSON.stringify(message)});`,
-          width: canvas.grid.sizeX,
-          height: canvas.grid.sizeY,
-          texture: {
-            src: "modules/pokemon-assets/img/items-overworld/pokeball.png",
-            scaleX: 0.5,
-            scaleY: 0.5,
-          },
-          x,
-          y,
-        }])
-      });
+      _placeTileItem(x, y);
       break;
     case "headbutt-tree":
-      if (game.tables.size === 0) {
-        ui.notifications.error("You must have at least one Roll Table in your world to add a Headbutt Tree.");
-        return;
-      }
-      (new Promise(async (resolve)=>{
-        foundry.applications.api.DialogV2.wait({
-          window: { title: 'Pokemon To Spawn' },
-          content: `
-              <div class="form-group">
-                <label for="text">Species Rolltable</label>
-                <select name="species">
-                  ${game.tables.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b, "")}
-                </select>
-              </div>
-          `,
-          buttons: [{
-            action: "ok",
-            label: "OK",
-            default: true,
-            callback: (event, button, dialog) => resolve(button.form.elements.species?.value ?? null),
-          }],
-          close: () => resolve(null),
-        }).catch(()=>{
-          resolve(null);
-        });
-      })).then((speciesTable)=>{
-        if (!speciesTable) return;
-        canvas.scene.createEmbeddedDocuments("Tile", [{
-          "flags.pokemon-assets.solid": true,
-          "flags.pokemon-assets.script": `const api = game.modules.get("${MODULENAME}")?.api;\nconst scripts = api?.scripts;\nconst canUseHeadbutt = api?.logic?.FieldMoveParty(token)?.find(scripts?.HasMoveFunction("headbutt"));\nif (await scripts?.UseFieldMove("Headbutt", canUseHeadbutt, !!canUseHeadbutt, false)){\n  const rollTable = await fromUuid("${speciesTable}");\n  const result = (await rollTable.roll())?.results[0];\n  const resultUuid = scripts?.GetUuidFromTableResult(result);\n  const item = await fromUuid(resultUuid);\n  scripts?.ShowGMPopup(await TextEditor.enrichHTML("<p>Headbutt Tree Roll: "+item.link+"</p>"));\n};`,
-          hidden: true,
-          width: canvas.grid.sizeX,
-          height: canvas.grid.sizeY,
-          texture: {
-            src: "modules/pokemon-assets/img/items-overworld/non_tile.png",
-          },
-          x,
-          y,
-        }])
-      });
+      _placeTileHeadbuttTree(x, y);
       break;
+  }
+}
+
+function _placeTileSign(x, y) {
+  (new Promise(async (resolve)=>{
+    foundry.applications.api.DialogV2.wait({
+      window: { title: 'Text to Display' },
+      content: `
+          <div class="form-group">
+            <label for="text">Text to Display</label>
+            <input name="text" type="text" />
+          </div>
+      `,
+      buttons: [{
+        action: "ok",
+        label: "OK",
+        default: true,
+        callback: (event, button, dialog) => resolve(button.form.elements.text?.value ?? null),
+      }],
+      close: () => resolve(null),
+    }).catch(()=>{
+      resolve(null);
+    });
+  })).then((text)=>{
+    if (!text) return;
+    canvas.scene.createEmbeddedDocuments("Tile", [{
+      "flags.pokemon-assets.solid": true,
+      "flags.pokemon-assets.interactionSound": "modules/pokemon-assets/audio/bgs/a-button.mp3",
+      "flags.pokemon-assets.script": `Dialog.prompt({ content: ${JSON.stringify(text)}, options: { pokemon: true }});`,
+      width: canvas.grid.sizeX,
+      height: canvas.grid.sizeY,
+      texture: {
+        src: "modules/pokemon-assets/img/items-overworld/sign_frlg.png",
+      },
+      x,
+      y,
+    }])
+  });
+}
+
+function _placeTileItem(x, y) {
+  (new Promise(async (resolve)=>{
+    class ItemDialog extends foundry.applications.api.DialogV2 {
+      _onRender(context, options) {
+        super._onRender(context, options);
+        const html = $(this.element);
+        
+        html.find(`select[name="interactionSound"]`).on("change", function() {
+          const custom = $(this).find("option.custom-interaction").get(0).value;
+          const customInput = html.find(`.custom-interaction[type=text], .custom-interaction [type=text]`).get(0);
+          if (this.value === custom) {
+            html.find(`.custom-sound`).show();
+            if (this.value == "custom") {
+              customInput.value = "";
+            } else {
+              customInput.value = this.value;
+            }
+          } else {
+            html.find(`.custom-sound`).hide();
+            customInput.value = "";
+          }
+        });
+      
+        listenFilepickerChange(html.find(`.custom-interaction`), function(value) {
+          const custom = html.find("option.custom-interaction").get(0);
+          const select = html.find(`select[name="flags.${MODULENAME}.interactionSound"]`).get(0);
+          if (!value) {
+            select.value = "custom";
+          } else {
+            custom.value = value;
+          }
+        });
+
+        //
+        // set up drag and drop area
+        //
+        const dropZone = html.find('#item-drop-zone')[0];
+        const itemsList = html.find('#dropped-items-list');
+        const items = [];
+
+        // Set up drag and drop handlers
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.style.backgroundColor = '#f0f0f0';
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          dropZone.style.backgroundColor = 'transparent';
+        });
+
+        dropZone.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          dropZone.style.backgroundColor = 'transparent';
+          
+          const data = TextEditor.getDragEventData(e);
+          const item = await (async ()=>{
+            let item = await fromUuid(data.uuid);
+            if (!item) return null;
+            if (item instanceof RollTable) {
+              let result = await item.roll();
+              if (result.results.length != 1) {
+                return null;
+              } else {
+                let r = result.results[0];
+                let uuid = "";
+                if (r.type == "pack") {
+                  uuid = `Compendium.${r.documentCollection}.Item.${r.documentId}`;
+                } else {
+                  return null;
+                }
+                item = await fromUuid(uuid);
+              }
+            }
+            return item;
+          })()
+          if (!item) return;
+
+          items.push(item.uuid);
+          itemsList.data('items', items);
+
+          // Update visual list
+          const itemElement = document.createElement('div');
+          itemElement.innerHTML = `
+            <div class="item" style="display: flex; align-items: center; margin: 5px 0;">
+              <img src="${item.img}" width="24" height="24" style="margin-right: 8px;">
+              <span>${item.name}</span>
+              <a class="remove-item" style="margin-left: auto;"><i class="fas fa-times"></i></a>
+            </div>
+          `;
+
+          // Add remove handler
+          itemElement.querySelector('.remove-item').addEventListener('click', () => {
+            const index = items.indexOf(item);
+            if (index > -1) {
+              items.splice(index, 1);
+              itemsList.data('items', items);
+              itemElement.remove();
+            }
+          });
+
+          itemsList.append(itemElement);
+        });
+      }
     }
+    
+    ItemDialog.wait({
+      window: { title: 'Items Contained' },
+      content: `
+          <!--<div class="form-group">
+            <label>Overworld Type</label>
+            <div class="form-fields">
+              <label><img src="modules/pokemon-assets/img/items-overworld/pokeball.png"></img><input type="radio" name="overworldType" value="item" checked></label>
+            </div>
+          </div>-->
+          <div class="form-group">
+            <label>Interact Sound</label>
+            <div class="form-fields">
+              <select name="interactionSound">
+                <option value="">None</option>
+                ${Object.entries(SOUNDS).map(([k, v])=>`<option value="${k}" ${k === "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3" ? "default selected" : ""}>${v}</option>`).reduce((a, b)=> a + b)}
+                <option class="custom-interaction" value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group custom-sound" style='display:none'>
+            <label>Custom Interaction Sound</label>
+            <div class="form-fields">
+              <file-picker class="custom-interaction" type="audio" value=""></file-picker>
+            </div>
+          </div>
+          <div class="form-group">
+            <div id="item-drop-zone" style="min-height: 100px; border: 2px dashed #ccc; padding: 10px; margin-bottom: 10px;">
+              <p class="drop-text">Drag and drop items here</p>
+              <div id="dropped-items-list"></div>
+            </div>
+          </div>
+      `,
+      buttons: [{
+        action: "ok",
+        label: "OK",
+        default: true,
+        callback: (event, button, dialog) => {
+          const interactionSound = button.form.elements.interactionSound?.value ?? null;
+          const items = $(dialog.element).find('#dropped-items-list').data('items') || [];
+          resolve({items, interactionSound});
+        },
+      }],
+      close: () => resolve(null),
+    }).catch(()=>{
+      resolve(null);
+    });
+  })).then(async ({items, interactionSound})=>{
+    if (!items) return;
+    const itemFrequency = items.reduce((l,i)=>({...l, [i]: (l[i] ?? 0) + 1}), {});
+    const itemObjects = await Promise.all(Object.keys(itemFrequency).map(uuid=>fromUuid(uuid)));
+    const itemTexts = itemObjects.map((item, i)=>itemFrequency[item.uuid] > 1 ? `${itemFrequency[item.uuid]}&times; ${item.name}` : ("aeiou".includes(item.name.toLowerCase()[0]) ? `an ${item.name}` : `a ${item.name}`));
+    // do a natural join of the item names (eg, "a, b, and c" or "a and b")
+    if (itemTexts.length > 1) {
+      itemTexts[itemTexts.length - 2] += " and " + itemTexts.pop();
+    }
+    const message = `You found ${itemTexts.join(", ")}!`;
+    canvas.scene.createEmbeddedDocuments("Tile", [{
+      "flags.pokemon-assets.solid": true,
+      "flags.pokemon-assets.interactionSound": interactionSound ?? null,
+      "flags.pokemon-assets.script": `const items = [${items.reduce((l,i)=>l+'"'+i+'",', "")}];\ngame.modules.get("${MODULENAME}")?.api?.scripts?.PickUpItem?.(self, actor, items, ${JSON.stringify(message)});`,
+      width: canvas.grid.sizeX,
+      height: canvas.grid.sizeY,
+      texture: {
+        src: "modules/pokemon-assets/img/items-overworld/pokeball.png",
+        scaleX: 0.5,
+        scaleY: 0.5,
+      },
+      x,
+      y,
+    }])
+  });
+}
+
+function _placeTileHeadbuttTree(x, y) {
+  if (game.tables.size === 0) {
+    ui.notifications.error("You must have at least one Roll Table in your world to add a Headbutt Tree.");
+    return;
+  }
+  (new Promise(async (resolve)=>{
+    foundry.applications.api.DialogV2.wait({
+      window: { title: 'Pokemon To Spawn' },
+      content: `
+          <div class="form-group">
+            <label for="text">Species Rolltable</label>
+            <select name="species">
+              ${game.tables.map(t=>`<option value="${t.uuid}">${t.name}</option>`).reduce((a, b)=> a + b, "")}
+            </select>
+          </div>
+      `,
+      buttons: [{
+        action: "ok",
+        label: "OK",
+        default: true,
+        callback: (event, button, dialog) => resolve(button.form.elements.species?.value ?? null),
+      }],
+      close: () => resolve(null),
+    }).catch(()=>{
+      resolve(null);
+    });
+  })).then((speciesTable)=>{
+    if (!speciesTable) return;
+    canvas.scene.createEmbeddedDocuments("Tile", [{
+      "flags.pokemon-assets.solid": true,
+      "flags.pokemon-assets.script": `const api = game.modules.get("${MODULENAME}")?.api;\nconst scripts = api?.scripts;\nconst canUseHeadbutt = api?.logic?.FieldMoveParty(token)?.find(scripts?.HasMoveFunction("headbutt"));\nif (await scripts?.UseFieldMove("Headbutt", canUseHeadbutt, !!canUseHeadbutt, false)){\n  const rollTable = await fromUuid("${speciesTable}");\n  const result = (await rollTable.roll())?.results[0];\n  const resultUuid = scripts?.GetUuidFromTableResult(result);\n  const item = await fromUuid(resultUuid);\n  scripts?.ShowGMPopup(await TextEditor.enrichHTML("<p>Headbutt Tree Roll: "+item.link+"</p>"));\n};`,
+      hidden: true,
+      width: canvas.grid.sizeX,
+      height: canvas.grid.sizeY,
+      texture: {
+        src: "modules/pokemon-assets/img/items-overworld/non_tile.png",
+      },
+      x,
+      y,
+    }])
+  });
 }
 
 function TilesLayer_onClickLeft2(wrapper, event) {
