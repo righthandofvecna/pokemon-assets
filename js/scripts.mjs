@@ -766,20 +766,36 @@ async function SummonWildPokemon(target, shiny, extendSequence=null) {
  * @param {*} items 
  * @param {*} message 
  */
+async function TriggerPickUpItem(tileUuid, actorUuid, itemUuids) {
+  const tile = await fromUuid(tileUuid);
+  if (!tile) throw new Error("Tile not found — already picked up.");
+  await tile.delete(); // Acts as mutex: if already deleted, throws and awards are skipped
+
+  const actor = await fromUuid(actorUuid);
+  const awards = await Promise.all(itemUuids.map(uuid => fromUuid(uuid)));
+  const itemObjects = awards.filter(a => a?.documentName === "Item").map(a => a.toObject());
+  const pokemonActors = awards.filter(a => a?.documentName === "Actor");
+
+  const { AwardItems, AssignPokemonToActor } = game.modules.get(MODULENAME)?.api?.scripts ?? {};
+  await Promise.all([
+    ...(itemObjects.length ? [AwardItems(actor, itemObjects)] : []),
+    ...pokemonActors.map(pokemon => AssignPokemonToActor(pokemon, actor)),
+  ]);
+}
+
 async function PickUpItem(tile, actor, items, message) {
-  const awards = (await Promise.all(items.map(uuid=>fromUuid(uuid))));
-  const itemObjects = awards.filter(item=>item.documentName == "Item").map(item=>item.toObject());
-  const awardedPokemon = awards.filter(item=>item.documentName == "Actor");
-  
-  const awardItems = game.modules.get(MODULENAME)?.api?.scripts?.AwardItems;
-  const assignPokemonToActor = game.modules.get(MODULENAME)?.api?.scripts?.AssignPokemonToActor;
-  console.log("Awarding items", itemObjects, "and pokemon", awardedPokemon, "to actor", actor);
   PokemonPrompt({ content: message, callback: async ()=>{
-    DeleteTile(tile.uuid).then(()=>Promise.all([awardItems(actor, itemObjects), ...awardedPokemon.map(pokemon=>assignPokemonToActor(pokemon, actor))])).catch(()=>{
+    try {
+      if (game.user.isGM) {
+        await TriggerPickUpItem(tile.uuid, actor.uuid, items);
+      } else {
+        await socket.current().executeAsGM("pickUpItem", tile.uuid, actor.uuid, items);
+      }
+    } catch(e) {
       PokemonPrompt({
         content: `Oops! Someone else grabbed ${items.length > 1 ? "them" : "it"} first!`,
       });
-    })
+    }
   }});
 }
 
@@ -1295,4 +1311,5 @@ export function register() {
 
   socket.registerSocket("showPopup", async (username, message)=>ShowPopup(await fromUuid(tileId)));
   socket.registerSocket("refreshTokenIndicators", async ()=>canvas?.tokens?.objects?.children?.forEach(t=>t._drawIndicators()));
+  socket.registerSocket("pickUpItem", TriggerPickUpItem);
 }
