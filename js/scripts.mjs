@@ -767,11 +767,15 @@ async function SummonWildPokemon(target, shiny, extendSequence=null) {
  * @param {*} message 
  */
 async function PickUpItem(tile, actor, items, message) {
-  const itemObjects = (await Promise.all(items.map(uuid=>fromUuid(uuid)))).map(item=>item.toObject());
+  const awards = (await Promise.all(items.map(uuid=>fromUuid(uuid))));
+  const itemObjects = awards.filter(item=>item.documentName == "Item").map(item=>item.toObject());
+  const awardedPokemon = awards.filter(item=>item.documentName == "Actor");
   
   const awardItems = game.modules.get(MODULENAME)?.api?.scripts?.AwardItems;
+  const assignPokemonToActor = game.modules.get(MODULENAME)?.api?.scripts?.AssignPokemonToActor;
+  console.log("Awarding items", itemObjects, "and pokemon", awardedPokemon, "to actor", actor);
   PokemonPrompt({ content: message, callback: async ()=>{
-    DeleteTile(tile.uuid).then(()=>awardItems(actor, itemObjects)).catch(()=>{
+    DeleteTile(tile.uuid).then(()=>Promise.all([awardItems(actor, itemObjects), ...awardedPokemon.map(pokemon=>assignPokemonToActor(pokemon, actor))])).catch(()=>{
       PokemonPrompt({
         content: `Oops! Someone else grabbed ${items.length > 1 ? "them" : "it"} first!`,
       });

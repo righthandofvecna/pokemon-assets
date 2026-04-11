@@ -60,14 +60,12 @@ export function register() {
   api.scripts.AwardItems ??= (actor, item)=>actor.createEmbeddedDocuments("Item", item instanceof Array ? item : [item]);
   api.scripts.AssignPokemonToActor ??= async (pokemon, actor)=>{
     if (!pokemon || !actor) return;
-    if (actor.hasPlayerOwner) {
-      // upgrade ownership of pokemon to the same as actor
-      const ownership = pokemon.ownership;
-      for (const playerId of Object.keys(actor.ownership)) {
-        ownership[playerId] = Math.max(ownership[playerId] ?? 0, actor.ownership[playerId]);
-      }
-      await pokemon.update({ ownership });
+    // upgrade ownership of pokemon to the same as actor
+    const ownership = foundry.utils.deepClone(pokemon.ownership);
+    for (const playerId of Object.keys(actor.ownership)) {
+      ownership[playerId] = Math.max(ownership[playerId] ?? 0, actor.ownership[playerId]);
     }
+    await pokemon.update({ ownership });
   };
 
   api.scripts.GetUuidFromTableResult ??= (result)=>result.documentUuid;

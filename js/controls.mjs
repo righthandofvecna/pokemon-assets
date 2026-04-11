@@ -454,7 +454,7 @@ function _placeTileItem(x, y) {
     }
     
     ItemDialog.wait({
-      window: { title: 'Items Contained' },
+      window: { title: 'Items / Pokémon Contained' },
       content: `
           <!--<div class="form-group">
             <label>Overworld Type</label>
@@ -480,7 +480,7 @@ function _placeTileItem(x, y) {
           </div>
           <div class="form-group">
             <div id="item-drop-zone" style="min-height: 100px; border: 2px dashed #ccc; padding: 10px; margin-bottom: 10px;">
-              <p class="drop-text">Drag and drop items here</p>
+              <p class="drop-text">Drag and drop items or Pokémon actors here</p>
               <div id="dropped-items-list"></div>
             </div>
           </div>
