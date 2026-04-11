@@ -504,7 +504,7 @@ export class SpritesheetGenerator {
       slicer: sliceTDSM_Gen4,
       frames: 3, // force this to be 3 for tdsm4
       includesIdle: true, // this style includes an idle animation
-      defaultRatio: 5 / 20,
+      defaultRatio: 3 / 20, // 3 columns by 20 rows
     },
     tdsmpc: {
       label: "TDSM PixelCitizen Style",
