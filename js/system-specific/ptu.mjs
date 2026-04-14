@@ -543,6 +543,16 @@ function HasMoveFunction(slug) {
 
 
 
+/**
+ * Get whether the actor is uncatchable because it has a second+ health bar that isn't depleted.
+ * @param {TokenDocument} token
+ */
+function IsUncatchable(token) {
+  // uncatchable if a second+ health bar is configured on the token and not depleted
+  return token.actor?.system?.boss?.is && token.actor?.system?.boss?.bars > 0;
+}
+
+
 function fixLockAndKey() {
   if (!game.modules.get("LocknKey")?.active) return;
   Hooks.on("ready", ()=> {
@@ -617,6 +627,7 @@ export function register() {
 
   module.api.logic.ActorCry ??= ActorCry;
   module.api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny;
+  module.api.logic.IsUncatchable ??= IsUncatchable;
 
   module.api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
 

@@ -53,23 +53,53 @@ function OnCreateActor(actor) {
   });
 }
 
-function OnUpdateActor(actor, updates) {
+async function OnUpdateActor(actor, updates) {
   if (!game.user.isActiveGM) return;
-  if (!game.settings.get(MODULENAME, "showCaughtIndicator")) return;
-  // check the new ownership
-  if (!updates?.ownership && !updates?.["==ownership"]) return;
-  if (!actor.hasPlayerOwner) return;
   const logic = game?.modules?.get(MODULENAME)?.api?.logic;
-  if (logic?.ActorCaught === null) {
-    const catchKey = logic?.ActorCatchKey(actor);
-    if (!catchKey) return;
-    const caughtPokemon = game.settings.get(MODULENAME, "caughtPokemon");
-    if (!caughtPokemon.has(catchKey)) {
-      game.settings.set(MODULENAME, "caughtPokemon", new Set([...caughtPokemon, catchKey]));
-    }
+
+  let shouldRefresh = false;
+
+  // refresh uncatchable indicator when system data changes (e.g. HP depleting a boss bar)
+  if (game.settings.get(MODULENAME, "showUncatchableIndicator")) {
+    const uncatchableIndicator = logic.IsUncatchable?.(actor?.token);
+    if (uncatchableIndicator !== actor._uncatchableIndicator) shouldRefresh = true;
+    actor._uncatchableIndicator = uncatchableIndicator;
   }
-  RefreshTokenIndicators();
+
+  await (async ()=>{
+    if (!game.settings.get(MODULENAME, "showCaughtIndicator")) return;
+    // check the new ownership
+    if (!updates?.ownership && !updates?.["==ownership"]) return;
+    if (!actor.hasPlayerOwner) return;
+    if (logic?.ActorCaught === null) {
+      const catchKey = logic?.ActorCatchKey(actor);
+      if (!catchKey) return;
+      const caughtPokemon = game.settings.get(MODULENAME, "caughtPokemon");
+      if (!caughtPokemon.has(catchKey)) {
+        await game.settings.set(MODULENAME, "caughtPokemon", new Set([...caughtPokemon, catchKey]));
+      }
+      shouldRefresh = true;
+    }
+  })();
+  
+
+  if (shouldRefresh) RefreshTokenIndicators();
 }
+
+
+function OnChangeActiveEffect(activeEffect) {
+  if (!game.user.isActiveGM) return;
+  if (!game.settings.get(MODULENAME, "showUncatchableIndicator")) return;
+  const logic = game?.modules?.get(MODULENAME)?.api?.logic;
+  const actor = activeEffect?.parent;
+  if (!actor) return;
+  const uncatchableIndicator = logic?.IsUncatchable?.(actor?.token);
+  if (uncatchableIndicator !== actor._uncatchableIndicator) {
+    actor._uncatchableIndicator = uncatchableIndicator;
+    RefreshTokenIndicators();
+  }
+}
+
 
 function OnReady() {
   if (!game.user.isActiveGM) return;
@@ -99,4 +129,7 @@ export function register() {
   Hooks.on("createActor", OnCreateActor);
   Hooks.on("updateActor", OnUpdateActor);
   Hooks.on("ready", OnReady);
+  Hooks.on("createActiveEffect", OnChangeActiveEffect);
+  Hooks.on("updateActiveEffect", OnChangeActiveEffect);
+  Hooks.on("deleteActiveEffect", OnChangeActiveEffect);
 }
