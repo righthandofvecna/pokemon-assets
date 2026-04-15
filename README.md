@@ -80,7 +80,9 @@ For "Field Moves" like *Rock Smash*, *Cut*, and so on, the selected character ne
 
 ### Interactable Tiles
 
-Select the tool on the Tile layer and double-click the spot you want to place the tile. Click-and-drag functionality will be added in a future update.
+Select the tool on the Tile layer and double-click the spot you want to place the tile, or click on the tool and drag onto the map, releasing where you want to place the tile.
+
+While the tool is selected, you can also click and drag on the map to place multiple sequential tiles (for tiles that don't require configuration, such as the Cuttable Trees or Whirlpools).
 
 ### Interactable Tokens
 
