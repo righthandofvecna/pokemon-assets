@@ -1,3 +1,9 @@
+[![foundry-shield]][foundry-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![All Release Downloads](https://img.shields.io/github/downloads/righthandofvecna/pokemon-assets/total.svg)]()
+
 # Pokémon Assets Module
 
 ## Overview
@@ -88,3 +94,12 @@ On the Regions layer, while editing a region, you can add new behaviors as defin
 
 - **Token Size Issues**: If tokens don't resize correctly, try refreshing the page. Token resizing via active effect in PTR2e is a known bug.
 
+
+[foundry-shield]: https://img.shields.io/badge/Foundry-v13.351-success
+[foundry-url]: https://foundryvtt.com/
+[forks-shield]: https://img.shields.io/github/forks/righthandofvecna/pokemon-assets.svg
+[forks-url]: https://github.com/righthandofvecna/pokemon-assets/network/members
+[stars-shield]: https://img.shields.io/github/stars/righthandofvecna/pokemon-assets.svg
+[stars-url]: https://github.com/righthandofvecna/pokemon-assets/stargazers
+[issues-shield]: https://img.shields.io/github/issues/righthandofvecna/pokemon-assets.svg
+[issues-url]: https://github.com/righthandofvecna/pokemon-assets/issues
