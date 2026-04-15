@@ -4,6 +4,7 @@ import { VolumeSettings } from "./settings.mjs";
 import * as socket from "./socket.mjs";
 import { getAllFollowing } from "./module-compatibility/follow-me.mjs";
 import { PokemonPrompt, PokemonConfirm } from "./dialog.mjs";
+import { PokemonSheets } from "./pokemon-sheets.mjs";
 
 /**
  * Run when a Pokemon Center is triggered.
@@ -447,6 +448,296 @@ async function HandleIce() {
 }
 
 /**
+ * Return the number of animation frames (columns) and direction rows for a
+ * sprite path.  Falls back to {frames:1, rows:1} for non-spritesheet images.
+ */
+function _evoSheetInfo(src) {
+  const settings = PokemonSheets.getSheetSettings(src);
+  if (!settings?.animationframes) return { frames: 1, rows: 1 };
+  const rows = settings.sheetstyle === "eight" ? 8 : 4;
+  return { frames: settings.animationframes, rows };
+}
+
+/**
+ * Load frame 0 of the "down" direction from a sprite path into an
+ * OffscreenCanvas, composited as a solid white silhouette.
+ */
+async function _evoLoadSilhouette(src) {
+  const { frames, rows } = _evoSheetInfo(src);
+  const img = await new Promise((resolve, reject) => {
+    const el = new Image();
+    el.crossOrigin = "anonymous";
+    el.onload = () => resolve(el);
+    el.onerror = reject;
+    el.src = src;
+  });
+  const fw = Math.floor(img.naturalWidth / frames);
+  const fh = Math.floor(img.naturalHeight / rows);
+  const offscreen = new OffscreenCanvas(fw, fh);
+  const ctx = offscreen.getContext("2d");
+  ctx.drawImage(img, 0, 0, fw, fh, 0, 0, fw, fh);
+  ctx.globalCompositeOperation = "source-in";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, fw, fh);
+  ctx.globalCompositeOperation = "source-over";
+  return offscreen;
+}
+
+/**
+ * Convert an OffscreenCanvas to a blob URL (for dialog img tags).
+ * Caller must call URL.revokeObjectURL() when done.
+ */
+async function _evoToObjectURL(offscreen) {
+  const blob = await offscreen.convertToBlob({ type: "image/png" });
+  return URL.createObjectURL(blob);
+}
+
+/**
+ * Animate a numeric value from `from` to `to` over `durationMs` using rAF.
+ * `onUpdate(value)` is called each frame.
+ */
+function _evoAnimateValue(onUpdate, from, to, durationMs) {
+  return new Promise((resolve) => {
+    const start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / durationMs, 1);
+      onUpdate(from + (to - from) * t);
+      if (t < 1) requestAnimationFrame(step);
+      else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+/**
+ * Convert an OffscreenCanvas to a PIXI.Texture via an intermediate canvas element.
+ */
+function _evoToPixiTexture(offscreen) {
+  const cnv = document.createElement("canvas");
+  cnv.width = offscreen.width;
+  cnv.height = offscreen.height;
+  cnv.getContext("2d").drawImage(offscreen, 0, 0);
+  return PIXI.Texture.from(cnv);
+}
+
+/**
+ * Run the evolution flash animation on the scene using PIXI directly.
+ * Bypasses Sequencer so blob URLs and sub-texture cropping work reliably.
+ * Called directly for local mode, or via socket for global mode.
+ */
+async function _evolveSceneLocal(beforeSrc, afterSrc, tokenId, sceneId, cycles, startCycleMs, endCycleMs, holdMs) {
+  const scene = game.scenes.get(sceneId);
+  if (!scene || scene.id !== canvas?.scene?.id) return;
+  const token = scene.tokens.get(tokenId);
+  if (!token) return;
+
+  const tokenWidth = token?.width ?? 1;
+  const targetCenter = token.center ?? {
+    x: token.x + (tokenWidth * (scene?.grid?.sizeX ?? 100) / 2),
+    y: token.y + (tokenWidth * (scene?.grid?.sizeY ?? 100) / 2),
+  };
+
+  let bOffscreen, aOffscreen;
+  try {
+    [bOffscreen, aOffscreen] = await Promise.all([
+      _evoLoadSilhouette(beforeSrc),
+      _evoLoadSilhouette(afterSrc),
+    ]);
+  } catch (err) {
+    console.error("pokemon-assets | EvolveAnimation: failed to load sprites", err);
+    return;
+  }
+
+  const bTex = _evoToPixiTexture(bOffscreen);
+  const aTex = _evoToPixiTexture(aOffscreen);
+
+  const sprite = new PIXI.Sprite(bTex);
+  sprite.anchor.set(0.5, 0.5);
+  const gridSize = (scene.grid.sizeX ?? 100) * tokenWidth;
+  const scale = gridSize / Math.max(bTex.width, bTex.height);
+  sprite.scale.set(scale);
+  sprite.x = targetCenter.x;
+  sprite.y = targetCenter.y;
+
+  // Add at end of stage children so it renders above everything
+  canvas.stage.addChildAt(sprite, canvas.stage.children.length);
+  try {
+    // cycles*2+1 transitions: starts on before, ends on after (odd total swaps)
+    for (let i = 0; i <= cycles * 2; i++) {
+      const t = cycles > 0 ? i / (cycles * 2) : 1;
+      const dur = startCycleMs + (endCycleMs - startCycleMs) * t * t;
+      const half = dur / 2;
+      // shrink current sprite to zero
+      await _evoAnimateValue(v => sprite.scale.set(v * scale), 1, 0, half);
+      // swap: even iterations → after, odd → before
+      sprite.texture = i % 2 === 0 ? aTex : bTex;
+      // grow into next sprite
+      await _evoAnimateValue(v => sprite.scale.set(v * scale), 0, 1, half);
+    }
+    // Hold the final "after" sprite
+    await sleep(holdMs);
+  } finally {
+    canvas.stage.removeChild(sprite);
+    sprite.destroy();
+    bTex.destroy();
+    aTex.destroy();
+  }
+}
+
+/**
+ * Dialog that displays the evolution flash animation in a popup window.
+ * Uses a <canvas> element so it can display a single cropped frame from a
+ * spritesheet and composite it as a white silhouette on the black background.
+ */
+class EvolveAnimationDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+    super.DEFAULT_OPTIONS,
+    {
+      id: "evolution-animation",
+      classes: ["evolution-animation-dialog"],
+      window: {
+        title: "Evolving!",
+        resizable: false,
+        minimizable: false,
+      },
+      position: {
+        width: 240,
+        height: 268,
+      },
+    },
+    { inplace: false }
+  );
+
+  static PARTS = {
+    main: {
+      template: "modules/pokemon-assets/templates/evolution-animation.hbs",
+    },
+  };
+
+  #beforeSrc;
+  #afterSrc;
+  #cycles;
+  #startCycleMs;
+  #endCycleMs;
+  #holdMs;
+  #beforeURL = null;
+  #afterURL = null;
+  #resolve = null;
+
+  constructor({ beforeSrc, afterSrc, cycles = 8, startCycleMs = 800, endCycleMs = 100, holdMs = 6000 } = {}) {
+    super();
+    this.#beforeSrc = beforeSrc;
+    this.#afterSrc = afterSrc;
+    this.#cycles = cycles;
+    this.#startCycleMs = startCycleMs;
+    this.#endCycleMs = endCycleMs;
+    this.#holdMs = holdMs;
+  }
+
+  async _prepareContext() {
+    return {};
+  }
+
+  _onRender(context, options) {
+    if (this.#beforeURL && this.#afterURL) {
+      this.#runAnimation();
+    }
+  }
+
+  async close(options = {}) {
+    URL.revokeObjectURL(this.#beforeURL);
+    URL.revokeObjectURL(this.#afterURL);
+    this.#beforeURL = null;
+    this.#afterURL = null;
+    if (this.#resolve) {
+      this.#resolve();
+      this.#resolve = null;
+    }
+    return super.close(options);
+  }
+
+  async #runAnimation() {
+    const img = this.element.querySelector("img.evo-sprite");
+    if (!img) return;
+    // start with the before sprite fully visible
+    img.src = this.#beforeURL;
+    img.style.transform = "scale(1)";
+    // cycles*2+1 transitions: starts on before, ends on after (odd total swaps)
+    for (let i = 0; i <= this.#cycles * 2; i++) {
+      const t = this.#cycles > 0 ? i / (this.#cycles * 2) : 1;
+      const dur = this.#startCycleMs + (this.#endCycleMs - this.#startCycleMs) * t * t;
+      const half = dur / 2;
+      // shrink out
+      await _evoAnimateValue(v => img.style.transform = `scale(${v})`, 1, 0, half);
+      if (!this.rendered) return;
+      // swap at zero scale: even → after, odd → before
+      img.src = i % 2 === 0 ? this.#afterURL : this.#beforeURL;
+      // grow in
+      await _evoAnimateValue(v => img.style.transform = `scale(${v})`, 0, 1, half);
+      if (!this.rendered) return;
+    }
+    // Hold the final "after" sprite
+    await sleep(this.#holdMs);
+    if (!this.rendered) return;
+    this.close();
+  }
+
+  async play() {
+    try {
+      [this.#beforeURL, this.#afterURL] = await Promise.all([
+        _evoLoadSilhouette(this.#beforeSrc).then(_evoToObjectURL),
+        _evoLoadSilhouette(this.#afterSrc).then(_evoToObjectURL),
+      ]);
+    } catch (err) {
+      console.error("pokemon-assets | EvolveAnimation: failed to load sprites", err);
+      return;
+    }
+    return new Promise((resolve) => {
+      this.#resolve = resolve;
+      this.render({ force: true });
+    });
+  }
+}
+
+
+/**
+ * Play an evolution animation cycling back and forth between silhouetted
+ * (white-on-black) versions of the two sprites.
+ *
+ * @param {TokenDocument} token - The token being evolved (source for the pre-evolution sprite)
+ * @param {string} newSrc - Image path of the post-evolution sprite
+ * @param {object} [options]
+ * @param {"popup"|"sequencer"} [options.mode="popup"] - "popup" shows a pop-up dialog; "sequencer" plays the animation on the scene via Sequencer
+ * @param {boolean} [options.locally=true] - Popup: show only for the calling user (true) or all users (false). Sequencer: play locally (true) or broadcast to all users (false).
+ * @param {number} [options.cycles=8] - Number of full back-and-forth cycles before the final hold
+ * @param {number} [options.startCycleMs=800] - Duration of the first cycle's shrink+grow, in milliseconds
+ * @param {number} [options.endCycleMs=100] - Duration of the last cycle's shrink+grow (animation accelerates toward this)
+ * @param {number} [options.holdMs=6000] - How long to hold the final evolved sprite before closing
+ */
+async function EvolveAnimation(token, newSrc, { mode = "popup", locally = true, cycles = 8, startCycleMs = 800, endCycleMs = 100, holdMs = 6000 } = {}) {
+  const beforeSrc = token?.texture?.src ?? token?.img;
+  if (!beforeSrc || !newSrc) return;
+
+  if (mode === "sequencer") {
+    const scene = tokenScene(token);
+    const sceneVisible = scene?.id === canvas?.scene?.id;
+    if (!sceneVisible) return;
+
+    if (locally) {
+      return _evolveSceneLocal(beforeSrc, newSrc, token.id, scene.id, cycles, startCycleMs, endCycleMs, holdMs);
+    }
+    return socket.current().executeForEveryone("evolveAnimationScene", beforeSrc, newSrc, token.id, scene.id, cycles, startCycleMs, endCycleMs, holdMs);
+  }
+
+  // mode === "popup"
+  if (!locally) {
+    return socket.current().executeForEveryone("evolveAnimationPopup", beforeSrc, newSrc, cycles, startCycleMs, endCycleMs, holdMs);
+  }
+  return new EvolveAnimationDialog({ beforeSrc, afterSrc: newSrc, cycles, startCycleMs, endCycleMs, holdMs }).play();
+}
+
+
+/**
  * Flash a token momentarily and play the hit noise, indicating it's taken damage
  * @param {*} actor the damaged actor
  * @param {*} token the token to flash
@@ -766,16 +1057,36 @@ async function SummonWildPokemon(target, shiny, extendSequence=null) {
  * @param {*} items 
  * @param {*} message 
  */
+async function TriggerPickUpItem(tileUuid, actorUuid, itemUuids) {
+  const tile = await fromUuid(tileUuid);
+  if (!tile) throw new Error("Tile not found — already picked up.");
+  await tile.delete(); // Acts as mutex: if already deleted, throws and awards are skipped
+
+  const actor = await fromUuid(actorUuid);
+  const awards = await Promise.all(itemUuids.map(uuid => fromUuid(uuid)));
+  const itemObjects = awards.filter(a => a?.documentName === "Item").map(a => a.toObject());
+  const pokemonActors = awards.filter(a => a?.documentName === "Actor");
+
+  const { AwardItems, AssignPokemonToActor } = game.modules.get(MODULENAME)?.api?.scripts ?? {};
+  await Promise.all([
+    ...(itemObjects.length ? [AwardItems(actor, itemObjects)] : []),
+    ...pokemonActors.map(pokemon => AssignPokemonToActor(pokemon, actor)),
+  ]);
+}
+
 async function PickUpItem(tile, actor, items, message) {
-  const itemObjects = (await Promise.all(items.map(uuid=>fromUuid(uuid)))).map(item=>item.toObject());
-  
-  const awardItems = game.modules.get(MODULENAME)?.api?.scripts?.AwardItems;
   PokemonPrompt({ content: message, callback: async ()=>{
-    DeleteTile(tile.uuid).then(()=>awardItems(actor, itemObjects)).catch(()=>{
+    try {
+      if (game.user.isGM) {
+        await TriggerPickUpItem(tile.uuid, actor.uuid, items);
+      } else {
+        await socket.current().executeAsGM("pickUpItem", tile.uuid, actor.uuid, items);
+      }
+    } catch(e) {
       PokemonPrompt({
         content: `Oops! Someone else grabbed ${items.length > 1 ? "them" : "it"} first!`,
       });
-    })
+    }
   }});
 }
 
@@ -1282,6 +1593,7 @@ export function register() {
     PickUpItem,
     ShowGMPopup,
     RefreshTokenIndicators,
+    EvolveAnimation,
   };
 
   socket.registerSocket("deleteTile", DeleteTile);
@@ -1290,5 +1602,8 @@ export function register() {
   socket.registerSocket("triggerWhirlpool", async (tileId)=>TriggerWhirlpool(await fromUuid(tileId)));
 
   socket.registerSocket("showPopup", async (username, message)=>ShowPopup(await fromUuid(tileId)));
+  socket.registerSocket("evolveAnimationPopup", (beforeSrc, afterSrc, cycles, cycleMs) => new EvolveAnimationDialog({ beforeSrc, afterSrc, cycles, cycleMs }).play());
+  socket.registerSocket("evolveAnimationScene", _evolveSceneLocal);
   socket.registerSocket("refreshTokenIndicators", async ()=>canvas?.tokens?.objects?.children?.forEach(t=>t._drawIndicators()));
+  socket.registerSocket("pickUpItem", TriggerPickUpItem);
 }

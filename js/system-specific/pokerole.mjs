@@ -293,6 +293,21 @@ function OnRenderPokeroleActorSheet(sheet, html, context) {
 
 }
 
+/**
+ * Update the ownership of the given pokemon and assign it to the trainer
+ */
+async function AssignPokemonToActor(pokemon, actor) {
+  if (!pokemon || !actor) return;
+  const ownership = foundry.utils.deepClone(pokemon.ownership);
+  for (const playerId of Object.keys(actor.ownership)) {
+    ownership[playerId] = Math.max(ownership[playerId] ?? 0, actor.ownership[playerId]);
+  }
+  await pokemon.update({
+    ownership,
+    [`flags.${MODULENAME}.trainerId`]: actor.uuid,
+  });
+}
+
 export function register() {
   Hooks.on("preCreateToken", OnPreCreateToken);
   Hooks.on("preCreateActor", OnPreCreateActor);
@@ -339,4 +354,5 @@ export function register() {
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
   api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
+  api.scripts.AssignPokemonToActor ??= AssignPokemonToActor;
 };

@@ -53,11 +53,21 @@ export function register() {
   api.logic.ActorCatchKey ??= (actor)=>null;
   api.logic.ActorCaught ??= null;
   api.logic.ActorShiny ??= (actor)=>false;
+  api.logic.IsUncatchable ??= (token)=>token?.actor?.effects?.contents?.some(e=>e.name === "Uncatchable") ?? false;
   api.logic.isPokemon ??= (token)=>token?.texture?.src?.includes("/pmd-overworld/") ?? false;
   
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= (slug)=>function (actor){ return true };
   api.scripts.AwardItems ??= (actor, item)=>actor.createEmbeddedDocuments("Item", item instanceof Array ? item : [item]);
+  api.scripts.AssignPokemonToActor ??= async (pokemon, actor)=>{
+    if (!pokemon || !actor) return;
+    // upgrade ownership of pokemon to the same as actor
+    const ownership = foundry.utils.deepClone(pokemon.ownership);
+    for (const playerId of Object.keys(actor.ownership)) {
+      ownership[playerId] = Math.max(ownership[playerId] ?? 0, actor.ownership[playerId]);
+    }
+    await pokemon.update({ ownership });
+  };
 
   api.scripts.GetUuidFromTableResult ??= (result)=>result.documentUuid;
   api.scripts.GetTokenChangesForSpritesheet ??= _getTokenChangesForSpritesheet;

@@ -4,9 +4,12 @@ import { MODULENAME } from "./utils.mjs";
 /**
  * Custom DialogV2 wrapper that applies Pokemon styling
  */
+
 class PokemonDialogV2 extends foundry.applications.api.DialogV2 {
   constructor(options = {}) {
     super(options);
+    this._keydownHandler = null;
+    this._buttonFocusInterval = null;
   }
 
   /* -------------------------------------------- */
@@ -36,13 +39,49 @@ class PokemonDialogV2 extends foundry.applications.api.DialogV2 {
    */
   _onRender(context, options) {
     super._onRender(context, options);
-    
+
     // Add dialog-prompt or dialog-choices class based on button count
     const buttonCount = Object.keys(this.options.buttons ?? {}).length;
     if (buttonCount <= 1) {
       this.element.classList.add("dialog-prompt");
     } else {
       this.element.classList.add("dialog-choices");
+    }
+
+    const getButtons = () => Array.from(this.element.querySelectorAll("button:not(.header-control)"));
+
+    // --- Interval to steal focus back to a button if none are focused ---
+    if (!this._buttonFocusInterval) {
+      this._buttonFocusInterval = setInterval(() => {
+        // If none of the dialog's buttons are focused, refocus default/first
+        const active = document.activeElement;
+        const buttons = getButtons();
+        const defaultBtn = buttons.find(btn => btn.classList.contains("default")) ?? buttons.at(0);
+        if (!buttons.includes(active)) {
+          defaultBtn.focus({ focusVisible: true });
+        }
+      }, 250);
+    }
+     
+
+    // --- Up/Down arrow navigation for buttons ---
+    if (!this._keydownHandler) {
+      this._keydownHandler = (ev) => {
+        if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+          const buttons = getButtons();
+          if (!buttons.length) return;
+          const active = document.activeElement;
+          let idx = buttons.indexOf(active);
+          if (ev.key === "ArrowDown") {
+            idx = (idx + 1) % buttons.length;
+          } else if (ev.key === "ArrowUp") {
+            idx = (idx - 1 + buttons.length) % buttons.length;
+          }
+          buttons[idx].focus({ focusVisible: true });
+          ev.preventDefault();
+        }
+      };
+      this.element.addEventListener("keydown", this._keydownHandler, true);
     }
   }
 
@@ -65,6 +104,16 @@ class PokemonDialogV2 extends foundry.applications.api.DialogV2 {
    * @override
    */
   async close(options={}) {
+    // Clean up key handler
+    if (this._keydownHandler && this.element && this.element[0]) {
+      this.element[0].removeEventListener("keydown", this._keydownHandler, true);
+      this._keydownHandler = null;
+    }
+    // Clean up button focus interval
+    if (this._buttonFocusInterval) {
+      clearInterval(this._buttonFocusInterval);
+      this._buttonFocusInterval = null;
+    }
     return super.close({
       ...options,
       animate: false,

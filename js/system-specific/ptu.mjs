@@ -479,6 +479,12 @@ await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...argum
   return;
 }
 
+function _getPartyFolder(actor) {
+  const trainerFolder = actor.folder;
+  if (!trainerFolder) return null;
+  return trainerFolder.children.find(folder => folder.folder.name == "Party")?.folder ?? game.folders.find(folder => folder.name == "Party" && folder._source.folder == trainerFolder.id) ?? null;
+}
+
 /**
  * Gets all the party members of the given actor
  * @param {PTUActor} actor 
@@ -486,7 +492,7 @@ await game.modules.get("pokemon-assets")?.api?.scripts?.PokemonComputer(...argum
 function GetParty(actor) {
   const trainerFolder = actor.folder;
   if (!trainerFolder) return [actor];
-  const party = trainerFolder.children.find(folder => folder.folder.name == "Party")?.folder ?? game.folders.find(folder => folder.name == "Party" && folder._source.folder == trainerFolder.id);
+  const party = _getPartyFolder(actor);
 
   // If the trainer has a party folder, get the pokemon from the folder
   if (party) {
@@ -498,6 +504,26 @@ function GetParty(actor) {
     pkmn.type == "pokemon" &&
     pkmn.flags?.ptu?.party?.trainer == actor.id &&
     !pkmn.flags?.ptu?.party?.boxed)];
+}
+
+/**
+ * Update the ownership of the given pokemon to match the ownership of the given actor, and set the "trainer" flag to the actor's id
+ */
+async function AssignPokemonToActor(pokemon, actor) {
+  if (!pokemon || !actor) return;
+  // upgrade ownership of pokemon to the same as actor
+  const ownership = foundry.utils.deepClone(pokemon.ownership);
+  for (const playerId of Object.keys(actor.ownership)) {
+    ownership[playerId] = Math.max(ownership[playerId] ?? 0, actor.ownership[playerId]);
+  }
+  const folder = _getPartyFolder(actor);
+  const update = {
+    ownership,
+    "flags.ptu.party.trainer": actor.id,
+    "flags.ptu.party.boxed": false,
+    folder: folder ? folder.id : null,
+  }
+  await pokemon.update(update);
 }
 
 /**
@@ -515,6 +541,16 @@ function HasMoveFunction(slug) {
   };
 }
 
+
+
+/**
+ * Get whether the actor is uncatchable because it has a second+ health bar that isn't depleted.
+ * @param {TokenDocument} token
+ */
+function IsUncatchable(token) {
+  // uncatchable if a second+ health bar is configured on the token and not depleted
+  return token.actor?.system?.boss?.is && token.actor?.system?.boss?.bars > 0;
+}
 
 
 function fixLockAndKey() {
@@ -591,12 +627,14 @@ export function register() {
 
   module.api.logic.ActorCry ??= ActorCry;
   module.api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny;
+  module.api.logic.IsUncatchable ??= IsUncatchable;
 
   module.api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
 
   module.api.scripts ??= {};
   module.api.scripts.HasMoveFunction ??= HasMoveFunction;
   module.api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
+  module.api.scripts.AssignPokemonToActor ??= AssignPokemonToActor;
 
   try {
     fixLockAndKey();

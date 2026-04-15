@@ -423,6 +423,7 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 		"showCaughtIndicator",
 		"ownedPokemonCatchable",
 		"showShinyIndicator",
+		"showUncatchableIndicator",
 	]
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
@@ -572,6 +573,16 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "Show a shiny indicator on wild Pokemon tokens if they are shiny",
+		});
+
+		game.settings.register(MODULENAME, "showUncatchableIndicator", {
+			name: "Show Uncatchable Indicator",
+			default: true,
+			type: Boolean,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Show an uncatchable indicator on Pokemon tokens that cannot currently be caught (e.g. boss Pokemon with a second health bar remaining, or Pokemon with an ActiveEffect named 'Uncatchable').",
 		});
 
 		game.settings.register(MODULENAME, "ownedPokemonCatchable", {
