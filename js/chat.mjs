@@ -5,14 +5,12 @@ import { MODULENAME } from "./utils.mjs";
  * Handle emote-related chat commands.
  */
 function onChatMessage(_chatLog, message, chatData) {
-  console.log("Chat message:", ...arguments);
   if (!message.startsWith("/emote")) return;
   const content = message.replace("/emote", "").trim().toLowerCase();
   const TokenReact = game.modules.get(MODULENAME)?.api?.scripts?.TokenReact;
   if (!TokenReact) return;
   const token = game.scenes.get(chatData?.speaker?.scene)?.tokens.get(chatData?.speaker?.token);
   if (!token) return;
-  console.log("Emote content:", content);
 
   const react = (()=>{
     if (["angry", "anger"].includes(content)) return "angry";

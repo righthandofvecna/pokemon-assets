@@ -9,6 +9,7 @@ import { MODULENAME } from "../utils.mjs";
  * @returns 
  */
 async function Actor_updateDocuments(wrapped, updates, context) {
+  const DEBUG = game.settings.get(MODULENAME, "debug");
   const safeUpdates = [];
   const unsafeUpdates = [];
   const updateWasSafe = [];
@@ -17,11 +18,11 @@ async function Actor_updateDocuments(wrapped, updates, context) {
     const actorId = String(changed._id);
     const actor = game.actors.get(actorId);
     if ((foundry.utils.getProperty(actor || {}, "flags.item-piles.data.enabled") || foundry.utils.getProperty(foundry.utils.flattenObject(changed), "flags.item-piles.data.enabled"))) {
-      console.log("Updating unsafe:", actor, foundry.utils.deepClone(changed));
+      if (DEBUG) console.log("pokemon-assets | Actor_updateDocuments: Updating unsafe:", actor, foundry.utils.deepClone(changed));
       unsafeUpdates.push(changed);
       updateWasSafe.push(false);
     } else {
-      console.log("Updating safe:", actor, foundry.utils.deepClone(changed));
+      if (DEBUG) console.log("pokemon-assets | Actor_updateDocuments: Updating safe:", actor, foundry.utils.deepClone(changed));
       safeUpdates.push(changed);
       updateWasSafe.push(true);
     }
@@ -115,7 +116,6 @@ function integrateItemPiles() {
     // PTR2e seems to use the actor hook for ITEMS as well....
     // Hooks.on("getActorSheetHeaderButtons", insertActorHeaderButtons);
     // Hooks.on("getActorSheetHeaderButtons", (sheet)=>{
-    //   console.log(sheet);
     //   if ((sheet?.object ?? sheet?.item) instanceof Item)
     //     return insertItemHeaderButtons(sheet);
     //   return insertActorHeaderButtons(sheet);
