@@ -61,7 +61,7 @@ async function OnUpdateActor(actor, updates) {
 
   // refresh uncatchable indicator when system data changes (e.g. HP depleting a boss bar)
   if (game.settings.get(MODULENAME, "showUncatchableIndicator")) {
-    const uncatchableIndicator = logic.IsUncatchable?.(actor?.token);
+    const uncatchableIndicator = logic.IsUncatchable?.(actor);
     if (uncatchableIndicator !== actor._uncatchableIndicator) shouldRefresh = true;
     actor._uncatchableIndicator = uncatchableIndicator;
   }
@@ -93,7 +93,7 @@ function OnChangeActiveEffect(activeEffect) {
   const logic = game?.modules?.get(MODULENAME)?.api?.logic;
   const actor = activeEffect?.parent;
   if (!actor) return;
-  const uncatchableIndicator = logic?.IsUncatchable?.(actor?.token);
+  const uncatchableIndicator = logic?.IsUncatchable?.(actor);
   if (uncatchableIndicator !== actor._uncatchableIndicator) {
     actor._uncatchableIndicator = uncatchableIndicator;
     RefreshTokenIndicators();

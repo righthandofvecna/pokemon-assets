@@ -666,7 +666,7 @@ export function register() {
 
         if (game.settings.get(MODULENAME, "showUncatchableIndicator")) {
           const logic = game?.modules?.get(MODULENAME)?.api?.logic;
-          const uncatchable = logic?.IsUncatchable?.(this?.document);
+          const uncatchable = logic?.IsUncatchable?.(this?.document?.actor);
           if (uncatchable) {
             const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/uncatchable-indicator.png`, {fallback: "icons/svg/hazard.svg"});
             const icon = new PIXI.Sprite(tex);
