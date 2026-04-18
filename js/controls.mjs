@@ -348,6 +348,7 @@ function _placeTileSign(x, y) {
 }
 
 function _placeTileItem(x, y) {
+  const persistedToolSettings = game.settings.get(MODULENAME, "persistedToolSettings")?.placeTileItem ?? {};
   (new Promise(async (resolve, reject)=>{
     class ItemDialog extends foundry.applications.api.DialogV2 {
       _onRender(context, options) {
@@ -465,7 +466,7 @@ function _placeTileItem(x, y) {
           <div class="form-group">
             <label>Visible Distance</label>
             <div class="form-fields">
-              <input type="number" name="visibleDistance" value="" min="0" step="1" />
+              <input type="number" name="visibleDistance" value="${persistedToolSettings.visibleDistance ?? ""}" min="0" step="1" />
               <p class="help-text">The number of grid spaces away the tile's texture can be seen from. Unset for infinite, 0 for always invisible.</p>
             </div>
           </div>
@@ -532,6 +533,13 @@ function _placeTileItem(x, y) {
       x,
       y,
     }])
+    // update the persistent tool settings
+    game.settings.set(MODULENAME, "persistedToolSettings", {
+      ...foundry.utils.deepClone(game.settings.get(MODULENAME, "persistedToolSettings")),
+      placeTileItem: {
+        visibleDistance,
+      },
+    });
   }).catch((err)=>{
     if (err) console.error("[Pokemon Assets]: Failed to place Item tile", err);
   });

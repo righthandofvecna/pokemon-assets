@@ -142,6 +142,15 @@ export function register() {
 		onChange: ()=>canvas?.tokens?.objects?.children?.forEach(t=>t._drawIndicators()),
 	});
 
+	game.settings.register(MODULENAME, "persistedToolSettings", {
+		name: "Persisted Tool Settings",
+		default: {},
+		type: Object,
+		scope: "user",
+		config: false,
+		requiresReload: false,
+	})
+
   game.settings.register(MODULENAME, "debug", {
     name: "Debug Mode",
     default: false,
