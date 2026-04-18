@@ -348,7 +348,7 @@ function _placeTileSign(x, y) {
 }
 
 function _placeTileItem(x, y) {
-  (new Promise(async (resolve)=>{
+  (new Promise(async (resolve, reject)=>{
     class ItemDialog extends foundry.applications.api.DialogV2 {
       _onRender(context, options) {
         super._onRender(context, options);
@@ -463,6 +463,13 @@ function _placeTileItem(x, y) {
             </div>
           </div>-->
           <div class="form-group">
+            <label>Visible Distance</label>
+            <div class="form-fields">
+              <input type="number" name="visibleDistance" value="" min="0" step="1" />
+              <p class="help-text">The number of grid spaces away the tile's texture can be seen from. Unset for infinite, 0 for always invisible.</p>
+            </div>
+          </div>
+          <div class="form-group">
             <label>Interact Sound</label>
             <div class="form-fields">
               <select name="interactionSound">
@@ -490,16 +497,17 @@ function _placeTileItem(x, y) {
         label: "OK",
         default: true,
         callback: (event, button, dialog) => {
+          const visibleDistance = button.form.elements.visibleDistance?.value ? parseInt(button.form.elements.visibleDistance.value) : null;
           const interactionSound = button.form.elements.interactionSound?.value ?? null;
           const items = $(dialog.element).find('#dropped-items-list').data('items') || [];
-          resolve({items, interactionSound});
+          resolve({items, interactionSound, visibleDistance});
         },
       }],
-      close: () => resolve(null),
+      close: () => reject(null),
     }).catch(()=>{
-      resolve(null);
+      reject(null);
     });
-  })).then(async ({items, interactionSound})=>{
+  })).then(async ({items, interactionSound, visibleDistance})=>{
     if (!items) return;
     const itemFrequency = items.reduce((l,i)=>({...l, [i]: (l[i] ?? 0) + 1}), {});
     const itemObjects = await Promise.all(Object.keys(itemFrequency).map(uuid=>fromUuid(uuid)));
@@ -512,6 +520,7 @@ function _placeTileItem(x, y) {
     canvas.scene.createEmbeddedDocuments("Tile", [{
       "flags.pokemon-assets.solid": true,
       "flags.pokemon-assets.interactionSound": interactionSound ?? null,
+      "flags.pokemon-assets.visibleDistance": visibleDistance ?? null,
       "flags.pokemon-assets.script": `const items = [${items.reduce((l,i)=>l+'"'+i+'",', "")}];\ngame.modules.get("${MODULENAME}")?.api?.scripts?.PickUpItem?.(self, actor, items, ${JSON.stringify(message)});`,
       width: canvas.grid.sizeX,
       height: canvas.grid.sizeY,
@@ -523,6 +532,8 @@ function _placeTileItem(x, y) {
       x,
       y,
     }])
+  }).catch((err)=>{
+    if (err) console.error("[Pokemon Assets]: Failed to place Item tile", err);
   });
 }
 

@@ -62,6 +62,65 @@ function Tile_onDelete(wrapper, options, userId) {
   this.initializeEdges({deleted: true});
 }
 
+
+//
+// Tile Visibility Logic
+//
+
+function _applyTileVisibility(tileDocument) {
+  // console.log(`[${MODULENAME}] Checking visibility for tile ${tile.id}`);
+  const visibleDistance = tileDocument?.flags?.[MODULENAME]?.visibleDistance;
+  let isVisible = tileDocument._pa_wasVisible ?? tileDocument.alpha > 0;
+  let shouldBeVisible = tileDocument._source.alpha > 0;
+  if (visibleDistance == 0) {
+    shouldBeVisible = false;
+  } else if (visibleDistance) {
+    shouldBeVisible = false;
+    for (const token of canvas.tokens?.controlled ?? []) {
+      if (shouldBeVisible) break;
+      const distance = Math.max(Math.abs(token.center.x - tileDocument.object.center.x), Math.abs(token.center.y - tileDocument.object.center.y)) / canvas.grid.size;
+      console.log(`[${MODULENAME}] Tile ${tileDocument.id} distance from token ${token.id}: ${distance} (visibleDistance: ${visibleDistance})`);
+      shouldBeVisible ||= distance <= visibleDistance;
+    }
+  }
+
+  tileDocument._pa_wasVisible = shouldBeVisible;
+  if (tileDocument.id == "JBDIWaeFIdSGgYlZ") console.log(`[${MODULENAME}] Tile ${tileDocument.id} visibility: ${isVisible} -> ${shouldBeVisible}`);
+  if (isVisible == shouldBeVisible) return false;
+  tileDocument.alpha = shouldBeVisible ? tileDocument._source.alpha : (game.user.isGM ? 0.25 : 0);
+  console.log(`[${MODULENAME}] Tile ${tileDocument.id} alpha set to ${tileDocument.alpha}`);
+  return true;
+}
+
+async function _redrawTile(tileDocument) {
+  const obj = tileDocument.object;
+  if (!obj) return;
+  obj.renderable=true;
+  obj.clear();
+  await obj.draw();
+}
+
+function TileDocument_prepareDerivedData(wrapped) {
+  wrapped.call(this);
+  // _applyTileVisibility(this);
+}
+
+// whenever a token is refreshed, check all the tile visibilities and redraw if necessary
+function OnRefreshToken(tokenObj, options) {
+  console.log(`[${MODULENAME}] Refreshing token ${tokenObj.id}, checking tile visibility...`);
+  game.canvas.scene.tiles.contents.filter(t=>(t.flags?.[MODULENAME]?.visibleDistance ?? null) !== null).forEach(t=>{
+    const needsUpdate = _applyTileVisibility(t);
+    if (needsUpdate) {
+      _redrawTile(t).then(()=>console.log(`[${MODULENAME}] Redrew tile ${t.id} due to token refresh`));
+    }
+  });
+}
+
+
+//
+// Tile Pushing Logic
+//
+
 async function PushTile(tileUuid, dx, dy) {
   const tile = await fromUuid(tileUuid);
   if (!tile) return;
@@ -137,7 +196,10 @@ export function register() {
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onUpdate", Tile_onUpdate, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onDelete", Tile_onDelete, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._getShiftedPosition", Tile_getShiftedPosition, "WRAPPER");
+  libWrapper.register(MODULENAME, "CONFIG.Tile.documentClass.prototype.prepareDerivedData", TileDocument_prepareDerivedData, "WRAPPER");
   CONFIG.Tile.objectClass.prototype.animate = Tile_animate;
+
+  Hooks.on("refreshToken", OnRefreshToken);
 
   // register Push Tile socket
   registerSocket("pushTile", PushTile);
