@@ -467,8 +467,8 @@ function _placeTileItem(x, y) {
             <label>Visible Distance</label>
             <div class="form-fields">
               <input type="number" name="visibleDistance" value="${persistedToolSettings.visibleDistance ?? ""}" min="0" step="1" />
-              <p class="help-text">The number of grid spaces away the tile's texture can be seen from. Unset for infinite, 0 for always invisible.</p>
             </div>
+            <p class="hint">The number of grid spaces away the tile's texture can be seen from. Unset for infinite, 0 for always invisible.</p>
           </div>
           <div class="form-group">
             <label>Interact Sound</label>

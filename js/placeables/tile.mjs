@@ -67,8 +67,7 @@ function Tile_onDelete(wrapper, options, userId) {
 // Tile Visibility Logic
 //
 
-function _applyTileVisibility(tileDocument) {
-  // console.log(`[${MODULENAME}] Checking visibility for tile ${tile.id}`);
+function _applyTileVisibility(tileDocument, markVisible=true) {
   const visibleDistance = tileDocument?.flags?.[MODULENAME]?.visibleDistance;
   let isVisible = tileDocument._pa_wasVisible ?? tileDocument.alpha > 0;
   let shouldBeVisible = tileDocument._source.alpha > 0;
@@ -79,16 +78,13 @@ function _applyTileVisibility(tileDocument) {
     for (const token of canvas.tokens?.controlled ?? []) {
       if (shouldBeVisible) break;
       const distance = Math.max(Math.abs(token.center.x - tileDocument.object.center.x), Math.abs(token.center.y - tileDocument.object.center.y)) / canvas.grid.size;
-      console.log(`[${MODULENAME}] Tile ${tileDocument.id} distance from token ${token.id}: ${distance} (visibleDistance: ${visibleDistance})`);
       shouldBeVisible ||= distance <= visibleDistance;
     }
   }
 
-  tileDocument._pa_wasVisible = shouldBeVisible;
-  if (tileDocument.id == "JBDIWaeFIdSGgYlZ") console.log(`[${MODULENAME}] Tile ${tileDocument.id} visibility: ${isVisible} -> ${shouldBeVisible}`);
+  if (markVisible) tileDocument._pa_wasVisible = shouldBeVisible;
   if (isVisible == shouldBeVisible) return false;
   tileDocument.alpha = shouldBeVisible ? tileDocument._source.alpha : (game.user.isGM ? 0.25 : 0);
-  console.log(`[${MODULENAME}] Tile ${tileDocument.id} alpha set to ${tileDocument.alpha}`);
   return true;
 }
 
@@ -102,16 +98,15 @@ async function _redrawTile(tileDocument) {
 
 function TileDocument_prepareDerivedData(wrapped) {
   wrapped.call(this);
-  // _applyTileVisibility(this);
+  _applyTileVisibility(this, false);
 }
 
 // whenever a token is refreshed, check all the tile visibilities and redraw if necessary
 function OnRefreshToken(tokenObj, options) {
-  console.log(`[${MODULENAME}] Refreshing token ${tokenObj.id}, checking tile visibility...`);
   game.canvas.scene.tiles.contents.filter(t=>(t.flags?.[MODULENAME]?.visibleDistance ?? null) !== null).forEach(t=>{
     const needsUpdate = _applyTileVisibility(t);
     if (needsUpdate) {
-      _redrawTile(t).then(()=>console.log(`[${MODULENAME}] Redrew tile ${t.id} due to token refresh`));
+      _redrawTile(t);
     }
   });
 }
