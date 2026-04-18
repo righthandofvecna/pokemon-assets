@@ -31,6 +31,13 @@
       </div>
     </div>
     <div class="form-group">
+      <label>Visible Distance</label>
+      <div class="form-fields">
+        <input type="number" name="flags.pokemon-assets.visibleDistance" value="{{pa.visibleDistance}}" min="0" step="1" />
+      </div>
+      <p class="hint">The number of grid spaces away the tile's texture can be seen from. Unset for infinite, 0 for always invisible.</p>
+    </div>
+    <div class="form-group">
       <label>Interaction Sound</label>
       <div class="form-fields">
         <select name="flags.pokemon-assets.interactionSound">
