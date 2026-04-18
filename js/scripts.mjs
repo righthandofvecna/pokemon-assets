@@ -356,7 +356,7 @@ async function HandleJumps() {
  */
 async function HandleIce() {
   const DEBUG = game.settings.get(MODULENAME, "debug");
-  if (DEBUG) console.log("HandleIce called with arguments:", arguments);
+  if (DEBUG) console.log("pokemon-assets | HandleIce called with arguments:", arguments);
   const [scene, regionDocument, regionBehavior, { data: { token, movement }, name: eventName, user }] = arguments;
 
   if (user?.id !== game.user.id || !token || !scene) return;

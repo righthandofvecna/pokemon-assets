@@ -545,11 +545,11 @@ function HasMoveFunction(slug) {
 
 /**
  * Get whether the actor is uncatchable because it has a second+ health bar that isn't depleted.
- * @param {TokenDocument} token
+ * @param {Actor} actor
  */
-function IsUncatchable(token) {
+function IsUncatchable(actor) {
   // uncatchable if a second+ health bar is configured on the token and not depleted
-  return token.actor?.system?.boss?.is && token.actor?.system?.boss?.bars > 0;
+  return actor.system?.boss?.is && actor.system?.boss?.bars > 0;
 }
 
 

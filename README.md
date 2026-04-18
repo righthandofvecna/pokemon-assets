@@ -1,3 +1,9 @@
+[![foundry-shield]][foundry-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![All Release Downloads](https://img.shields.io/github/downloads/righthandofvecna/pokemon-assets/total.svg)]()
+
 # Pokémon Assets Module
 
 ## Overview
@@ -74,7 +80,9 @@ For "Field Moves" like *Rock Smash*, *Cut*, and so on, the selected character ne
 
 ### Interactable Tiles
 
-Select the tool on the Tile layer and double-click the spot you want to place the tile. Click-and-drag functionality will be added in a future update.
+Select the tool on the Tile layer and double-click the spot you want to place the tile, or click on the tool and drag onto the map, releasing where you want to place the tile.
+
+While the tool is selected, you can also click and drag on the map to place multiple sequential tiles (for tiles that don't require configuration, such as the Cuttable Trees or Whirlpools).
 
 ### Interactable Tokens
 
@@ -88,3 +96,12 @@ On the Regions layer, while editing a region, you can add new behaviors as defin
 
 - **Token Size Issues**: If tokens don't resize correctly, try refreshing the page. Token resizing via active effect in PTR2e is a known bug.
 
+
+[foundry-shield]: https://img.shields.io/badge/Foundry-v13.351-success
+[foundry-url]: https://foundryvtt.com/
+[forks-shield]: https://img.shields.io/github/forks/righthandofvecna/pokemon-assets.svg
+[forks-url]: https://github.com/righthandofvecna/pokemon-assets/network/members
+[stars-shield]: https://img.shields.io/github/stars/righthandofvecna/pokemon-assets.svg
+[stars-url]: https://github.com/righthandofvecna/pokemon-assets/stargazers
+[issues-shield]: https://img.shields.io/github/issues/righthandofvecna/pokemon-assets.svg
+[issues-url]: https://github.com/righthandofvecna/pokemon-assets/issues

@@ -82,8 +82,6 @@ export function register() {
           label: key.capitalize(),
           hint: value,
         }])));
-
-        console.log(context);
       }
 
       //

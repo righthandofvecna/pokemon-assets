@@ -62,6 +62,60 @@ function Tile_onDelete(wrapper, options, userId) {
   this.initializeEdges({deleted: true});
 }
 
+
+//
+// Tile Visibility Logic
+//
+
+function _applyTileVisibility(tileDocument, markVisible=true) {
+  const visibleDistance = tileDocument?.flags?.[MODULENAME]?.visibleDistance;
+  let isVisible = tileDocument._pa_wasVisible ?? tileDocument.alpha > 0;
+  let shouldBeVisible = tileDocument._source.alpha > 0;
+  if (visibleDistance == 0) {
+    shouldBeVisible = false;
+  } else if (visibleDistance) {
+    shouldBeVisible = false;
+    for (const token of canvas.tokens?.controlled ?? []) {
+      if (shouldBeVisible) break;
+      const distance = Math.max(Math.abs(token.center.x - tileDocument.object.center.x), Math.abs(token.center.y - tileDocument.object.center.y)) / canvas.grid.size;
+      shouldBeVisible ||= distance <= visibleDistance;
+    }
+  }
+
+  if (markVisible) tileDocument._pa_wasVisible = shouldBeVisible;
+  if (isVisible == shouldBeVisible) return false;
+  tileDocument.alpha = shouldBeVisible ? tileDocument._source.alpha : (game.user.isGM ? 0.25 : 0);
+  return true;
+}
+
+async function _redrawTile(tileDocument) {
+  const obj = tileDocument.object;
+  if (!obj) return;
+  obj.renderable=true;
+  obj.clear();
+  await obj.draw();
+}
+
+function TileDocument_prepareDerivedData(wrapped) {
+  wrapped.call(this);
+  _applyTileVisibility(this, false);
+}
+
+// whenever a token is refreshed, check all the tile visibilities and redraw if necessary
+function OnRefreshToken(tokenObj, options) {
+  game.canvas.scene.tiles.contents.filter(t=>(t.flags?.[MODULENAME]?.visibleDistance ?? null) !== null).forEach(t=>{
+    const needsUpdate = _applyTileVisibility(t);
+    if (needsUpdate) {
+      _redrawTile(t);
+    }
+  });
+}
+
+
+//
+// Tile Pushing Logic
+//
+
 async function PushTile(tileUuid, dx, dy) {
   const tile = await fromUuid(tileUuid);
   if (!tile) return;
@@ -137,7 +191,10 @@ export function register() {
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onUpdate", Tile_onUpdate, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._onDelete", Tile_onDelete, "WRAPPER");
   libWrapper.register(MODULENAME, "CONFIG.Tile.objectClass.prototype._getShiftedPosition", Tile_getShiftedPosition, "WRAPPER");
+  libWrapper.register(MODULENAME, "CONFIG.Tile.documentClass.prototype.prepareDerivedData", TileDocument_prepareDerivedData, "WRAPPER");
   CONFIG.Tile.objectClass.prototype.animate = Tile_animate;
+
+  Hooks.on("refreshToken", OnRefreshToken);
 
   // register Push Tile socket
   registerSocket("pushTile", PushTile);
