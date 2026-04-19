@@ -8,6 +8,7 @@ async function TileConfig_preparePartContext(wrapped, partId, context, options) 
   if (partId === "puzzle") {
     const tile = context.document;
     const pa = tile?.flags?.[MODULENAME] ?? {};
+    pa.visibleDistance ??= "";
     pa.isCustomSound = pa.interactionSound && !Object.keys(SOUNDS).some(v=>v === pa.interactionSound);
     pa.sounds = SOUNDS;
     pa.scriptField = new StringField({}, { parent: { fieldPath: `flags.${MODULENAME}.script` } });
