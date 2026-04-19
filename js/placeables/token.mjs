@@ -624,10 +624,10 @@ export function register() {
        * 
        */
       async _drawIndicators() {
+        if (!this.indicators) return;
         this.indicators.renderable = false;
 
-        // clear caught indicator
-        this.indicators.removeChildren().forEach(c => c.destroy());
+        const allIndicators = [];
         
         if (game.settings.get(MODULENAME, "showCaughtIndicator")) {
           const logic = game?.modules?.get(MODULENAME)?.api?.logic;
@@ -644,11 +644,11 @@ export function register() {
           if (caught === true) {
             const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/caught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
             const icon = new PIXI.Sprite(tex);
-            this.indicators.addChild(icon);
+            allIndicators.push(icon);
           } else if (caught === false) {
             const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/uncaught-indicator.png`, {fallback: "icons/svg/hazard.svg"});
             const icon = new PIXI.Sprite(tex);
-            this.indicators.addChild(icon);
+            allIndicators.push(icon);
           }
         }
         
@@ -660,7 +660,7 @@ export function register() {
           if (shiny) {
             const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/shiny-indicator.png`, {fallback: "icons/svg/explosion.svg"});
             const icon = new PIXI.Sprite(tex);
-            this.indicators.addChild(icon);
+            allIndicators.push(icon);
           }
         }
 
@@ -670,10 +670,13 @@ export function register() {
           if (uncatchable) {
             const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/uncatchable-indicator.png`, {fallback: "icons/svg/hazard.svg"});
             const icon = new PIXI.Sprite(tex);
-            this.indicators.addChild(icon);
+            allIndicators.push(icon);
           }
         }
 
+        // clear indicators and readd them
+        this.indicators.removeChildren().forEach(c => c.destroy());
+        allIndicators.forEach(icon => this.indicators.addChild(icon));
         this.indicators.sortChildren();
         this.indicators.renderable = true;
         this.renderFlags.set({refreshIndicators: true});
