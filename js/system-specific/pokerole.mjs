@@ -349,7 +349,7 @@ export function register() {
   api.logic.ActorCry ??= ActorCry;
   api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny ?? false;
 
-  api.logic.isPokemon ??= (actor)=>isActorPokemon(actor);
+  api.logic.isPokemon ??= (token)=>isActorPokemon(token?.actor);
 
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= HasMoveFunction;
