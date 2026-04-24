@@ -62,7 +62,7 @@ export class PokemonSheets {
     data.spritesheet = true;
 
     const settings = {
-      "flags.pokemon-assets": data,
+      [`flags.${DATNAME}`]: data,
       "texture.src": src,
     };
     if (!game.settings.get(MODULENAME, "allowTokenArtPastBounds")) {
