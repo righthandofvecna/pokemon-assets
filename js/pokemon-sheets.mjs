@@ -1,5 +1,5 @@
 import { default as SPRITESHEET_MAP } from "../data/spritesheetmap.js";
-import { MODULENAME } from "./utils.mjs";
+import { MODULENAME, DATNAME } from "./utils.mjs";
 
 
 export class PokemonSheets {
@@ -145,4 +145,9 @@ export function register() {
   const module = game.modules.get("pokemon-assets");
   module.api ??= {};
   module.api.PokemonSheets = PokemonSheets;
+}
+
+export function registerAfterDependencies() {
+  const DAT = game.modules.get(DATNAME);
+  DAT.api.PredefinedSheets.registerModule(MODULENAME, PokemonSheets.getSheetSettings);
 }

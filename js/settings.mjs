@@ -1,5 +1,4 @@
-import { MODULENAME, getFiles } from "./utils.mjs";
-import { SpritesheetGenerator } from "./spritesheets.mjs";
+import { MODULENAME, DATNAME, getFiles } from "./utils.mjs";
 
 export async function refreshHomebrewCryCache() {
 	if (!game.user.isActiveGM) return;
@@ -882,6 +881,7 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 	}
 
 	static async #configureHSS(event, formElement) {
+		const SpritesheetGenerator = game.modules.get(DATNAME)?.api?.spritesheetGenerator;
 		const hssKey = formElement.dataset.hss;
 
 		const oldHss = game.settings.get(MODULENAME, "homebrewSpritesheetSettings")?.[hssKey] ?? {};

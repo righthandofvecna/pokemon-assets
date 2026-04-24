@@ -1,6 +1,5 @@
-import { early_isGM, isTheGM, MODULENAME, tokenScene, getCombatsForScene, getAngleFromDirection, getDirectionFromAngle } from "../utils.mjs";
+import { early_isGM, isTheGM, MODULENAME, DATNAME, tokenScene, getCombatsForScene, getAngleFromDirection, getDirectionFromAngle } from "../utils.mjs";
 import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
-import { SpritesheetGenerator } from "../spritesheets.mjs";
 import { NonPrivateTokenMixin } from "../foundry/token.mjs";
 
 
@@ -109,18 +108,21 @@ function getSurfboard(wrapper, tokenDoc) {
 }
 
 
+
 /* ------------------------------------------------------------------------- */
 
+export function register() {
+  Hooks.on("initializeEdges", OnInitializeEdges);
+  if (early_isGM()) {
+    Hooks.on("createCombatant", OnCreateCombatant);
+  }
+}
 
 /**
- * After Dylan's Animated Tokens initializes, set various API parameters to interface with features of this module
+ * After dependencies are initialized, set various API parameters to interface with features of this module
  */
-function afterDATInit() {
-  const DAT = game.modules.get("dylans-animated-tokens");
-  if (!DAT || !DAT.active) {
-    ui.notifications.error(`"Dylan's Animated Tokens" module is not active. Please activate it to use animated tokens.`, { permanent: true });
-    return;
-  }
+export function registerAfterDependencies() {
+  const DAT = game.modules.get(DATNAME);
 
   // use a closure to wrap the various functions of Dylan's Animated Tokens that we want to interface with
   // so that we can add our own logic to them without modifying the original functions
@@ -133,23 +135,4 @@ function afterDATInit() {
   wrap("getIndicators", getIndicators);
   wrap("isWater", isWater);
   wrap("getSurfboard", getSurfboard);
-}
-
-/* ------------------------------------------------------------------------- */
-
-export function register() {
-  Hooks.on("initializeEdges", OnInitializeEdges);
-  if (early_isGM()) {
-    Hooks.on("createCombatant", OnCreateCombatant);
-  }
-  const DAT = game.modules.get("dylans-animated-tokens");
-  if (!DAT || !DAT.active) {
-    ui.notifications.error(`"Dylan's Animated Tokens" module is not active. Please activate it to use animated tokens.`, { permanent: true });
-    return;
-  }
-  if (DAT?.initialized) {
-    afterDATInit();
-  } else {
-    Hooks.once("dylans.animatedTokens.init", afterDATInit);
-  }
 }
