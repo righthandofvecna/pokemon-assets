@@ -393,12 +393,11 @@ async function HandleIce() {
     const pointSource = new foundry.canvas.sources.PointMovementSource({object: renderedToken});
     pointSource.initialize(renderedToken);
     const nextPos = { x: tokenSource.x + (dx * count), y: tokenSource.y + (dy * count), elevation };
-    const hits = (CONFIG.Canvas.polygonBackends.move.testCollision(tokenSource, nextPos, {
+    const stops = (CONFIG.Canvas.polygonBackends.move.testCollision(tokenSource, nextPos, {
       type: "move",
       mode: "all",
       source: pointSource
     }) ?? []);
-    const stops = renderedToken.filterCollisions(hits);
     if (stops.length) {
       if (DEBUG) console.log("pokemon-assets | HandleIce: collision detected, stopping slide at", endpos, "after", count, "steps", stops);
       break;
