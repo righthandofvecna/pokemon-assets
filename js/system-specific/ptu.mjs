@@ -549,7 +549,7 @@ function HasMoveFunction(slug) {
  */
 function IsUncatchable(actor) {
   // uncatchable if a second+ health bar is configured on the token and not depleted
-  return actor.system?.boss?.is && actor.system?.boss?.bars > 0;
+  return actor?.system?.boss?.is && actor?.system?.boss?.bars > 0;
 }
 
 
