@@ -1,5 +1,5 @@
 
-import { early_isGM, MODULENAME } from "./utils.mjs";
+import { early_isGM, MODULENAME, DATNAME } from "./utils.mjs";
 import { VolumeSettings } from "./settings.mjs";
 
 // make globally accessible helpers, to help 
@@ -80,13 +80,6 @@ function OnUpdateCombat(tracker, delta) {
     .play();
 }
 
-
-export const SOUNDS = {
-  "modules/pokemon-assets/audio/bgs/a-button.mp3": "Default Interaction",
-  "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3": "Pick Up Item",
-  "modules/pokemon-assets/audio/bgs/key-item-bw.mp3": "Pick Up Key Item",
-};
-
 export function register() {
   if (!early_isGM()) return;
 
@@ -94,8 +87,15 @@ export function register() {
   Hooks.on("preUpdateScene", OnPreUpdateScene);
   Hooks.on("deleteCombat", OnDeleteCombat);
   Hooks.on("updateCombat", OnUpdateCombat);
+}
 
-  const module = game.modules.get("pokemon-assets");
+export function registerAfterDependencies() {
+  const module = game.modules.get(DATNAME);
   module.api ??= {};
-  module.api.playlistOnce = playlistOnce;
+  module.api.SOUNDS = {
+    ...(module.api.SOUNDS ?? {}),
+    "modules/pokemon-assets/audio/bgs/a-button.mp3": "Default Interaction",
+    "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3": "Pick Up Item",
+    "modules/pokemon-assets/audio/bgs/key-item-bw.mp3": "Pick Up Key Item",
+  };
 }

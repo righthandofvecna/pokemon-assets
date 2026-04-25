@@ -4,15 +4,15 @@ export class Migration {
 
   static MIGRATION_VERSION = "0.0.0";
 
-  static async updateActor(actor, actorData) {
-    return actorData;
-  }
+  static async updateActor(actor, actorData) {}
 
-  static async updateItem(item, itemData) {
-    return itemData;
-  }
+  static async updateItem(item, itemData) {}
 
-  static async updateToken(token, tokenData) {
-    return tokenData;
-  }
+  static async updateToken(token, tokenData) {}
+
+  static async updateTile(tile, tileData) {}
+
+  static async updateScene(scene, sceneData) {}
+
+  static async updateSettings() {}
 }
