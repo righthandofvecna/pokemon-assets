@@ -1,5 +1,4 @@
 import { MODULENAME } from "../utils.mjs";
-import { getAllInFollowChain } from "../module-compatibility/follow-me.mjs";
 
 /**
  * Extended TokenLayer for handling token collision detection

@@ -1,7 +1,6 @@
-import { early_isGM, sleep, tokenScene, MODULENAME } from "../utils.mjs";
+import { early_isGM, sleep, tokenScene, MODULENAME, DATNAME } from "../utils.mjs";
 import { PokemonSheets } from "../pokemon-sheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
-import { RefreshTokenIndicators } from "../scripts.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
 
 import * as ptr2eSheet from "./ptr2e/sheet.mjs";
@@ -391,7 +390,7 @@ function ActorCaught(actor) {
 function OnUpdateActor(actor, update) {
   if (!game.user.isActiveGM) return;
   if (update?.system?.details?.dex === undefined) return;
-  RefreshTokenIndicators();
+  game.modules.get(DATNAME).api.RefreshTokenIndicators();
 }
 
 

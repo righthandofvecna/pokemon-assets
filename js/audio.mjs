@@ -1,75 +1,12 @@
 
-import { early_isGM, MODULENAME, DATNAME } from "./utils.mjs";
-import { VolumeSettings } from "./settings.mjs";
-
-// make globally accessible helpers, to help 
-
-async function playlistOnce() {
-  return game.scenes.active.playlist.stopAll();
-}
-
-async function doPreloadScenePlaylist(scene) {
-  if (!game.settings.get(MODULENAME, "autoPlayAudio")) return;
-  // stop the music from the current scene
-  const oldScene = game.scenes.active;
-  if (oldScene !== scene) {
-    oldScene.playlist?.stopAll();
-  };
-
-  const playlist = scene.playlist;
-  if (!playlist) {
-    return;
-  }
-
-  // wait for the audio system to be ready to load audio
-  if (game.audio.locked) await game.audio.unlock;
-
-  // remove playlistOnce listeners
-  // and preload all members of the playlist
-  const loaded = [];
-  for (const sound of playlist?.sounds?.contents ?? []) {
-    // kick off an async preload
-    loaded.push(sound.load().then(()=>{
-      sound.sound.removeEventListener("end", playlistOnce);
-    }));
-  };
-  await Promise.all(loaded);
-
-  // if the last sound is set not to repeat, then add the playlistOnce listener
-  const sound = playlist.sounds.get(playlist.playbackOrder[playlist.playbackOrder.length - 1]);
-  const playlistHasEnd = sound && !sound.repeat;
-  scene.setFlag("pokemon-assets", "playlistHasEnd", playlistHasEnd);
-  if (playlistHasEnd) {
-    if (!sound.sound) {
-      console.error(`Preloaded all scene playlist sounds, but sound "${sound.id}" is not preloaded`);
-      return;
-    }
-    sound.sound.addEventListener("end", playlistOnce);
-  }
-}
-
-function OnPreUpdateScene(scene, changes, data, id) {
-  if (!changes.active) return;
-  doPreloadScenePlaylist(scene);
-}
-
-function OnReady() {
-  doPreloadScenePlaylist(game.scenes.active);
-}
-
-function OnDeleteCombat(tracker, info, id) {
-  const scene = tracker?.scene;
-  if (scene && scene.getFlag("pokemon-assets", "playlistHasEnd") && scene.playlist) {
-    if (!game.settings.get(MODULENAME, "autoPlayAudio")) return;
-    scene.playlist.playNext();
-  }
-}
+import { early_isGM, MODULENAME, DATNAME, DGANAME } from "./utils.mjs";
 
 function OnUpdateCombat(tracker, delta) {
   if (!game.settings.get(MODULENAME, "playPokemonCryOnTurn") || delta.turn === undefined) return;
 
   const cry = game.modules.get("pokemon-assets").api.logic.ActorCry(tracker.combatant?.actor);
   if (!cry) return;
+  const VolumeSettings = game.modules.get(DGANAME).api.VolumeSettings;
 
   new Sequence({ moduleName: "pokemon-assets", softFail: true })
     .sound()
@@ -82,20 +19,22 @@ function OnUpdateCombat(tracker, delta) {
 
 export function register() {
   if (!early_isGM()) return;
-
-  Hooks.on("ready", OnReady);
-  Hooks.on("preUpdateScene", OnPreUpdateScene);
-  Hooks.on("deleteCombat", OnDeleteCombat);
   Hooks.on("updateCombat", OnUpdateCombat);
 }
 
 export function registerAfterDependencies() {
-  const module = game.modules.get(DATNAME);
-  module.api ??= {};
-  module.api.SOUNDS = {
-    ...(module.api.SOUNDS ?? {}),
+  const DGA = game.modules.get(DGANAME);
+  DGA.api ??= {};
+  DGA.api.SOUNDS = {
+    ...(DGA.api.SOUNDS ?? {}),
     "modules/pokemon-assets/audio/bgs/a-button.mp3": "Default Interaction",
     "modules/pokemon-assets/audio/bgs/receive-item-bw.mp3": "Pick Up Item",
     "modules/pokemon-assets/audio/bgs/key-item-bw.mp3": "Pick Up Key Item",
   };
+
+  DGA.defaults ??= {};
+  DGA.defaults.bumpSound = `modules/${MODULENAME}/audio/bgs/wall-bump.mp3`;
+  DGA.defaults.interactionSound = `modules/${MODULENAME}/audio/bgs/a-button.mp3`;
+  DGA.defaults.pickupSound = `modules/${MODULENAME}/audio/bgs/receive-item-bw.mp3`;
+  DGA.defaults.doorSound = `modules/${MODULENAME}/audio/bgs/exit.mp3`;
 }

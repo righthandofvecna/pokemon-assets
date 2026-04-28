@@ -147,82 +147,8 @@
     line-height: var(--form-field-height);
 }
 
-.window-app.pokemon-dialog {
-    border-image-source: url("../img/ui/textbox_1.png");
-    border-width: 30px;
-    border-image-slice: 8 22 8 12;
-    border-image-width: 32px 88px 32px 48px;
-    border-image-repeat: stretch;
-    image-rendering: pixelated;
-    border-radius: 0;
-    padding: 30px 86px 30px 46px;
-
-    min-height: 200px;
-
-    // Positioning
-    position: absolute;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 310px !important;
-    top: unset !important;
-    width: unset !important;
-
-    header {
-        display: none;
-    }
-
-    .window-content {
-        background: white;
- 
-        .dialog-content {
-            font-family: "Pokemon DPPt";
-            font-size: xx-large;
-            text-shadow: 2px 2px darkgray;
-            color: black;
-
-            p {
-                margin: 0;
-            }
-        }
-    }
-
-    &.dialog-prompt .window-content .dialog-buttons {
-        position: absolute;
-        right: 12px;
-        top: 12px;
-        bottom: 12px;
-        width: 64px;
-        flex-direction: column;
-        justify-content: end;
-
-        button {
-            color: white;
-            background: none;
-            text-shadow: 2px -2px black;
-            flex: 0;
-            border: unset;
-            &:hover {
-                box-shadow: none;
-            }
-            &:focus {
-                box-shadow: none;
-                animation: bounce 1s ease infinite;
-            }
-            i {
-                transform: rotate(90deg) scaleX(2);
-                &::before {
-                    content: "▶";
-                    font-family: "Pokemon DPPt";
-                    font-weight: normal;
-                    font-size: xx-large;
-                }
-            }
-        }
-    }
-}
-
 // DialogV2 styling
-.pokemon-dialog-v2.application {
+.dga.footer-dialog {
     border-image-source: url("../img/ui/textbox_1.png");
     border-width: 0;
     border-image-slice: 8 22 8 12;

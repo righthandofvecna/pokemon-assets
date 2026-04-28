@@ -1,5 +1,4 @@
 import { early_isGM, isTheGM, MODULENAME, DATNAME, tokenScene, getCombatsForScene, getAngleFromDirection, getDirectionFromAngle } from "../utils.mjs";
-import { getAllInFollowChain, getAllFollowing } from "../module-compatibility/follow-me.mjs";
 import { NonPrivateTokenMixin } from "../foundry/token.mjs";
 
 
@@ -132,6 +131,7 @@ export function registerAfterDependencies() {
     })(DAT.api[method]);
   }
 
+  console.log("Registering API functions for Dylan's Animated Tokens integration...");
   wrap("getIndicators", getIndicators);
   wrap("isWater", isWater);
   wrap("getSurfboard", getSurfboard);

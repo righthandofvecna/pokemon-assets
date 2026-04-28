@@ -3,5 +3,9 @@ import * as tileConfig from "./tile-config.mjs";
 
 export function register() {
   tokenConfig.register();
-  tileConfig.register();
+}
+
+
+export function registerAfterDependencies() {
+  tileConfig.registerAfterDependencies();
 }

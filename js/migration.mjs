@@ -157,12 +157,26 @@ export function register() {
               await actor.update(updatedData);
             }
           }
-          // all tokens in world
+          // all world scenes, their tokens, and tiles
           for (const scene of game.scenes) {
+            // all scenes in world
+            const updatedData = await migration.updateScene(scene, foundry.utils.deepClone(scene._source));
+            if (updatedData) {
+              await scene.update(updatedData);
+            }
+            
+            // all tokens in world
             for (const token of scene.tokens) {
               const updatedData = await migration.updateToken(token, foundry.utils.deepClone(token._source));
               if (updatedData) {
                 await token.update(updatedData);
+              }
+            }
+            // all tiles in world
+            for (const tile of scene.tiles) {
+              const updatedData = await migration.updateTile(tile, foundry.utils.deepClone(tile._source));
+              if (updatedData) {
+                await tile.update(updatedData);
               }
             }
           }

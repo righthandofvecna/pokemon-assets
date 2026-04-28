@@ -25,6 +25,13 @@
         }
       },
       {
+        "id": "dylans-general-animations",
+        "type": "module",
+        "compatibility": {
+          "minimum": "1.0.0"
+        }
+      },
+      {
         "id": "lib-wrapper",
         "type": "module",
         "compatibility": {

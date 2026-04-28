@@ -1,5 +1,4 @@
 import { MODULENAME, listenFilepickerChange } from "../utils.mjs";
-import { SOUNDS } from "../audio.mjs";
 const { StringField } = foundry.data.fields;
 
 /**

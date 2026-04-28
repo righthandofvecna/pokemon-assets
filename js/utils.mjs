@@ -1,7 +1,7 @@
 
 export const MODULENAME = "pokemon-assets";
 export const DATNAME = "dylans-animated-tokens";
-export const DGANAME = "dynamic-general-automations";
+export const DGANAME = "dylans-general-automations";
 
 export const MYSTERY_MAN = "icons/svg/mystery-man.svg";
 

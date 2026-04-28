@@ -1,6 +1,5 @@
 
-import { isTheGM, MODULENAME } from "./utils.mjs";
-import { RefreshTokenIndicators } from "./scripts.mjs";
+import { isTheGM, MODULENAME, DATNAME } from "./utils.mjs";
 import { PokemonSheets } from "./pokemon-sheets.mjs"; 
 
 
@@ -83,7 +82,7 @@ async function OnUpdateActor(actor, updates) {
   })();
   
 
-  if (shouldRefresh) RefreshTokenIndicators();
+  if (shouldRefresh) game.modules.get(DATNAME).api.RefreshTokenIndicators();
 }
 
 
@@ -96,7 +95,7 @@ function OnChangeActiveEffect(activeEffect) {
   const uncatchableIndicator = logic?.IsUncatchable?.(actor);
   if (uncatchableIndicator !== actor._uncatchableIndicator) {
     actor._uncatchableIndicator = uncatchableIndicator;
-    RefreshTokenIndicators();
+    game.modules.get(DATNAME).api.RefreshTokenIndicators();
   }
 }
 

@@ -1,5 +1,5 @@
 
-import { MODULENAME, DATNAME } from "./utils.mjs";
+import { MODULENAME, DATNAME, DGANAME } from "./utils.mjs";
 import * as migration from "./migration.mjs";
 import * as settings from "./settings.mjs";
 import * as config from "./config.mjs";
@@ -11,9 +11,7 @@ import * as dialog from "./dialog.mjs";
 import * as placeables from "./placeables/index.mjs";
 import * as configs from "./configs/index.mjs";
 import * as scripts from "./scripts.mjs";
-import * as pixelate from "./pixelate.mjs";
 import * as pokemonSheets from "./pokemon-sheets.mjs";
-import * as regionEvents from "./region-events.mjs";
 import * as interact from "./interact.mjs";
 import * as canvas from "./canvas.mjs";
 import * as filePicker from "./file-picker.mjs";
@@ -34,9 +32,7 @@ const SUBMODULES = [
   ["placeables", placeables],
   ["configs", configs],
   ["scripts", scripts],
-  ["pixelate", pixelate],
   ["pokemonSheets", pokemonSheets],
-  ["regionEvents", regionEvents],
   ["interact", interact],
   ["canvas", canvas],
   ["filePicker", filePicker],
@@ -56,17 +52,32 @@ function runForAll(fnId) {
   }
 }
 
-Hooks.on("init", ()=>{
+Hooks.on("init", async ()=>{
   runForAll("register");
 
-  const DAT = game.modules.get(DATNAME);
-  if (!DAT || !DAT.active) {
-    ui.notifications.error(`"Dylan's Animated Tokens" module is not active. Please activate it to use animated tokens.`, { permanent: true });
-    return;
+  const DEPENDENCIES = [DATNAME, DGANAME];
+
+  for (const dep of DEPENDENCIES) {
+    const module = game.modules.get(dep);
+    if (!module || !module.active) {
+      Hooks.on("ready", ()=>ui.notifications.error(`"${dep}" module is not active. Please activate it to ensure the "${MODULENAME}" module behaves as expected.`, { permanent: true }));
+      return;
+    }
   }
-  if (DAT?.initialized) {
-    runForAll("registerAfterDependencies");
-  } else {
-    Hooks.once("dylans.animatedTokens.init", ()=>runForAll("registerAfterDependencies"));
-  }
+
+  // Wait for all dependencies
+  await Promise.all(DEPENDENCIES.map(dep => {
+    const module = game.modules.get(dep);
+    if (module?.initialized) {
+      return Promise.resolve();
+    } else {
+      return new Promise(resolve => Hooks.once(`${dep}.init`, resolve));
+    }
+  }));
+
+  runForAll("registerAfterDependencies");
+  
+  const MODULE = game.modules.get(MODULENAME);
+  Hooks.callAll(`${MODULENAME}.init`);
+  MODULE.initialized = true;
 })
