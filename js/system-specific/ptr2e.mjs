@@ -128,10 +128,7 @@ async function RegenerateActorTokenImg(actor) {
   if (actor.img.startsWith("modules/pokemon-assets/img/trainers-profile/")) {
     const trainerImg = `modules/pokemon-assets/img/trainers-overworld/${actor.img.substring(44)}`;
     if (PokemonSheets.hasSheetSettings(trainerImg)) {
-      return {
-        "texture.src": trainerImg,
-        ..._getTokenChangesForSpritesheet(trainerImg),
-      }
+        return _getTokenChangesForSpritesheet(trainerImg);
     }
   }
 
@@ -149,15 +146,12 @@ async function RegenerateActorTokenImg(actor) {
   );
   const src = tokenResolver?.result ?? null;
   if (!src || src == "icons/svg/mystery-man.svg") return;
-  return {
-    "texture.src": src,
-    ..._getTokenChangesForSpritesheet(src),
-  }
+  return _getTokenChangesForSpritesheet(src);
 }
 
 
 function OnPreCreateToken(token, tokenData) {
-  let src = tokenData?.texture?.src ?? token?.texture?.src;
+  let src = token?.flags?.[DATNAME]?.sheetsrc ?? tokenData?.flags?.[DATNAME]?.sheetsrc ?? tokenData?.texture?.src ?? token?.texture?.src;
   if (!src || !PokemonSheets.hasSheetSettings(src)) return;
 
   const updates = _getTokenChangesForSpritesheet(src);
@@ -191,7 +185,7 @@ function OnPreCreateActor(actor, data) {
     img: `modules/pokemon-assets/img/trainers-profile/${img}`,
     prototypeToken: _getTokenChangesForSpritesheet(`modules/pokemon-assets/img/trainers-overworld/${img}`),
   }
-  if (updates.prototypeToken?.flags?.[MODULENAME]?.spritesheet && game.settings.get(MODULENAME, "trainersAlwaysOneGridSpace")) {
+  if (updates.prototypeToken?.flags?.[DATNAME]?.spritesheet && game.settings.get(MODULENAME, "trainersAlwaysOneGridSpace")) {
     updates.prototypeToken.flags.ptr2e ??= {};
     updates.prototypeToken.flags.ptr2e.linkToActorSize = false;
   }
@@ -447,7 +441,7 @@ function TokenAlterations_apply(wrapped, ...args) {
 
   // if not, disable spritesheet processing
   this.actor.synthetics.tokenOverrides.flags ??= {};
-  this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= { spritesheet: false };
+  this.actor.synthetics.tokenOverrides.flags[DATNAME] ??= { spritesheet: false };
   this.actor.synthetics.tokenOverrides.lockRotation ??= true; // force lock rotation
 }
 
@@ -471,15 +465,16 @@ function TokenDocument_prepareDerivedData(wrapped, ...args) {
   // check if we need a redraw
   let needsRedraw = false;
   needsRedraw ||= this.texture.src !== (this._cachedSettings?.src ?? this.texture.src);
-  const moduleFlags = this.flags?.[MODULENAME] ?? {};
+  const moduleFlags = this.flags?.[DATNAME] ?? {};
 
   needsRedraw ||= moduleFlags.spritesheet !== (this._cachedSettings?.spritesheet ?? moduleFlags.spritesheet);
+  needsRedraw ||= moduleFlags.sheetsrc !== (this._cachedSettings?.sheetsrc ?? moduleFlags.sheetsrc);
   needsRedraw ||= moduleFlags.sheetstyle !== (this._cachedSettings?.sheetstyle ?? moduleFlags.sheetstyle);
   needsRedraw ||= moduleFlags.animationframes !== (this._cachedSettings?.animationframes ?? moduleFlags.animationframes);
   needsRedraw ||= moduleFlags.separateidle !== (this._cachedSettings?.separateidle ?? moduleFlags.separateidle);
 
   this._cachedSettings = {
-    src: this.texture.src,
+    sheetsrc: moduleFlags.src,
     spritesheet: moduleFlags.spritesheet,
     sheetstyle: moduleFlags.sheetstyle,
     animationframes: moduleFlags.animationframes,

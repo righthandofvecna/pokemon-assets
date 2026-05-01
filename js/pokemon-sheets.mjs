@@ -54,16 +54,18 @@ export class PokemonSheets {
 
   static getTokenChangesForSpritesheet(src) {
     const spritesheetSettings = PokemonSheets.getSheetSettings(src);
-    if (spritesheetSettings === undefined) return {};
+    if (spritesheetSettings === undefined) return {
+      [`flags.${DATNAME}.sheetsrc`]: src,
+    };
 
     const data = {
       ...spritesheetSettings
     };
     data.spritesheet = true;
+    data.sheetsrc = src;
 
     const settings = {
       [`flags.${DATNAME}`]: data,
-      "texture.src": src,
     };
     if (!game.settings.get(MODULENAME, "allowTokenArtPastBounds")) {
       delete data.scale;
