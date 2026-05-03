@@ -1,4 +1,4 @@
-import { MODULENAME, DGANAME, listenFilepickerChange } from "../utils.mjs";
+import { MODULENAME, DGANAME, listenFilepickerChange } from "./utils.mjs";
 
 
 export function registerAfterDependencies() {

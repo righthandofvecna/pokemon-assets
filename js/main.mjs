@@ -9,7 +9,7 @@ import * as audio from "./audio.mjs";
 import * as controls from "./controls.mjs";
 import * as dialog from "./dialog.mjs";
 import * as placeables from "./placeables/index.mjs";
-import * as configs from "./configs/index.mjs";
+import * as tileConfig from "./tile-config.mjs";
 import * as scripts from "./scripts.mjs";
 import * as pokemonSheets from "./pokemon-sheets.mjs";
 import * as interact from "./interact.mjs";
@@ -30,7 +30,7 @@ const SUBMODULES = [
   ["controls", controls],
   ["dialog", dialog],
   ["placeables", placeables],
-  ["configs", configs],
+  ["tileConfig", tileConfig],
   ["scripts", scripts],
   ["pokemonSheets", pokemonSheets],
   ["interact", interact],
