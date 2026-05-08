@@ -602,8 +602,8 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 			...Object.fromEntries(HomebrewSettings.SHEET_SETTINGS.map(s=>[s.key, oldHss[s.key] ?? s.default])),
 		};
 		// Populate the dropdown for the types of spritesheet layouts available
-		data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, option])=>{
-			return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${option.label}</option>`;
+		data.sheetStyleOptions = Object.entries(SpritesheetGenerator.constructor.SHEET_STYLES).reduce((allOptions, [val, option])=>{
+			return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${game.i18n.localize(option.label)}</option>`;
 		}, "");
 		const content = await foundry.applications.handlebars.renderTemplate("modules/pokemon-assets/templates/hss-dialog.hbs", data);
 

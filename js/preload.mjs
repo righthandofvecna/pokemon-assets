@@ -1,11 +1,7 @@
 
 import { MODULENAME } from "./utils.mjs";
 
-export function register() {
-  foundry.applications.handlebars.loadTemplates([
-    "modules/pokemon-assets/templates/token-settings.hbs",
-  ]);
-  
+export function register() {  
   if (!game.settings.get(MODULENAME, "preloadAssets")) return;
   Hooks.on("ready", ()=>{
     Sequencer.Preloader.preload([
