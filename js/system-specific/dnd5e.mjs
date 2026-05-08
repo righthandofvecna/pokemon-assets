@@ -152,7 +152,7 @@ function OnUpdateActor(actor, updates, options) {
  * @param {*} actor 
  * @returns the path to the cry file
  */
-async function ActorCry(actor) {
+function ActorCry(actor) {
   if (!actor) return null;
 
   const dn = getPokedexId(actor);
