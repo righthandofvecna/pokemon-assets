@@ -590,12 +590,12 @@ export function register() {
     const actorUpdates = [];
     for (const actor of actors) {
       if (!actor) continue;
+      await actor.deleteEmbeddedDocuments("Item", actor.items.filter(i=>i.type === "condition" && !i.isGranted).map(i => i.id));
       actorUpdates.push({
         "_id": actor.id,
         "system.health.value": actor.system.health.total,
         "system.health.injuries": Math.max(0, actor.system.health.injuries - 3)
       });
-      await actor.deleteEmbeddedDocuments("Item", actor.items.filter(i=>i.type === "condition" && !i.isGranted).map(i => i.id));
     }
     if (actorUpdates.length > 0) {
       await Actor.updateDocuments(actorUpdates);
