@@ -8095,6 +8095,7 @@ export default
     "anchor": 0.63,
     "animationframes": 3,
     "images": {
+      "ball_guy.png": {},
       "acetrainer_f_xy.png": {}
     },
     "scale": 1.1,
