@@ -48,7 +48,7 @@ export function register() {
 
   api.logic.GetSummonSource ??= async (token) => null; // no trainer by default (wild)
 
-  api.logic.ActorCry ??= async (actor)=>null;
+  api.logic.ActorCry ??= (actor)=>null;
   api.logic.ActorCatchable ??= (actor)=>true;
   api.logic.ActorCatchKey ??= (actor)=>null;
   api.logic.ActorCaught ??= null;
