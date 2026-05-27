@@ -19,6 +19,7 @@
       {
         "id": "dylans-animated-tokens",
         "type": "module",
+        "manifest": "https://github.com/righthandofvecna/dylans-animated-tokens/releases/latest/download/module.json",
         "compatibility": {
           "minimum": "2.1.0",
           "verified": "2.1.0"
@@ -27,6 +28,7 @@
       {
         "id": "dylans-general-automations",
         "type": "module",
+        "manifest": "https://github.com/righthandofvecna/dylans-general-automations/releases/latest/download/module.json",
         "compatibility": {
           "minimum": "1.0.0"
         }
