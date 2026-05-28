@@ -146,6 +146,10 @@ export function register() {
     const MIGRATION_VERSION = game.settings.get(MODULENAME, "migrationVersion");
     const pendingMigrations = MIGRATIONS.filter(m => foundry.utils.isNewerVersion(m.MIGRATION_VERSION, MIGRATION_VERSION));
     if (game.user.isActiveGM && pendingMigrations.length) {
+      if (!pendingMigrations.every(m => m.checkPrereqs())) {
+        ui.notifications.error(`Pokémon Assets Module: One or more pending migrations cannot be run due to unmet prerequisites.`, { permanent: true });
+        return;
+      }
       await game.settings.set(MODULENAME, "migrationVersion", pendingMigrations.at(-1).MIGRATION_VERSION);
       try {
         for (const migration of pendingMigrations) {

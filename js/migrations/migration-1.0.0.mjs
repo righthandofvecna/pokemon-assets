@@ -43,6 +43,16 @@ export class Migration_1_0_0 extends Migration {
 
   static MIGRATION_VERSION = "1.0.0";
 
+  static checkPrereqs() {
+    if (!game.modules.get(DATNAME)?.active) {
+      return false;
+    }
+    if (!game.modules.get(DGANAME)?.active) {
+      return false;
+    }
+    return true;
+  }
+
   static async updateToken(token, tokenData) {
     tokenData.flags ??= {};
     for (const field of DAT_TOKEN_FIELDS_TO_MIGRATE) {
@@ -99,7 +109,6 @@ export class Migration_1_0_0 extends Migration {
     // replace script macros for Image Show and Jump
     const jumpMatch = JUMP_RE.exec(regionBehaviorData.system?.source ?? "");
     const showImageMatch = SHOW_IMAGE_RE.exec(regionBehaviorData.system?.source ?? "");
-    console.log("migration updateRegionBehavior", { regionBehaviorData, jumpMatch, showImageMatch })
     if (regionBehaviorData.type == "executeScript" && jumpMatch) {
       const match = jumpMatch;
       const direction = match?.groups?.direction;

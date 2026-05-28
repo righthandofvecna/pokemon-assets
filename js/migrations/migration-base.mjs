@@ -4,6 +4,8 @@ export class Migration {
 
   static MIGRATION_VERSION = "0.0.0";
 
+  static checkPrereqs() {}
+
   static async updateActor(actor, actorData) {}
 
   static async updateItem(item, itemData) {}
