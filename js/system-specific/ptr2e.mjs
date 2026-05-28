@@ -508,8 +508,8 @@ export function register() {
   const module = game.modules.get(MODULENAME);
   module.api ??= {};
   const api = module.api;
-  api.controls = {
-    ...(module.api.controls ?? {}),
+  api.regionScripts = {
+    ...(module.api.regionScripts ?? {}),
     "pokemonComputer": {
       "label": "Pokemon Computer",
       "callback": PokemonComputer,

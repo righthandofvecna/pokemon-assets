@@ -258,8 +258,8 @@ export function register() {
   module.api ??= {};
   const api = module.api;
 
-  // api.controls = {
-  //   ...(module.api.controls ?? {}),
+  // api.regionScripts = {
+  //   ...(module.api.regionScripts ?? {}),
   //   "pokemonCenter": {
   //     "label": "Pokemon Center",
   //     "callback": PokemonCenter,
