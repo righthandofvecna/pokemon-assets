@@ -1,5 +1,6 @@
 import { MODULENAME } from './utils.mjs';
 import { VERSION } from './version.mjs';
+import { MIGRATIONS } from './migrations/_index.mjs';
 
 /**
  * Regenerate all the token images in the world.
@@ -118,8 +119,15 @@ export function register() {
   module.api.migration ??= {};
   module.api.migration.RegenerateAllImages = RegenerateAllImages;
   module.api.migration.DisableAllSpritesheets = DisableAllSpritesheets;
+  
+  game.settings.register(MODULENAME, "migrationVersion", {
+    name: "Migration Version",
+    scope: "world",
+    config: false,
+    default: "0.0.0",
+  });
 
-  Hooks.on("ready", ()=>{
+  Hooks.on("ready", async ()=>{
     // Check version
     if (game.modules.get(MODULENAME).version !== VERSION) {
       const isMac = (()=>{
@@ -131,6 +139,95 @@ export function register() {
       })()
       const keyCombo = isMac ? "⌘ + Shift + R" : "Ctrl + F5";
       ui.notifications.error(`Pokémon Assets Module: Your browser cache appears to be out of date. Please reload the page using ${keyCombo} to ensure the module behaves as expected.`, { permanent: true});
+      return;
+    }
+
+    // Run Migrations if we're the active GM and the migration version is outdated
+    const MIGRATION_VERSION = game.settings.get(MODULENAME, "migrationVersion");
+    const pendingMigrations = MIGRATIONS.filter(m => foundry.utils.isNewerVersion(m.MIGRATION_VERSION, MIGRATION_VERSION));
+    if (game.user.isActiveGM && pendingMigrations.length) {
+      if (!pendingMigrations.every(m => m.checkPrereqs())) {
+        ui.notifications.error(`Pokémon Assets Module: One or more pending migrations cannot be run due to unmet prerequisites.`, { permanent: true });
+        return;
+      }
+      await game.settings.set(MODULENAME, "migrationVersion", pendingMigrations.at(-1).MIGRATION_VERSION);
+      try {
+        for (const migration of pendingMigrations) {
+          // all world actors
+          for (const actor of game.actors) {
+            const updatedData = await migration.updateActor(actor, foundry.utils.deepClone(actor._source));
+            if (updatedData) {
+              await actor.update(updatedData);
+            }
+          }
+          // all world scenes, their tokens, and tiles
+          for (const scene of game.scenes) {
+            // all scenes in world
+            const updatedData = await migration.updateScene(scene, foundry.utils.deepClone(scene._source));
+            if (updatedData) {
+              await scene.update(updatedData);
+            }
+            
+            // all tokens in world
+            for (const token of scene.tokens) {
+              const updatedData = await migration.updateToken(token, foundry.utils.deepClone(token._source));
+              if (updatedData) {
+                await token.update(updatedData);
+              }
+            }
+            // all tiles in world
+            for (const tile of scene.tiles) {
+              const updatedData = await migration.updateTile(tile, foundry.utils.deepClone(tile._source));
+              if (updatedData) {
+                await tile.update(updatedData);
+              }
+            }
+            // all region behaviors in world
+            for (const region of scene.regions) {
+              for (const behavior of region.behaviors) {
+                const updatedData = await migration.updateRegionBehavior(behavior, foundry.utils.deepClone(behavior._source));
+                if (updatedData) {
+                  await region.updateEmbeddedDocuments("RegionBehavior", [updatedData]);
+                }
+              }
+            }
+          }
+          // all world items
+          for (const item of game.items) {
+            const updatedData = await migration.updateItem(item, foundry.utils.deepClone(item._source));
+            if (updatedData) {
+              await item.update(updatedData);
+            }
+          }
+          // all actors/items in compendium packs
+          for (const pack of game.packs) {
+            if (pack.locked) continue;
+            if (pack.documentName === "Actor") {
+              const index = await pack.getIndex();
+              for (const entry of index) {
+                const document = await pack.getDocument(entry._id);
+                const updatedData = await migration.updateActor(document, foundry.utils.deepClone(document._source));
+                if (updatedData) {
+                  await document.update(updatedData);
+                }
+              }
+            } else if (pack.documentName === "Item") {
+              const index = await pack.getIndex();
+              for (const entry of index) {
+                const document = await pack.getDocument(entry._id);
+                const updatedData = await migration.updateItem(document, foundry.utils.deepClone(document._source));
+                if (updatedData) {
+                  await document.update(updatedData);
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        await game.settings.set(MODULENAME, "migrationVersion", MIGRATION_VERSION);
+        ui.notifications.error(`Pokémon Assets Module: An error occurred while running data migrations. Please check the console for more details.`, { permanent: true });
+        console.error("Pokémon Assets Module: Migration error:", e);
+      }
     }
   });
 }

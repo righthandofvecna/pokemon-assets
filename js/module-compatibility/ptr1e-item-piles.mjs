@@ -1,4 +1,4 @@
-import { MODULENAME } from "../utils.mjs";
+import { MODULENAME, DGANAME } from "../utils.mjs";
 
 
 /**
@@ -9,7 +9,7 @@ import { MODULENAME } from "../utils.mjs";
  * @returns 
  */
 async function Actor_updateDocuments(wrapped, updates, context) {
-  const DEBUG = game.settings.get(MODULENAME, "debug");
+  const DEBUG = game.settings.get(DGANAME, "debug");
   const safeUpdates = [];
   const unsafeUpdates = [];
   const updateWasSafe = [];

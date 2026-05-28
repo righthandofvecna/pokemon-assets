@@ -1,5 +1,5 @@
 import { default as SPRITESHEET_MAP } from "../data/spritesheetmap.js";
-import { MODULENAME } from "./utils.mjs";
+import { MODULENAME, DATNAME } from "./utils.mjs";
 
 
 export class PokemonSheets {
@@ -54,16 +54,18 @@ export class PokemonSheets {
 
   static getTokenChangesForSpritesheet(src) {
     const spritesheetSettings = PokemonSheets.getSheetSettings(src);
-    if (spritesheetSettings === undefined) return {};
+    if (spritesheetSettings === undefined) return {
+      [`flags.${DATNAME}.sheetsrc`]: src,
+    };
 
     const data = {
       ...spritesheetSettings
     };
     data.spritesheet = true;
+    data.sheetsrc = src;
 
     const settings = {
-      "flags.pokemon-assets": data,
-      "texture.src": src,
+      [`flags.${DATNAME}`]: data,
     };
     if (!game.settings.get(MODULENAME, "allowTokenArtPastBounds")) {
       delete data.scale;
@@ -145,4 +147,9 @@ export function register() {
   const module = game.modules.get("pokemon-assets");
   module.api ??= {};
   module.api.PokemonSheets = PokemonSheets;
+}
+
+export function registerAfterDependencies() {
+  const DAT = game.modules.get(DATNAME);
+  DAT.api.PredefinedSheets.registerModule(MODULENAME, PokemonSheets.getSheetSettings);
 }

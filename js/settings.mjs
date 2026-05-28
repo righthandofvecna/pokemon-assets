@@ -1,5 +1,4 @@
-import { MODULENAME, getFiles } from "./utils.mjs";
-import { SpritesheetGenerator } from "./spritesheets.mjs";
+import { MODULENAME, DATNAME, DGANAME, getFiles } from "./utils.mjs";
 
 export async function refreshHomebrewCryCache() {
 	if (!game.user.isActiveGM) return;
@@ -15,16 +14,6 @@ export function register() {
 		if (setting.key !== `${MODULENAME}.homebrewCryFolder`) return;
 		refreshHomebrewCryCache();
 	});
-
-	game.settings.registerMenu(MODULENAME, "volume", {
-		name: "Volume",
-		label: "SFX Volume",
-		icon: "fa-solid fa-volume",
-		hint: "Volume settings for individual sound effects played by Pokemon Assets.",
-		restricted: false,
-		type: VolumeSettings,
-	});
-	VolumeSettings.initSettings();
 
 	game.settings.registerMenu(MODULENAME, "field-move", {
 		name: "Field Moves",
@@ -42,9 +31,9 @@ export function register() {
 		icon: "fa-solid fa-star",
 		hint: "Settings to affect token animations, movement, and effects.",
 		restricted: true,
-		type: TokenAnimationSettings,
+		type: AnimationSettings,
 	});
-	TokenAnimationSettings.initSettings();
+	AnimationSettings.initSettings();
 
 	game.settings.registerMenu(MODULENAME, "art", {
 		name: "Art",
@@ -55,16 +44,6 @@ export function register() {
 		type: ArtSettings,
 	});
 	ArtSettings.initSettings();
-
-	game.settings.registerMenu(MODULENAME, "audio", {
-		name: "Audio",
-		label: "Audio Settings",
-		icon: "fa-solid fa-volume",
-		hint: "World settings to affect the playback of audio tracks and sound effects.",
-		restricted: true,
-		type: AudioSettings,
-	});
-	AudioSettings.initSettings();
 
 	game.settings.registerMenu(MODULENAME, "homebrew", {
 		name: "Homebrew",
@@ -99,24 +78,14 @@ export function register() {
 		hint: "Preload assets such as sound effects. Disable this if you are on a metered connection to save bandwidth."
 	});
 
-  game.settings.register(MODULENAME, "avoidBlur", {
-		name: "Avoid Blur",
+	game.settings.register(MODULENAME, "playPokemonCryOnTurn", {
+		name: "Play Pokemon Cry On Turn",
 		default: true,
 		type: Boolean,
 		scope: "world",
-		requiresReload: true,
-		config: true,
-		hint: "Avoid blurring the canvas and tokens when they get scaled up."
-	});
-
-	game.settings.register(MODULENAME, "enableFollow", {
-		name: "Enable Token Following",
-		default: true,
-		type: Boolean,
-		scope: "world",
-		requiresReload: true,
-		config: true,
-		hint: "Allows players to mark tokens (defaulting to the 'L' key) as tokens to automatically follow when they move."
+		requiresReload: false,
+		config: false,
+		hint: "When a Pokemon begins its turn in combat, play that Pokemon's cry."
 	});
 
 	game.settings.register(MODULENAME, "autoControlOwnedToken", {
@@ -141,27 +110,22 @@ export function register() {
 		hint: "The set of all caught Pokemon, used to determine if a Pokemon has been caught before. This is used for the 'Caught' flag on Pokemon tokens.",
 		onChange: ()=>canvas?.tokens?.objects?.children?.forEach(t=>t._drawIndicators()),
 	});
-
-	game.settings.register(MODULENAME, "persistedToolSettings", {
-		name: "Persisted Tool Settings",
-		default: {},
-		type: Object,
-		scope: "user",
-		config: false,
-		requiresReload: false,
-	})
-
-  game.settings.register(MODULENAME, "debug", {
-    name: "Debug Mode",
-    default: false,
-    type: Boolean,
-    scope: "world",
-    requiresReload: false,
-    config: false,
-    hint: "Enable debug mode for additional logging and diagnostics."
-	});
-
 };
+
+export function registerAfterDependencies() {
+	const DGA = game.modules.get(DGANAME);
+	const { VolumeSettings, AudioSettings } = DGA.api;
+	for (const vs of ["cry", "catch", "heal", "pc", "exit", "damage", "low-hp", "reaction-surprise", "rock-smash", "cut"]) {
+		VolumeSettings.addVolume(
+			MODULENAME,
+			vs,
+			`POKEMON-ASSETS.Settings.Volume.${vs}.label`,
+			`POKEMON-ASSETS.Settings.Volume.${vs}.hint`,
+		);
+	};
+
+	AudioSettings.addForeignSetting(MODULENAME, "playPokemonCryOnTurn");
+}
 
 /**
  * A generic settings menu that can be used to create a settings menu for any arbitrary settings.
@@ -264,100 +228,6 @@ export class ArbitrarySettingsMenu extends foundry.applications.api.HandlebarsAp
 }
 
 /**
- * A settings menu for managing volume settings for various sound effects.
- */
-export class VolumeSettings extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
-
-	static SFX = ["interact", "collide", "cry", "catch", "heal", "pc", "exit", "damage", "low-hp", "reaction-surprise", "rock-smash", "cut"];
-
-	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
-    super.DEFAULT_OPTIONS,
-    {
-			tag: "form",
-      classes: ["sheet", "pokemon-assets", "settings", "volume"],
-      position: {
-        height: 'auto',
-        width: 400,
-      },
-      window: {
-				title: "Volume Settings",
-        minimizable: false,
-        resizable: false,
-      },
-			form: {
-					closeOnSubmit: false,
-					submitOnChange: true,
-					handler: VolumeSettings.#submit,
-			},
-    },
-    { inplace: false }
-  );
-
-	static PARTS = {
-		modifiers: {
-				id: "volume-settings",
-				template: "modules/pokemon-assets/templates/volume-settings.hbs",
-		},
-	};
-
-	async _prepareContext() {
-		const sfx = {};
-		for (const k of VolumeSettings.SFX) {
-			sfx[k] = {
-				key: `volume-${k}`,
-				label: `POKEMON-ASSETS.Settings.Volume.${k}.label`,
-				hint: `POKEMON-ASSETS.Settings.Volume.${k}.hint`,
-				value: game.settings.get(MODULENAME, `volume-${k}`),
-			}
-		}
-    return {
-			sfx,
-    }
-  }
-
-	static getVolume(k) {
-		// Convert from "perceived volume" to "power" (which is what sequencer's volume settings use for some reason)
-		// normalized to a range [0.0, 1.0]
-		const perceivedToPower = (perceivedVolume) => 10**perceivedVolume / 9 - (1 / 9);
-		try {
-			const perceivedVolume = game.settings.get(MODULENAME, `volume-${k}`);
-			return perceivedToPower(perceivedVolume);
-		} catch (e) {
-			return perceivedToPower(0.5);
-		}
-	}
-
-	static getRawVolume(k) {
-		try {
-			return game.settings.get(MODULENAME, `volume-${k}`);
-		} catch (e) {
-			return 0.5;
-		}
-	}
-
-	static async #submit(event, form, formData) {
-		for (const [key, value] of Object.entries(formData?.object ?? {})) {
-			await game.settings.set(MODULENAME, key, value);
-		}
-	}
-
-	static initSettings() {
-		for (const k of VolumeSettings.SFX) {
-			game.settings.register(MODULENAME, `volume-${k}`, {
-				name: `SFX Volume: ${k}`,
-				default: 0.5,
-				type: Number,
-				scope: "client",
-				requiresReload: false,
-				config: false,
-				hint: `The volume of the ${k} sound effect.`
-			});
-		}
-	}
-
-}
-
-/**
  * A settings menu for managing field move settings, allowing users to enable or disable individual field moves.
  */
 export class FieldMoveSettings extends ArbitrarySettingsMenu {
@@ -414,21 +284,13 @@ export class FieldMoveSettings extends ArbitrarySettingsMenu {
 }
 
 /**
- * A settings menu for managing token animation settings, such as walk speed, run speed, and idle animations.
+ * A settings menu for managing token animation settings, such as which animations play
  */
-export class TokenAnimationSettings extends ArbitrarySettingsMenu {
+export class AnimationSettings extends ArbitrarySettingsMenu {
 	static SETTINGS_TO_INCLUDE = [
-		"walkSpeed",
-		"runSpeed",
-		"runDistance",
-		"playIdleAnimations",
-		"idleAnimTime",
 		"playDamageAnimation",
 		"playCaptureAnimation",
-		"playSummonAnimation",
-		"tokenCollision",
-		"tokenCollisionAllied",
-		"tokenCollisionHidden",
+		"playSummonAnimation",	
 		"showCaughtIndicator",
 		"ownedPokemonCatchable",
 		"showShinyIndicator",
@@ -438,9 +300,9 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
     super.DEFAULT_OPTIONS,
     {
-      classes: [...(super.DEFAULT_OPTIONS?.classes ?? []), "token-animation"],
+      classes: [...(super.DEFAULT_OPTIONS?.classes ?? []), "animation"],
       window: {
-				title: "Token Animation Settings",
+				title: "Animation Settings",
       },
     },
     { inplace: false }
@@ -448,62 +310,12 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 
 	static PARTS = {
 		modifiers: {
-				id: "token-animation-settings",
+				id: "animation-settings",
 				template: "modules/pokemon-assets/templates/generic-settings.hbs",
 		},
 	};
 
 	static initSettings() {
-		game.settings.register(MODULENAME, "walkSpeed", {
-			name: "Token Walk Speed",
-			default: 4,
-			type: new foundry.data.fields.NumberField({min: 1, step: 1}),
-			scope: "world",
-			requiresReload: false,
-			config: false,
-			hint: "The number of grid spaces per second that a token moves when walking."
-		});
-
-		game.settings.register(MODULENAME, "runSpeed", {
-			name: "Token Run Speed",
-			default: 8,
-			type: new foundry.data.fields.NumberField({min: 1, step: 1}),
-			scope: "world",
-			requiresReload: false,
-			config: false,
-			hint: "The number of grid spaces per second that a token moves when running."
-		});
-
-		game.settings.register(MODULENAME, "runDistance", {
-			name: "Token Run Distance",
-			default: 5,
-			type: new foundry.data.fields.NumberField({min: 1, step: 1}),
-			scope: "world",
-			requiresReload: false,
-			config: false,
-			hint: "How many grid spaces a token can move before it is considered to be running."
-		});
-
-		game.settings.register(MODULENAME, "playIdleAnimations", {
-			name: "Play Idle Animations",
-			default: false,
-			type: Boolean,
-			scope: "world",
-			requiresReload: false,
-			config: false,
-			hint: "Whether or not to play idle animations for tokens. (currently plays the walking animation slowly)"
-		});
-
-		game.settings.register(MODULENAME, "idleAnimTime", {
-			name: "Idle Animation Time",
-			default: 600,
-			type: new foundry.data.fields.NumberField({min: 0, step: 1}),
-			scope: "world",
-			requiresReload: false,
-			config: false,
-			hint: "How many miliseconds it takes to change frames in an actor's idle animation by default (0 is disabled)."
-		});
-
 		game.settings.register(MODULENAME, "playDamageAnimation", {
 			name: "Play Damage Animation",
 			default: true,
@@ -532,36 +344,6 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "When a Pokemon token is added to the scene, play either a Pokeball release animation, or a Tall Grass animation."
-		});
-
-		game.settings.register(MODULENAME, "tokenCollision", {
-			name: "Token Collisions",
-			default: true,
-			type: Boolean,
-			scope: "world",
-			requiresReload: true,
-			config: false,
-			hint: "Treat tokens as walls for the purpose of movement."
-		});
-
-		game.settings.register(MODULENAME, "tokenCollisionAllied", {
-			name: "Token Collisions (Allied)",
-			default: false,
-			type: Boolean,
-			scope: "world",
-			requiresReload: true,
-			config: false,
-			hint: "Treat allied tokens as walls for the purpose of movement. Requires 'Token Collisions' to be enabled."
-		});
-
-		game.settings.register(MODULENAME, "tokenCollisionHidden", {
-			name: "Token Collisions (Hidden)",
-			default: false,
-			type: Boolean,
-			scope: "world",
-			requiresReload: true,
-			config: false,
-			hint: "Treat hidden tokens as walls for the purpose of movement. Requires 'Token Collisions' to be enabled."
 		});
 
 		game.settings.register(MODULENAME, "showCaughtIndicator", {
@@ -602,78 +384,6 @@ export class TokenAnimationSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "Whether the Pokemon of other trainers count as catchable for the purposes of the catch indicators."
-		});
-	}
-}
-
-/**
- * A settings menu for managing world audio-related settings.
- */
-export class AudioSettings extends ArbitrarySettingsMenu {
-	static SETTINGS_TO_INCLUDE = [
-		"autoPlayAudio",
-		"playPokemonCryOnTurn",
-		"playCollisionSound",
-		"playInteractSound",
-	];
-
-	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
-		super.DEFAULT_OPTIONS,
-		{
-			classes: [...(super.DEFAULT_OPTIONS?.classes ?? []), "audio-settings"],
-			window: {
-				title: "Audio Settings",
-			},
-		},
-		{ inplace: false }
-	);
-
-	static PARTS = {
-		modifiers: {
-				id: "audio-settings",
-				template: "modules/pokemon-assets/templates/generic-settings.hbs",
-		},
-	};
-
-	static initSettings() {
-		game.settings.register(MODULENAME, "autoPlayAudio", {
-			name: "Auto Play Audio",
-			default: true,
-			type: Boolean,
-			scope: "world",
-			requiresReload: false,
-			config: false,
-			hint: "Preload audio playlist when switching to a scene, and when a combat is completed, move to the next track."
-		});
-
-		game.settings.register(MODULENAME, "playPokemonCryOnTurn", {
-			name: "Play Pokemon Cry On Turn",
-			default: true,
-			type: Boolean,
-			scope: "world",
-			requiresReload: false,
-			config: false,
-			hint: "When a Pokemon begins its turn in combat, play that Pokemon's cry."
-		});
-
-		game.settings.register(MODULENAME, "playCollisionSound", {
-			name: "Play Collision Sound",
-			default: true,
-			type: Boolean,
-			scope: "client",
-			requiresReload: false,
-			config: false,
-			hint: "When you attempt to move into a wall or other obstruction using the keyboard, play the Pokemon \"bump\" sound."
-		});
-
-		game.settings.register(MODULENAME, "playInteractSound", {
-			name: "Play Interact Sound",
-			default: true,
-			type: Boolean,
-			scope: "client",
-			requiresReload: false,
-			config: false,
-			hint: "When you interact with a Scene Region with a \"Token Interaction\" trigger, play the Pokemon \"interact\" sound."
 		});
 	}
 }
@@ -882,6 +592,7 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 	}
 
 	static async #configureHSS(event, formElement) {
+		const SpritesheetGenerator = game.modules.get(DATNAME)?.api?.spritesheetGenerator;
 		const hssKey = formElement.dataset.hss;
 
 		const oldHss = game.settings.get(MODULENAME, "homebrewSpritesheetSettings")?.[hssKey] ?? {};
@@ -891,8 +602,8 @@ export class HomebrewSettings extends ArbitrarySettingsMenu {
 			...Object.fromEntries(HomebrewSettings.SHEET_SETTINGS.map(s=>[s.key, oldHss[s.key] ?? s.default])),
 		};
 		// Populate the dropdown for the types of spritesheet layouts available
-		data.sheetStyleOptions = Object.entries(SpritesheetGenerator.SHEET_STYLES).reduce((allOptions, [val, option])=>{
-			return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${option.label}</option>`;
+		data.sheetStyleOptions = Object.entries(SpritesheetGenerator.constructor.SHEET_STYLES).reduce((allOptions, [val, option])=>{
+			return allOptions + `<option value="${val}" ${data.sheetstyle === val ? "selected" : ""}>${game.i18n.localize(option.label)}</option>`;
 		}, "");
 		const content = await foundry.applications.handlebars.renderTemplate("modules/pokemon-assets/templates/hss-dialog.hbs", data);
 

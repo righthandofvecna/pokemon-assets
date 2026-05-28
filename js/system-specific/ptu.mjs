@@ -1,4 +1,4 @@
-import { isTheGM, tokenScene, MODULENAME } from "../utils.mjs";
+import { isTheGM, tokenScene, MODULENAME, DATNAME } from "../utils.mjs";
 import { PokemonSheets } from "../pokemon-sheets.mjs"; 
 import { _getTokenChangesForSpritesheet } from "../actor.mjs";
 import { default as SPECIAL_CRIES } from "../../data/cries.js";
@@ -194,8 +194,8 @@ function OnCreateToken(token, options) {
     // check if the 'ptu' flag is set
     if (!token.flags.ptu) return;
   
-    // check that the pokemon-assets flags are not set
-    if (token.flags[MODULENAME] !== undefined) return;
+    // check that the DAT flags are not set
+    if (token.flags[DATNAME] !== undefined) return;
   
     const species = actor.itemTypes.species?.at(0);
     if (!species) return;
@@ -213,10 +213,7 @@ async function RegenerateActorTokenImg(actor) {
   if (actor.img.startsWith("modules/pokemon-assets/img/trainers-profile/")) {
     const trainerImg = `modules/pokemon-assets/img/trainers-overworld/${actor.img.substring(44)}`;
     if (PokemonSheets.hasSheetSettings(trainerImg)) {
-      return {
-        "texture.src": trainerImg,
-        ..._getTokenChangesForSpritesheet(trainerImg),
-      }
+      return _getTokenChangesForSpritesheet(trainerImg);
     }
   }
 
@@ -356,16 +353,16 @@ function ExtendTokenImageRuleElement() {
 
       if (this.spritesheet === true) {
         this.actor.synthetics.tokenOverrides.flags ??= {};
-        this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= {};
-        this.actor.synthetics.tokenOverrides.flags[MODULENAME].spritesheet = true;
+        this.actor.synthetics.tokenOverrides.flags[DATNAME] ??= {};
+        this.actor.synthetics.tokenOverrides.flags[DATNAME].spritesheet = true;
         if (this.sheetstyle !== undefined) {
-          this.actor.synthetics.tokenOverrides.flags[MODULENAME].sheetstyle = this.sheetstyle;
+          this.actor.synthetics.tokenOverrides.flags[DATNAME].sheetstyle = this.sheetstyle;
         }
         if (this.animationframes !== undefined) {
-          this.actor.synthetics.tokenOverrides.flags[MODULENAME].animationframes = this.animationframes;
+          this.actor.synthetics.tokenOverrides.flags[DATNAME].animationframes = this.animationframes;
         }
         if (this.separateidle !== undefined) {
-          this.actor.synthetics.tokenOverrides.flags[MODULENAME].separateidle = this.separateidle;
+          this.actor.synthetics.tokenOverrides.flags[DATNAME].separateidle = this.separateidle;
         }
         return;
       }
@@ -373,7 +370,7 @@ function ExtendTokenImageRuleElement() {
       if (game.settings.get(MODULENAME, "autoOverrideMegaEvolutionSprite")) {
         // check if this is a mega evolution that we have a sprite for
         const foundMegaEvo = (()=>{
-          const basename = this.value.substring(this.value.lastIndexOf("/")+1, this.value.lastIndexOf("."));
+          const basename = this.value?.substring(this.value.lastIndexOf("/")+1, this.value.lastIndexOf("."));
           if (!basename) return false;
 
           const alternateForm = basename.substring(basename.indexOf("_")+1);
@@ -384,7 +381,7 @@ function ExtendTokenImageRuleElement() {
 
           const actorUpdates = _getPrototypeTokenUpdates(this.actor, species, alternateForm);
           const updates = foundry.utils.expandObject(actorUpdates)?.prototypeToken ?? {};
-          if (!updates.texture) return false;
+          if (!updates.texture && !updates.flags?.[DATNAME]?.sheetsrc) return false;
 
           this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, updates);
           return true;
@@ -394,7 +391,7 @@ function ExtendTokenImageRuleElement() {
 
       // if not, disable spritesheet processing
       this.actor.synthetics.tokenOverrides.flags ??= {};
-      this.actor.synthetics.tokenOverrides.flags[MODULENAME] ??= { spritesheet: false };
+      this.actor.synthetics.tokenOverrides.flags[DATNAME] ??= { spritesheet: false };
       this.actor.synthetics.tokenOverrides.rotation ??= 0; // force rotation to be 0
     }
   }
@@ -416,14 +413,14 @@ function PTUTokenDocument_prepareDerivedData(wrapped, ...args) {
     this.flags = foundry.utils.mergeObject(this.flags, tokenOverrides.flags);
 
     // if the sheetstyle is trainer3, animationframes needs to be 3
-    if (this.flags[MODULENAME]?.sheetstyle === "trainer3") {
-      this.flags[MODULENAME].animationframes = 3;
+    if (this.flags[DATNAME]?.sheetstyle === "trainer3") {
+      this.flags[DATNAME].animationframes = 3;
     };
 
     // check against the current flags to see if we need to redraw
     if (this._cachedFlags) {
-      for (const key of ["spritesheet", "sheetstyle", "animationframes", "idleframe"]) {
-        needsRedraw ||= this.flags?.[MODULENAME]?.[key] != this._cachedFlags?.[MODULENAME]?.[key];
+      for (const key of ["spritesheet", "sheetsrc", "sheetstyle", "animationframes", "idleframe"]) {
+        needsRedraw ||= this.flags?.[DATNAME]?.[key] != this._cachedFlags?.[DATNAME]?.[key];
       }
     }
     this._cachedFlags = foundry.utils.deepClone(this.flags);
@@ -580,8 +577,8 @@ export function register() {
 
   const module = game.modules.get(MODULENAME);
   module.api ??= {};
-  module.api.controls = {
-    ...(module.api.controls ?? {}),
+  module.api.regionScripts = {
+    ...(module.api.regionScripts ?? {}),
     "pokemonComputer": {
       "label": "Pokemon Computer",
       "callback": PokemonComputer,
@@ -593,12 +590,12 @@ export function register() {
     const actorUpdates = [];
     for (const actor of actors) {
       if (!actor) continue;
+      await actor.deleteEmbeddedDocuments("Item", actor.items.filter(i=>i.type === "condition" && !i.isGranted).map(i => i.id));
       actorUpdates.push({
         "_id": actor.id,
         "system.health.value": actor.system.health.total,
         "system.health.injuries": Math.max(0, actor.system.health.injuries - 3)
       });
-      await actor.deleteEmbeddedDocuments("Item", actor.items.filter(i=>i.type === "condition" && !i.isGranted).map(i => i.id));
     }
     if (actorUpdates.length > 0) {
       await Actor.updateDocuments(actorUpdates);

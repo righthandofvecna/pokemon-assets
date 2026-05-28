@@ -7,4 +7,3 @@ module.zip
 pokemon_name_to_info.json
 *.bak
 .directory
-.github/copilot-instructions.md

@@ -60,10 +60,7 @@ async function RegenerateActorTokenImg(actor) {
   if (actor.img.startsWith("modules/pokemon-assets/img/trainers-profile/")) {
     const trainerImg = `modules/pokemon-assets/img/trainers-overworld/${actor.img.substring(44)}`;
     if (PokemonSheets.hasSheetSettings(trainerImg)) {
-      return {
-        "texture.src": trainerImg,
-        ..._getTokenChangesForSpritesheet(trainerImg),
-      }
+      return _getTokenChangesForSpritesheet(trainerImg);
     }
   }
 }
@@ -261,8 +258,8 @@ export function register() {
   module.api ??= {};
   const api = module.api;
 
-  // api.controls = {
-  //   ...(module.api.controls ?? {}),
+  // api.regionScripts = {
+  //   ...(module.api.regionScripts ?? {}),
   //   "pokemonCenter": {
   //     "label": "Pokemon Center",
   //     "callback": PokemonCenter,

@@ -173,71 +173,7 @@
 .dialog-content file-picker button {
   line-height: var(--form-field-height);
 }
-.window-app.pokemon-dialog {
-  border-image-source: url("../img/ui/textbox_1.png");
-  border-width: 30px;
-  border-image-slice: 8 22 8 12;
-  border-image-width: 32px 88px 32px 48px;
-  border-image-repeat: stretch;
-  image-rendering: pixelated;
-  border-radius: 0;
-  padding: 30px 86px 30px 46px;
-  min-height: 200px;
-  position: absolute;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 310px !important;
-  top: unset !important;
-  width: unset !important;
-}
-.window-app.pokemon-dialog header {
-  display: none;
-}
-.window-app.pokemon-dialog .window-content {
-  background: white;
-}
-.window-app.pokemon-dialog .window-content .dialog-content {
-  font-family: "Pokemon DPPt";
-  font-size: xx-large;
-  text-shadow: 2px 2px darkgray;
-  color: black;
-}
-.window-app.pokemon-dialog .window-content .dialog-content p {
-  margin: 0;
-}
-.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons {
-  position: absolute;
-  right: 12px;
-  top: 12px;
-  bottom: 12px;
-  width: 64px;
-  flex-direction: column;
-  justify-content: end;
-}
-.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button {
-  color: white;
-  background: none;
-  text-shadow: 2px -2px black;
-  flex: 0;
-  border: unset;
-}
-.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button:hover {
-  box-shadow: none;
-}
-.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button:focus {
-  box-shadow: none;
-  animation: bounce 1s ease infinite;
-}
-.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button i {
-  transform: rotate(90deg) scaleX(2);
-}
-.window-app.pokemon-dialog.dialog-prompt .window-content .dialog-buttons button i::before {
-  content: "▶";
-  font-family: "Pokemon DPPt";
-  font-weight: normal;
-  font-size: xx-large;
-}
-.pokemon-dialog-v2.application {
+.dga.footer-dialog {
   border-image-source: url("../img/ui/textbox_1.png");
   border-width: 0;
   border-image-slice: 8 22 8 12;
@@ -254,29 +190,29 @@
   top: unset !important;
   width: unset !important;
 }
-.pokemon-dialog-v2.application .window-header {
+.dga.footer-dialog .window-header {
   display: none;
 }
-.pokemon-dialog-v2.application .window-content {
+.dga.footer-dialog .window-content {
   background: white;
   padding: 0;
   overflow: visible;
 }
-.pokemon-dialog-v2.application .window-content .dialog-content {
+.dga.footer-dialog .window-content .dialog-content {
   font-family: "Pokemon DPPt";
   font-size: xx-large;
   text-shadow: 2px 2px darkgray;
   color: black;
 }
-.pokemon-dialog-v2.application .window-content .dialog-content p {
+.dga.footer-dialog .window-content .dialog-content p {
   margin: 0;
 }
-.pokemon-dialog-v2.application footer {
+.dga.footer-dialog footer {
   background: transparent;
   border: none;
   padding: 0;
 }
-.pokemon-dialog-v2.application.dialog-prompt footer {
+.dga.footer-dialog.dialog-prompt footer {
   position: absolute;
   right: -76px;
   top: 12px;
@@ -285,7 +221,7 @@
   flex-direction: column;
   justify-content: end;
 }
-.pokemon-dialog-v2.application.dialog-prompt footer button {
+.dga.footer-dialog.dialog-prompt footer button {
   color: white;
   background: none;
   text-shadow: 2px -2px black;
@@ -296,27 +232,27 @@
   min-width: unset;
   transition: none;
 }
-.pokemon-dialog-v2.application.dialog-prompt footer button:hover {
+.dga.footer-dialog.dialog-prompt footer button:hover {
   box-shadow: none;
 }
-.pokemon-dialog-v2.application.dialog-prompt footer button:focus {
+.dga.footer-dialog.dialog-prompt footer button:focus {
   box-shadow: none;
   animation: bounce 1s ease infinite;
   outline: unset;
 }
-.pokemon-dialog-v2.application.dialog-prompt footer button i {
+.dga.footer-dialog.dialog-prompt footer button i {
   transform: rotate(90deg) scaleX(2);
 }
-.pokemon-dialog-v2.application.dialog-prompt footer button i::before {
+.dga.footer-dialog.dialog-prompt footer button i::before {
   content: "▶";
   font-family: "Pokemon DPPt";
   font-weight: normal;
   font-size: xx-large;
 }
-.pokemon-dialog-v2.application.dialog-prompt footer button span {
+.dga.footer-dialog.dialog-prompt footer button span {
   display: none;
 }
-.pokemon-dialog-v2.application.dialog-choices footer {
+.dga.footer-dialog.dialog-choices footer {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -327,7 +263,7 @@
   top: 0;
   bottom: 0;
 }
-.pokemon-dialog-v2.application.dialog-choices footer button {
+.dga.footer-dialog.dialog-choices footer button {
   font-family: "Pokemon DPPt";
   font-size: xx-large;
   background: white;
@@ -337,14 +273,14 @@
   transition: none;
   flex-grow: 0;
 }
-.pokemon-dialog-v2.application.dialog-choices footer button:hover {
+.dga.footer-dialog.dialog-choices footer button:hover {
   box-shadow: none;
 }
-.pokemon-dialog-v2.application.dialog-choices footer button:focus {
+.dga.footer-dialog.dialog-choices footer button:focus {
   outline: unset;
   box-shadow: none;
 }
-.pokemon-dialog-v2.application.dialog-choices footer button:focus::before {
+.dga.footer-dialog.dialog-choices footer button:focus::before {
   content: "▶ ";
   font-family: "Pokemon DPPt";
   font-weight: normal;

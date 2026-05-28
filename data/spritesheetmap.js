@@ -2639,7 +2639,13 @@ export default
       "03XX/031X/0319.png": {
         "animationframes": 8
       },
+      "03XX/031X/0319_MEGA.png": {
+        "animationframes": 8
+      },
       "03XX/031X/0319s.png": {
+        "animationframes": 8
+      },
+      "03XX/031X/0319s_MEGA.png": {
         "animationframes": 8
       },
       "03XX/032X/0320.png": {
@@ -4388,7 +4394,13 @@ export default
       "05XX/053X/0530.png": {
         "animationframes": 4
       },
+      "05XX/053X/0530_MEGA.png": {
+        "animationframes": 4
+      },
       "05XX/053X/0530s.png": {
+        "animationframes": 4
+      },
+      "05XX/053X/0530s_MEGA.png": {
         "animationframes": 4
       },
       "05XX/053X/0531.png": {
@@ -4589,6 +4601,9 @@ export default
       "05XX/056X/0560.png": {
         "animationframes": 4
       },
+      "05XX/056X/0560_MEGA.png": {
+        "animationframes": 4
+      },
       "05XX/056X/0560s.png": {
         "animationframes": 4
       },
@@ -4717,6 +4732,12 @@ export default
       },
       "05XX/057X/0579s.png": {
         "animationframes": 8
+      },
+      "05XX/058X/0580.png": {
+        "animationframes": 4
+      },
+      "05XX/058X/0580s.png": {
+        "animationframes": 4
       },
       "05XX/058X/0581.png": {
         "animationframes": 4
@@ -4962,6 +4983,12 @@ export default
         "animationframes": 8
       },
       "06XX/061X/0616.png": {
+        "animationframes": 6
+      },
+      "06XX/061X/0617.png": {
+        "animationframes": 6
+      },
+      "06XX/061X/0617s.png": {
         "animationframes": 6
       },
       "06XX/061X/0618.png": {
@@ -5474,6 +5501,9 @@ export default
       "06XX/067X/0670_Eternal.png": {
         "animationframes": 8
       },
+      "06XX/067X/0670_MEGA.png": {
+        "animationframes": 10
+      },
       "06XX/067X/0670_Orange.png": {
         "animationframes": 8
       },
@@ -5491,6 +5521,9 @@ export default
       },
       "06XX/067X/0670s_Eternal.png": {
         "animationframes": 8
+      },
+      "06XX/067X/0670s_MEGA.png": {
+        "animationframes": 10
       },
       "06XX/067X/0670s_Orange.png": {
         "animationframes": 8
@@ -5666,7 +5699,13 @@ export default
       "06XX/069X/0691.png": {
         "animationframes": 5
       },
+      "06XX/069X/0691_MEGA.png": {
+        "animationframes": 5
+      },
       "06XX/069X/0691s.png": {
+        "animationframes": 5
+      },
+      "06XX/069X/0691s_MEGA.png": {
         "animationframes": 5
       },
       "06XX/069X/0692.png": {
@@ -5726,7 +5765,13 @@ export default
       "07XX/070X/0701.png": {
         "animationframes": 4
       },
+      "07XX/070X/0701_MEGA.png": {
+        "animationframes": 4
+      },
       "07XX/070X/0701s.png": {
+        "animationframes": 4
+      },
+      "07XX/070X/0701s_MEGA.png": {
         "animationframes": 4
       },
       "07XX/070X/0702.png": {
@@ -5834,6 +5879,15 @@ export default
         "animationframes": 4
       },
       "07XX/071X/0713.png": {
+        "animationframes": 4
+      },
+      "07XX/071X/0713_hisuian.png": {
+        "animationframes": 4
+      },
+      "07XX/071X/0713s.png": {
+        "animationframes": 4
+      },
+      "07XX/071X/0713s_hisuian.png": {
         "animationframes": 4
       },
       "07XX/071X/0714.png": {
@@ -5980,6 +6034,9 @@ export default
       "07XX/073X/0731.png": {
         "animationframes": 5
       },
+      "07XX/073X/0731s.png": {
+        "animationframes": 5
+      },
       "07XX/073X/0733.png": {
         "animationframes": 1
       },
@@ -6077,6 +6134,9 @@ export default
         "animationframes": 6
       },
       "07XX/074X/0748.png": {
+        "animationframes": 5
+      },
+      "07XX/074X/0748s.png": {
         "animationframes": 5
       },
       "07XX/074X/0749.png": {
@@ -6877,6 +6937,9 @@ export default
       "08XX/086X/0862s.png": {
         "animationframes": 4
       },
+      "08XX/086X/0863.png": {
+        "animationframes": 4
+      },
       "08XX/086X/0864.png": {
         "animationframes": 8
       },
@@ -7261,6 +7324,12 @@ export default
       "08XX/088X/0888s_Crowned_Sword.png": {
         "animationframes": 4
       },
+      "08XX/088X/0889.png": {
+        "animationframes": 4
+      },
+      "08XX/088X/0889s.png": {
+        "animationframes": 4
+      },
       "08XX/089X/0890.png": {
         "animationframes": 6
       },
@@ -7603,6 +7672,9 @@ export default
       "09XX/095X/0952s.png": {
         "animationframes": 4
       },
+      "09XX/095X/0953.png": {
+        "animationframes": 8
+      },
       "09XX/095X/0955.png": {
         "animationframes": 7
       },
@@ -7723,6 +7795,9 @@ export default
         "animationframes": 4
       },
       "09XX/097X/0977.png": {
+        "animationframes": 12
+      },
+      "09XX/097X/0977s.png": {
         "animationframes": 12
       },
       "09XX/097X/0978.png": {
@@ -8095,7 +8170,8 @@ export default
     "anchor": 0.63,
     "animationframes": 3,
     "images": {
-      "acetrainer_f_xy.png": {}
+      "acetrainer_f_xy.png": {},
+      "ball_guy.png": {}
     },
     "scale": 1.1,
     "sheetstyle": "durlReduced"

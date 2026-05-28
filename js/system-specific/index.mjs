@@ -1,3 +1,5 @@
+import { MODULENAME, DGANAME } from "../utils.mjs";
+
 
 import * as ptr2e from "./ptr2e.mjs";
 import * as ptu from "./ptu.mjs";
@@ -21,4 +23,11 @@ export function register() {
       break;
   }
   generic.register();
+}
+
+export function registerAfterDependencies() {
+  const MODULE = game.modules.get(MODULENAME);
+  const DGA = game.modules.get(DGANAME);
+
+  DGA.api.scripts.AwardItems = MODULE.api.scripts.AwardItems;
 }
