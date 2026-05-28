@@ -51,11 +51,11 @@ export class Migration_1_0_0 extends Migration {
     if (tokenData.flags?.[DATNAME]?.sheetstyle && SHEET_STYLE_ALIASES[tokenData.flags[DATNAME].sheetstyle]) {
       tokenData.flags[DATNAME].sheetstyle = SHEET_STYLE_ALIASES[tokenData.flags[DATNAME].sheetstyle];
     }
-    if (tokenData.flags?.[DATNAME]?.script) {
-      const { signMessage } = game.modules.get(DATNAME).api.crypto;
-      const signature = JSON.stringify(await signMessage(tokenData.flags[DATNAME].script));
-      tokenData.flags[DATNAME] ??= {};
-      tokenData.flags[DATNAME].signature = signature;
+    if (tokenData.flags?.[DGANAME]?.script) {
+      const { signMessage } = game.modules.get(DGANAME).api.crypto;
+      const signature = JSON.stringify(await signMessage(tokenData.flags[DGANAME].script));
+      tokenData.flags[DGANAME] ??= {};
+      tokenData.flags[DGANAME].signature = signature;
     }
     return tokenData;
   }
@@ -83,11 +83,11 @@ export class Migration_1_0_0 extends Migration {
         tileData.flags[DGANAME][field] = tileData.flags[MODULENAME][field];
       }
     }
-    if (tileData.flags?.[DATNAME]?.script) {
-      const { signMessage } = game.modules.get(DATNAME).api.crypto;
-      const signature = JSON.stringify(await signMessage(tileData.flags[DATNAME].script));
-      tileData.flags[DATNAME] ??= {};
-      tileData.flags[DATNAME].signature = signature;
+    if (tileData.flags?.[DGANAME]?.script) {
+      const { signMessage } = game.modules.get(DGANAME).api.crypto;
+      const signature = JSON.stringify(await signMessage(tileData.flags[DGANAME].script));
+      tileData.flags[DGANAME] ??= {};
+      tileData.flags[DGANAME].signature = signature;
     }
     return tileData;
   }
