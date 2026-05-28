@@ -131,7 +131,6 @@ export function registerAfterDependencies() {
     })(DAT.api[method]);
   }
 
-  console.log("Registering API functions for Dylan's Animated Tokens integration...");
   wrap("getIndicators", getIndicators);
   wrap("isWater", isWater);
   wrap("getSurfboard", getSurfboard);

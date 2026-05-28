@@ -153,7 +153,6 @@ export function register() {
       await game.settings.set(MODULENAME, "migrationVersion", pendingMigrations.at(-1).MIGRATION_VERSION);
       try {
         for (const migration of pendingMigrations) {
-          console.log(`Pokémon Assets Module: Running migration ${migration.MIGRATION_VERSION}...`);
           // all world actors
           for (const actor of game.actors) {
             const updatedData = await migration.updateActor(actor, foundry.utils.deepClone(actor._source));

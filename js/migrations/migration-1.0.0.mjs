@@ -126,11 +126,6 @@ export class Migration_1_0_0 extends Migration {
       const title = match?.groups?.title;
       const directions = match?.groups?.directions.split(",").map(s => s.trim().substring(1, s.length - 1));
 
-      if (!directions) {
-        console.log("no directions", { regionBehaviorData, directions, img, showImageMatch })
-        return null;
-      }
-
       await regionBehavior.update({
         "type": `${DGANAME}.imageShow`,
         "==system": {
