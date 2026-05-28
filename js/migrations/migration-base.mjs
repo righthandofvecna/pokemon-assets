@@ -12,6 +12,8 @@ export class Migration {
 
   static async updateTile(tile, tileData) {}
 
+  static async updateRegionBehavior(regionBehavior, regionBehaviorData) {}
+
   static async updateScene(scene, sceneData) {}
 
   static async updateSettings() {}

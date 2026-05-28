@@ -179,6 +179,15 @@ export function register() {
                 await tile.update(updatedData);
               }
             }
+            // all region behaviors in world
+            for (const region of scene.regions) {
+              for (const behavior of region.behaviors) {
+                const updatedData = await migration.updateRegionBehavior(behavior, foundry.utils.deepClone(behavior._source));
+                if (updatedData) {
+                  await region.updateEmbeddedDocuments("RegionBehavior", [updatedData]);
+                }
+              }
+            }
           }
           // all world items
           for (const item of game.items) {

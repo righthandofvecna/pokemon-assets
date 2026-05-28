@@ -35,6 +35,9 @@ const SHEET_STYLE_ALIASES = {
   digimon: "diagonal",
 };
 
+const JUMP_RE = /game\.modules\.get\("pokemon-assets"\)\?\.api\?\.scripts\?\.HandleJumps\?\.\("(?<direction>.*)", \.\.\.arguments\);/i;
+const SHOW_IMAGE_RE = /if \(arguments\.length < 4\) return;\n\n\/\/ only for the triggering user\nconst regionTrigger = arguments\[3\];\nif \(regionTrigger\.user !== game\.user\) return;\n\nconst \{ token \} = arguments\[3\]\?\.data;\nif \(!token \|\| !game\.modules\.get\("pokemon-assets"\)\?\.api\?\.scripts\?\.TokenHasDirection\(token, \[(?<directions>.*)\]\)\) return;\n\nawait game\.modules\.get\("pokemon-assets"\)\?\.api\?\.scripts\?\.Interact\(\);\nnew ImagePopout\("(?<img>.*)", \{ title: "(?<title>.*)" \}\)\.render\(true\);/im;
+
 
 export class Migration_1_0_0 extends Migration {
 
@@ -90,6 +93,54 @@ export class Migration_1_0_0 extends Migration {
       tileData.flags[DGANAME].signature = signature;
     }
     return tileData;
+  }
+
+  static async updateRegionBehavior(regionBehavior, regionBehaviorData) {
+    // replace script macros for Image Show and Jump
+    const jumpMatch = JUMP_RE.exec(regionBehaviorData.system?.source ?? "");
+    const showImageMatch = SHOW_IMAGE_RE.exec(regionBehaviorData.system?.source ?? "");
+    console.log("migration updateRegionBehavior", { regionBehaviorData, jumpMatch, showImageMatch })
+    if (regionBehaviorData.type == "executeScript" && jumpMatch) {
+      const match = jumpMatch;
+      const direction = match?.groups?.direction;
+      await regionBehavior.update({
+        "type": `${DGANAME}.oneWayJump`,
+        "==system": {
+          direction: direction,
+        }
+      });
+      return null;
+    }
+    if (regionBehaviorData.type == "executeScript" && showImageMatch) {
+      const match = showImageMatch;
+      const img = match?.groups?.img;
+      const title = match?.groups?.title;
+      const directions = match?.groups?.directions.split(",").map(s => s.trim().substring(1, s.length - 1));
+
+      if (!directions) {
+        console.log("no directions", { regionBehaviorData, directions, img, showImageMatch })
+        return null;
+      }
+
+      await regionBehavior.update({
+        "type": `${DGANAME}.imageShow`,
+        "==system": {
+          imageSrc: img,
+          title: title,
+          directions: Object.fromEntries(directions.map(d => [d, true])),
+        }
+      });
+      return null;
+    }
+
+
+    // otherwise update the flag for "interact" to DGA
+    regionBehaviorData.flags ??= {};
+    if (regionBehaviorData.flags?.[MODULENAME]?.hasTokenInteract !== undefined) {
+      regionBehaviorData.flags[DGANAME] ??= {};
+      regionBehaviorData.flags[DGANAME].hasTokenInteract = regionBehaviorData.flags[MODULENAME].hasTokenInteract;
+    }
+    return regionBehaviorData;
   }
 
   static async updateScene(scene, sceneData) {
