@@ -162,6 +162,7 @@ export function register() {
           }
           // all world scenes, their tokens, and tiles
           for (const scene of game.scenes) {
+            if (!scene) continue;
             // all scenes in world
             const updatedData = await migration.updateScene(scene, foundry.utils.deepClone(scene._source));
             if (updatedData) {
@@ -170,6 +171,7 @@ export function register() {
             
             // all tokens in world
             for (const token of scene.tokens) {
+              if (!token) continue;
               const updatedData = await migration.updateToken(token, foundry.utils.deepClone(token._source));
               if (updatedData) {
                 await token.update(updatedData);
@@ -177,6 +179,7 @@ export function register() {
             }
             // all tiles in world
             for (const tile of scene.tiles) {
+              if (!tile) continue;
               const updatedData = await migration.updateTile(tile, foundry.utils.deepClone(tile._source));
               if (updatedData) {
                 await tile.update(updatedData);
@@ -184,7 +187,9 @@ export function register() {
             }
             // all region behaviors in world
             for (const region of scene.regions) {
+              if (!region) continue;
               for (const behavior of region.behaviors) {
+                if (!behavior) continue;
                 const updatedData = await migration.updateRegionBehavior(behavior, foundry.utils.deepClone(behavior._source));
                 if (updatedData) {
                   await region.updateEmbeddedDocuments("RegionBehavior", [updatedData]);
@@ -194,6 +199,7 @@ export function register() {
           }
           // all world items
           for (const item of game.items) {
+            if (!item) continue;
             const updatedData = await migration.updateItem(item, foundry.utils.deepClone(item._source));
             if (updatedData) {
               await item.update(updatedData);
@@ -206,6 +212,7 @@ export function register() {
               const index = await pack.getIndex();
               for (const entry of index) {
                 const document = await pack.getDocument(entry._id);
+                if (!document) continue;
                 const updatedData = await migration.updateActor(document, foundry.utils.deepClone(document._source));
                 if (updatedData) {
                   await document.update(updatedData);
@@ -215,6 +222,7 @@ export function register() {
               const index = await pack.getIndex();
               for (const entry of index) {
                 const document = await pack.getDocument(entry._id);
+                if (!document) continue;
                 const updatedData = await migration.updateItem(document, foundry.utils.deepClone(document._source));
                 if (updatedData) {
                   await document.update(updatedData);

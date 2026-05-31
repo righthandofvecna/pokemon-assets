@@ -1,5 +1,7 @@
 #!/bin/bash
 
+MAX=1025
+
 numbers=($(find audio/cries -type f -name '*' | grep -o "[0-9][0-9][0-9][0-9]" | sort -n | uniq))
 missing_numbers=()
 for ((i=0; i<${#numbers[@]}-1; i++)); do 
@@ -7,7 +9,9 @@ for ((i=0; i<${#numbers[@]}-1; i++)); do
   next=$((10#${numbers[$i+1]}))
   if (( next - current != 1 )); then 
     for ((j=current+1; j<next; j++)); do 
+    if (( j <= MAX )); then
       missing_numbers+=($j)
+    fi
     done
   fi
 done
@@ -20,7 +24,9 @@ for ((i=0; i<${#numbers[@]}-1; i++)); do
   next=$((10#${numbers[$i+1]}))
   if (( next - current != 1 )); then 
     for ((j=current+1; j<next; j++)); do 
+    if (( j <= MAX )); then
       missing_numbers+=($j)
+    fi
     done
   fi
 done
