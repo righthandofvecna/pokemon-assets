@@ -1,5 +1,5 @@
 
-import { isTheGM, MODULENAME, DGANAME, sleep, snapToGrid, tokenScene, centerTokenMovement } from "./utils.mjs";
+import { isTheGM, MODULENAME, DGANAME, DATNAME, sleep, snapToGrid, tokenScene, centerTokenMovement } from "./utils.mjs";
 import * as socket from "./socket.mjs";
 import { PokemonSheets } from "./pokemon-sheets.mjs";
 
