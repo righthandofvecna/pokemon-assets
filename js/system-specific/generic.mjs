@@ -28,9 +28,25 @@ async function OnCreateToken(token, options) {
   await sequence.play();
 }
 
+async function OnDeleteToken(token, options) {
+  const api = game.modules.get(MODULENAME).api;
+  if (!game.settings.get(MODULENAME, "playSummonAnimation")) return;
+  if (options.teleport) return;
+  if (token.hidden || token.object?.localOpacity === 0) return;
+
+  const actor = token.actor;
+  if (!actor || !api.logic.isPokemon(token)) return;
+  const summonSource = await api.logic.GetSummonSource(token);
+  if (!summonSource) return; // No source means it's a wild summon
+
+  let sequence = await api.scripts.RetrievePokemon(token);
+  await sequence?.play();
+}
+
 
 export function register() {
   Hooks.on("createToken", OnCreateToken);
+  Hooks.on("deleteToken", OnDeleteToken);
   const module = game.modules.get(MODULENAME);
   module.api ??= {};
   const api = module.api;
