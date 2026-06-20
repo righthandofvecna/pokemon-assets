@@ -1061,6 +1061,34 @@ async function SummonWildPokemon(target, shiny, extendSequence=null) {
   return sequence;
 }
 
+
+/**
+ * Play a "Retrieve" animation for a Pokemon going back into its Pokeball
+ * @param {*} target 
+ * @param {*} extendSequence 
+ * @returns 
+ */
+async function RetrievePokemon(target, extendSequence=null) {
+  const scene = tokenScene(target);
+  const sceneVisible = scene?.id === canvas?.scene?.id;
+  if (!sceneVisible) return extendSequence;
+
+  Sequencer.Preloader.preload([
+    "modules/pokemon-assets/audio/bgs/pokeball-retrieve.mp3",
+  ]);
+
+  const { VolumeSettings } = game.modules.get(DGANAME).api ?? {};
+  const volume = VolumeSettings.getVolume("catch");
+  const sequence = extendSequence ?? new Sequence({ moduleName: "pokemon-assets", softFail: true });
+
+  sequence.sound()
+    .file(`modules/pokemon-assets/audio/bgs/pokeball-retrieve.mp3`)
+    .volume(volume)
+    .locally()
+    .waitUntilFinished();
+  return sequence;
+}
+
 /**
  * Play the Rock Smash animation and destroy the tile.
  * @param {TileDocument} tile the tile document to destroy using Rock Smash
@@ -1287,6 +1315,7 @@ export function register() {
     CatchPokemon,
     SummonPokemon,
     SummonWildPokemon,
+    RetrievePokemon,
     IndicateDamage,
     UseFieldMove,
     TriggerRockSmash,
