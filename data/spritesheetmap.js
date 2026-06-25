@@ -4448,6 +4448,12 @@ export default
       "05XX/053X/0537s.png": {
         "animationframes": 4
       },
+      "05XX/053X/0539.png": {
+        "animationframes": 4
+      },
+      "05XX/053X/0539s.png": {
+        "animationframes": 4
+      },
       "05XX/054X/0540.png": {
         "animationframes": 6
       },
@@ -4605,6 +4611,9 @@ export default
         "animationframes": 4
       },
       "05XX/056X/0560s.png": {
+        "animationframes": 4
+      },
+      "05XX/056X/0560s_MEGA.png": {
         "animationframes": 4
       },
       "05XX/056X/0561.png": {
@@ -6445,6 +6454,9 @@ export default
       "07XX/078X/0780.png": {
         "animationframes": 4
       },
+      "07XX/078X/0780_MEGA.png": {
+        "animationframes": 10
+      },
       "07XX/078X/0780s.png": {
         "animationframes": 4
       },
@@ -6617,6 +6629,9 @@ export default
         "animationframes": 8
       },
       "08XX/080X/0807.png": {
+        "animationframes": 4
+      },
+      "08XX/080X/0807_MEGA.png": {
         "animationframes": 4
       },
       "08XX/080X/0807s.png": {
@@ -6938,6 +6953,9 @@ export default
         "animationframes": 4
       },
       "08XX/086X/0863.png": {
+        "animationframes": 4
+      },
+      "08XX/086X/0863s.png": {
         "animationframes": 4
       },
       "08XX/086X/0864.png": {
@@ -7327,11 +7345,20 @@ export default
       "08XX/088X/0889.png": {
         "animationframes": 4
       },
+      "08XX/088X/0889_Crowned_Shield.png": {
+        "animationframes": 4
+      },
       "08XX/088X/0889s.png": {
+        "animationframes": 4
+      },
+      "08XX/088X/0889s_Crowned_Shield.png": {
         "animationframes": 4
       },
       "08XX/089X/0890.png": {
         "animationframes": 6
+      },
+      "08XX/089X/0890_Eternamax.png": {
+        "animationframes": 1
       },
       "08XX/089X/0890s.png": {
         "animationframes": 6
@@ -8001,7 +8028,16 @@ export default
       "10XX/101X/1011s.png": {
         "animationframes": 4
       },
+      "10XX/101X/1012.png": {
+        "animationframes": 8
+      },
+      "10XX/101X/1012s.png": {
+        "animationframes": 8
+      },
       "10XX/101X/1013.png": {
+        "animationframes": 8
+      },
+      "10XX/101X/1013s.png": {
         "animationframes": 8
       },
       "10XX/101X/1014.png": {
@@ -8087,6 +8123,9 @@ export default
       },
       "10XX/102X/1024.png": {
         "animationframes": 4
+      },
+      "10XX/102X/1024_Terastal.png": {
+        "animationframes": 6
       },
       "10XX/102X/1024s.png": {
         "animationframes": 4
