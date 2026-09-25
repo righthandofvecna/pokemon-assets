@@ -1,0 +1,165 @@
+{
+    "meta": {
+        "image": "frlg_tiles.png",
+        "format": "RGBA8888",
+        "scale": 1
+    },
+    "frames": {
+        "frlg_tiles.png_0": {
+            "frame": {
+                "x": 121,
+                "y": 66,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "frlg_tiles.png_1": {
+            "frame": {
+                "x": 138,
+                "y": 66,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "frlg_tiles.png_2": {
+            "frame": {
+                "x": 155,
+                "y": 66,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "frlg_tiles.png_3": {
+            "frame": {
+                "x": 172,
+                "y": 66,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "frlg_tiles.png_4": {
+            "frame": {
+                "x": 189,
+                "y": 66,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "frlg_tiles.png_5": {
+            "frame": {
+                "x": 206,
+                "y": 66,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "frlg_tiles.png_6": {
+            "frame": {
+                "x": 223,
+                "y": 66,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        },
+        "frlg_tiles.png_7": {
+            "frame": {
+                "x": 240,
+                "y": 66,
+                "w": 16,
+                "h": 16
+            },
+            "sourceSize": {
+                "w": 16,
+                "h": 16
+            },
+            "spriteSourceSize": {
+                "x": 0,
+                "y": 0,
+                "w": 16,
+                "h": 16
+            }
+        }
+    },
+    "animations": {
+        "play": [
+            "frlg_tiles.png_0",
+            "frlg_tiles.png_1",
+            "frlg_tiles.png_2",
+            "frlg_tiles.png_3",
+            "frlg_tiles.png_4",
+            "frlg_tiles.png_5",
+            "frlg_tiles.png_6",
+            "frlg_tiles.png_7"
+        ]
+    }
+}
