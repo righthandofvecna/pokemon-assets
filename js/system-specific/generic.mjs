@@ -87,4 +87,6 @@ export function register() {
 
   api.scripts.GetUuidFromTableResult ??= (result)=>result.documentUuid;
   api.scripts.GetTokenChangesForSpritesheet ??= _getTokenChangesForSpritesheet;
+
+  api.logic.fishingDefaults ??= {}
 }

@@ -638,4 +638,17 @@ export function register() {
   } catch (e) {
     console.error(`ptu.fixLockAndKey:`, e);
   }
+
+  // Register per-system fishing defaults.
+  // Replace the UUID values with the actual compendium UUIDs for PTU rods and tables.
+  module.api.logic.fishingDefaults = {
+    rodTables: [
+      { rodUuid: "Compendium.ptu.items.Item.quJEcLDXKQxNL8Ov", tableUuid: "Compendium.ptu.rolltables.RollTable.zjTrDSr3fyDXBxW4" },
+      { rodUuid: "Compendium.ptu.items.Item.7TrnYWHd3gnwtOYK", tableUuid: "Compendium.ptu.rolltables.RollTable.TfCBUSHPSRZilbip" },
+      { rodUuid: "Compendium.ptu.items.Item.eLoWPRzahOnCq1jB", tableUuid: "Compendium.ptu.rolltables.RollTable.TpeVUMRq2iRXInaA" },
+    ],
+    cooldownSeconds: 0,
+    noBiteChance: 50,
+    gracePeriodSeconds: 5,
+  };
 }

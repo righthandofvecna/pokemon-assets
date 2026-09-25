@@ -174,4 +174,20 @@ export function register() {
     types: [FishingRBT._systemType],
     label: "Fishing Spot Config",
   });
+
+  // When a new fishing behavior is created, apply any per-system defaults
+  Hooks.on("preCreateRegionBehavior", (behavior, data, options, userId) => {
+    if (behavior.type !== FishingRBT._systemType) return;
+    if ((data.system?.rodTables ?? []).length > 0) return; // already has custom data
+    const defaults = game.modules.get(MODULENAME)?.api?.logic?.fishingDefaults ?? false;
+    if (!defaults) return;
+    behavior.updateSource({
+      system: {
+        rodTables: defaults.rodTables ?? [],
+        cooldownSeconds: defaults.cooldownSeconds ?? 0,
+        noBiteChance: defaults.noBiteChance ?? 50,
+        gracePeriodSeconds: defaults.gracePeriodSeconds ?? 5,
+      }
+    });
+  });
 }
