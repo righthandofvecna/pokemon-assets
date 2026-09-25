@@ -107,7 +107,8 @@
   ],
   "documentTypes": {
     "RegionBehavior": {
-      "surf": {}
+      "surf": {},
+      "fishing": {}
     }
   },
   "socket": true,

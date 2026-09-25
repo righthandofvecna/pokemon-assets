@@ -1,0 +1,54 @@
+<div class="standard-form">
+  <fieldset>
+    <legend>{{localize "POKEMON-ASSETS.Fishing.Fields.RodTables"}}</legend>
+    <p class="hint">{{localize "POKEMON-ASSETS.Fishing.Fields.RodTablesHint"}}</p>
+    {{#each region.system.rodTables}}
+    <div class="fishing-rod-row" data-index="{{@index}}" style="display:flex;align-items:flex-start;gap:0.5em;margin-bottom:0.5em;padding:0.5em;border:1px solid var(--color-border-light-tertiary);border-radius:3px;">
+      <div style="flex:1;">
+        <div class="form-group">
+          <label>{{localize "POKEMON-ASSETS.Fishing.Fields.RodUuid"}}</label>
+          <div class="form-fields">
+            <input type="text" name="system.rodTables.{{@index}}.rodUuid" value="{{this.rodUuid}}" placeholder="Compendium.module.pack.Item.xxxxx" style="width:100%;" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>{{localize "POKEMON-ASSETS.Fishing.Fields.TableUuid"}}</label>
+          <div class="form-fields">
+            <input type="text" name="system.rodTables.{{@index}}.tableUuid" value="{{this.tableUuid}}" placeholder="RollTable.xxxxx or Compendium.module.pack.RollTable.xxxxx" style="width:100%;" />
+          </div>
+        </div>
+      </div>
+      <button type="button" class="icon" data-action="removeRod" data-index="{{@index}}" title="{{localize 'POKEMON-ASSETS.Fishing.Fields.RemoveRod'}}" style="margin-top:1.5em;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    {{/each}}
+    <button type="button" data-action="addRod" style="margin-top:0.25em;width:100%;">
+      <i class="fa-solid fa-plus"></i> {{localize "POKEMON-ASSETS.Fishing.Fields.AddRod"}}
+    </button>
+  </fieldset>
+
+  <div class="form-group">
+    <label>{{localize "POKEMON-ASSETS.Fishing.Fields.CooldownSeconds"}}</label>
+    <div class="form-fields">
+      <input type="number" name="system.cooldownSeconds" value="{{region.system.cooldownSeconds}}" min="0" step="1" />
+    </div>
+    <p class="hint">{{localize "POKEMON-ASSETS.Fishing.Fields.CooldownSecondsHint"}}</p>
+  </div>
+
+  <div class="form-group">
+    <label>{{localize "POKEMON-ASSETS.Fishing.Fields.NoBiteChance"}}</label>
+    <div class="form-fields">
+      <input type="number" name="system.noBiteChance" value="{{region.system.noBiteChance}}" min="0" max="100" step="1" />
+    </div>
+    <p class="hint">{{localize "POKEMON-ASSETS.Fishing.Fields.NoBiteChanceHint"}}</p>
+  </div>
+
+  <div class="form-group">
+    <label>{{localize "POKEMON-ASSETS.Fishing.Fields.GracePeriodSeconds"}}</label>
+    <div class="form-fields">
+      <input type="number" name="system.gracePeriodSeconds" value="{{region.system.gracePeriodSeconds}}" min="1" max="60" step="1" />
+    </div>
+    <p class="hint">{{localize "POKEMON-ASSETS.Fishing.Fields.GracePeriodSecondsHint"}}</p>
+  </div>
+</div>
