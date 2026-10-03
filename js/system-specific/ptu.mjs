@@ -575,7 +575,6 @@ async function AwardItems(actor, items) {
   for (const key of Object.keys(deduplicated)) {
     const item = deduplicated[key];
     const existingItem = actor.getStackableItem?.(item) ?? null;
-    console.log("PKMN ASSETS | ", { item, existingItem, deduplicatedCount: deduplicatedCount[key] });
     if (existingItem) {
       itemUpdates.push({ _id: existingItem.id, "system.quantity": (deduplicatedCount[key] * (item?.system?.quantity || 1)) + (existingItem?.system?.quantity ?? 1) });
     } else {
