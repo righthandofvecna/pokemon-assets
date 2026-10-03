@@ -83,7 +83,7 @@ RelicCipher	<@!739304144552198285>	<@739304144552198285>
 Dasawkem	<@!183136061487054848>	https://dasawkem.carrd.co/#social
 Sharpen	<@!389193348474339338>	
 Noivern	<@!150809243816165377>	https://twitter.com/notarealnoivern
-Noo	<@!217899432652308480>	comics.town/@noo
+Noo	<@!217899432652308480>	https://artfight.net/~NooNoo_Skidoo
 Emmuffin	<@!356635814668664832>	https://twitter.com/Ernmuffin
 SuperFabbioGuy	<@!433058189240696835>	
 Frostdrop1	<@!173505019268694016>	
@@ -190,14 +190,14 @@ lovefulpup	<@!280870537209839627>
 Okami	<@!238146046146904069>	okamiromhacks@gmail.com
 EeveeandVulpix2000	<@!469246358180593668>	https://www.instagram.com/eeveeandvulpix2000/
 Sceptile	<@!965734014604410990>	
-Spikey-Valentine	<@!454421330058805251>	https://twitter.com/spikeyvalentine?s=21&t=KmiqQo0hvuT6bxZFEGAKbA
+Spikey-Valentine	<@!454421330058805251>	https://twitter.com/spikeyvalentine
 	<@!666846584310464552>	
 Gayschlatt	<@!560604377203736617>	
 	<@!727245570191786085>	
 	<@!237965255412547585>	
 Rudy	<@!232993356274335744>	magolor.neocities.org
 Azifel	<@!228121607158235136>	https://twitter.com/Aziifel
-distress	<@!177489961275097088>	artstation.com/distress
+distress	<@!177489961275097088>	https://www.artstation.com/distress/albums/1200843
 NeonCityRain	<@!331183966508023808>	https://neoncityrain.tumblr.com/
 Yari	YARI	Yari#1038
 VersuS/CelestialDrago	<@!305445863235518464>	
@@ -281,6 +281,7 @@ NickOnimura	<@!151462460316975104>	nickonimura.bsky.social
 brookriver	<@!255219192901402624>	https://brookriver.carrd.co/
 JustAGunk	<@!1377429093997477928>	<@1377429093997477928>
 Fresco	<@!488809643838144543>	marcfreixer@gmail.com
+Mitsubachi	<@!472136803554557956>	
 Neat_Neato	<@!181900575934382081>	imneatneato@gmail.com
 SethY	<@!268261643178344448>	https://linktr.ee/sethyuikora
 lumiscosity	<@!243013084510289921>	https://github.com/lumiscosity
@@ -291,4 +292,10 @@ GenarftheUnfunny	<@!1038291154032136192>	bigshot1977kr0mer@gmail.com
 Ajifer	<@!1042498956082544640>	<@1042498956082544640>
 Johanne2	<@!225949425292410880>	https://github.com/Johanne2
 Kevin	<@!479925530129596426>	<@479925530129596426>
-jeltemreal	<@!1058057407592407081>	https://www.youtube.com/@jeltemreal
+jelEmerald	<@!1058057407592407081>	https://www.youtube.com/@jeltemreal
+radpeepo	<@!150308109489799169>	<https://linktr.ee/radpeepo>
+Crazy_Dragon	<@!605175889793253377>	https://www.reddit.com/user/FrontIndividual4188/submitted/
+Some_Shinx	<@!1519393734008115314>	<@1519393734008115314>
+PikaGirl	<@!1354873665258524857>	https://x.com/99_Pika_99
+Kjell	<@!1327761924011720837>	kjellfrederikjansen@web.de
+Skycloud383	<@!546904324098490368>	<@546904324098490368>

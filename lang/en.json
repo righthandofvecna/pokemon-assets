@@ -168,6 +168,36 @@
         "FIELDS.shield.short": "SH",
         "FIELDS.experience.short": "EXP",
         "SheetClassCharacter": "PA Character Sheet",
+        "SurfOrFish": {
+            "Question": "The water looks inviting. What would you like to do?",
+            "Surf": "Surf",
+            "Fish": "Fish",
+            "Cancel": "Neither"
+        },
+        "Fishing": {            "Title": "Fishing",
+            "NoRod": "The water sparkles, but you don't have a fishing rod.",
+            "AskFish": "The water looks like a good spot to fish. Would you like to cast a line?",
+            "Cooldown": "You need to wait {seconds} more second(s) before fishing here again.",
+            "NoBite": "Not even a nibble...",
+            "TooSlow": "You were too slow! The Pokémon got away.",
+            "Caught": "{name} hooked something!",
+            "CatchNotification": "<p><strong>{name}</strong> hooked a fish! Roll result: {result}</p>",
+            "UnknownResult": "an unknown result",
+            "Fields": {
+                "RodTables": "Rod → Table Mappings",
+                "RodTablesHint": "Map each fishing rod (by its compendium source UUID) to a roll table. Rows are checked top-to-bottom; the first matching rod is used.",
+                "RodUuid": "Fishing Rod Item UUID",
+                "TableUuid": "Roll Table UUID",
+                "AddRod": "Add Rod",
+                "RemoveRod": "Remove",
+                "CooldownSeconds": "Cooldown (World Seconds)",
+                "CooldownSecondsHint": "Number of in-game world-time seconds before this character can fish here again. Set to 0 to disable cooldown.",
+                "NoBiteChance": "No-Bite Chance (%)",
+                "NoBiteChanceHint": "Percentage chance (0–100) that nothing bites after casting.",
+                "GracePeriodSeconds": "Grace Period (Seconds)",
+                "GracePeriodSecondsHint": "Real-time seconds the player has to press the interact key after the bite alert."
+            }
+        },
         "Stages": {
             "atk.Label": "ATK",
             "def.Label": "DEF",
@@ -185,5 +215,6 @@
     "TILE.TABS.puzzle": "Puzzle",
     "TOKEN.TABS.puzzle": "Puzzle",
     "PTR2E.ActorSheet.Buttons.perkList": "Open Perk List",
-    "TYPES.RegionBehavior.pokemon-assets.surf": "Surf Region"
+    "TYPES.RegionBehavior.pokemon-assets.surf": "Surf Region",
+    "TYPES.RegionBehavior.pokemon-assets.fishing": "Fishing Spot"
 }

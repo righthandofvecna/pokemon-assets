@@ -1265,6 +1265,224 @@ async function TriggerClimb(climbType, to, ...args) {
   }
 }
 
+/**
+ * A minimal auto-closing dialog used for the fishing "..." waiting phase.
+ * Uses HandlebarsApplicationMixin(ApplicationV2) so no buttons are required
+ * (DialogV2 mandates at least one button).
+ */
+class FishingWaitDialog extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(
+    super.DEFAULT_OPTIONS,
+    {
+      id: "fishing-wait-dialog",
+      classes: ["dga", "footer-dialog", "dialog-prompt"],
+      window: { positioned: true, resizable: false, minimizable: false },
+      position: { width: "auto", height: "auto" },
+    },
+    { inplace: false }
+  );
+
+  static PARTS = {
+    main: { template: "modules/pokemon-assets/templates/fishing-wait.hbs" },
+  };
+
+  async _prepareContext() { return {}; }
+}
+
+/**
+ * Handle fishing at a fishing region.
+ * Called by the DGA regionInteractions["fishing"] callback.
+ * @param {RegionDocument} region - the fishing region being interacted with
+ * @param {object} entry - the grid point inside the region the token is facing
+ * @param {TokenDocument} token - the token attempting to fish
+ * @returns {boolean} true if the interaction was handled (regardless of outcome)
+ */
+async function Fishing(region, entry, token) {
+  const behavior = region.behaviors.find(b => b.type === `${MODULENAME}.fishing` && !b.disabled);
+  if (!behavior) return false;
+
+  // If waiting for a catch press, resolve it immediately
+  if (token._fishingWaiting) {
+    token._fishingWaiting(true);
+    token._fishingWaiting = null;
+    return true;
+  }
+
+  // Prevent re-entry; also handle cancel or catch press during active sequence
+  if (token._fishing) {
+    if (token._fishingCancelCallback) {
+      // User pressed Enter during the "..." wait — cancel fishing
+      token._fishingCancelCallback();
+      token._fishingCancelCallback = null;
+    }
+    return true;
+  }
+  token._fishing = true;
+
+  try {
+    const { rodTables = [], cooldownSeconds = 0, noBiteChance = 50, gracePeriodSeconds = 5 } = behavior.system;
+    const { Interact, FooterDialogPrompt, FooterDialogConfirm } = game.modules.get(DGANAME)?.api?.scripts ?? {};
+    const api = game.modules.get(MODULENAME).api;
+
+    // Check cooldown on the actor
+    const actor = token.actor;
+    if (cooldownSeconds > 0 && actor) {
+      const nextFishTime = actor.getFlag(MODULENAME, "nextFishTime") ?? 0;
+      if (game.time.worldTime < nextFishTime) {
+        const remaining = Math.ceil(nextFishTime - game.time.worldTime);
+        Interact();
+        await FooterDialogPrompt({
+          title: game.i18n.localize("POKEMON-ASSETS.Fishing.Title"),
+          content: game.i18n.format("POKEMON-ASSETS.Fishing.Cooldown", { seconds: remaining }),
+        });
+        return true;
+      }
+    }
+
+    // Find matching rod + roll table by checking party members' items
+    const party = api.logic.FieldMoveParty(token);
+    let matchedRod = null;
+    let fishingActor = null;
+
+    for (const rodEntry of rodTables) {
+      if (!rodEntry.rodUuid || !rodEntry.tableUuid) continue;
+      for (const partyActor of party) {
+        const hasRod = partyActor?.items?.some(item =>
+          foundry.utils.getProperty(item, "_stats.compendiumSource") === rodEntry.rodUuid
+        );
+        if (hasRod) {
+          matchedRod = rodEntry;
+          fishingActor = partyActor;
+          break;
+        }
+      }
+      if (matchedRod) break;
+    }
+
+    if (!matchedRod) {
+      Interact();
+      await FooterDialogPrompt({
+        title: game.i18n.localize("POKEMON-ASSETS.Fishing.Title"),
+        content: game.i18n.localize("POKEMON-ASSETS.Fishing.NoRod"),
+      });
+      return true;
+    }
+
+    // Ask if the player wants to fish (skip if we came from the Surf/Fish/Cancel dialog)
+    const skipConfirm = !!token._skipFishSurfConfirm;
+    token._skipFishSurfConfirm = false;
+    let wantToFish = skipConfirm;
+    if (!skipConfirm) {
+      Interact();
+      wantToFish = await new Promise((resolve) => FooterDialogConfirm({
+        title: game.i18n.localize("POKEMON-ASSETS.Fishing.Title"),
+        content: game.i18n.localize("POKEMON-ASSETS.Fishing.AskFish"),
+        yes: () => resolve(true),
+        no: () => resolve(false),
+      }));
+    }
+
+    if (!wantToFish) return true;
+
+    // Determine no-bite outcome up front (so the wait time is not a tell)
+    const noBite = Math.random() * 100 < noBiteChance;
+
+    // Show "..." dialog. The wait can be cut short if the player presses Enter (cancel).
+    const waitMs = (3 + Math.random() * 7) * 1000;
+    const waitDialog = new FishingWaitDialog({
+      window: { title: game.i18n.localize("POKEMON-ASSETS.Fishing.Title") },
+    });
+    await waitDialog.render({ force: true });
+    let waitCanceled = false;
+    await new Promise((resolve) => {
+      const timerId = setTimeout(resolve, waitMs);
+      token._fishingCancelCallback = () => {
+        waitCanceled = true;
+        clearTimeout(timerId);
+        resolve();
+      };
+    });
+    token._fishingCancelCallback = null;
+    await waitDialog.close({ animate: false });
+
+    if (noBite || waitCanceled) {
+      // Apply cooldown before showing the message
+      if (cooldownSeconds > 0 && actor) {
+        await actor.setFlag(MODULENAME, "nextFishTime", game.time.worldTime + cooldownSeconds);
+      }
+      Interact();
+      await FooterDialogPrompt({
+        title: game.i18n.localize("POKEMON-ASSETS.Fishing.Title"),
+        content: game.i18n.localize("POKEMON-ASSETS.Fishing.NoBite"),
+      });
+      return true;
+    }
+
+    // Something bit! Show the surprise "!" reaction over the token and start the timer immediately
+    const gracePeriodMs = gracePeriodSeconds * 1000;
+    const caughtPromise = new Promise((resolve) => {
+      token._fishingWaiting = resolve;
+      setTimeout(() => {
+        if (token._fishingWaiting === resolve) {
+          token._fishingWaiting = null;
+          resolve(false);
+        }
+      }, gracePeriodMs);
+    });
+    TokenReact(token, "surprise"); // fire-and-forget — timer already running
+    const caught = await caughtPromise;
+
+    if (!caught) {
+      Interact();
+      await FooterDialogPrompt({
+        title: game.i18n.localize("POKEMON-ASSETS.Fishing.Title"),
+        content: game.i18n.localize("POKEMON-ASSETS.Fishing.TooSlow"),
+      });
+      return true;
+    }
+
+    // Roll the matched table
+    const rollTable = await fromUuid(matchedRod.tableUuid);
+    if (!rollTable) {
+      console.error(`pokemon-assets | Fishing: roll table not found: ${matchedRod.tableUuid}`);
+      return true;
+    }
+
+    const result = (await rollTable.roll())?.results?.[0];
+    const resultUuid = api.scripts.GetUuidFromTableResult?.(result);
+    const resultDoc = resultUuid ? await fromUuid(resultUuid) : null;
+
+    // Apply cooldown
+    if (cooldownSeconds > 0 && actor) {
+      await actor.setFlag(MODULENAME, "nextFishTime", game.time.worldTime + cooldownSeconds);
+    }
+
+    // Notify the GM via popup with the catcher's name and a link to the rolled result
+    const { ShowGMPopup } = game.modules.get(DGANAME)?.api?.scripts ?? {};
+    const catcherName = fishingActor?.name ?? token.name;
+    const enrichedResult = resultDoc
+      ? await TextEditor.enrichHTML(resultDoc.link)
+      : game.i18n.localize("POKEMON-ASSETS.Fishing.UnknownResult");
+    const gmMsg = await TextEditor.enrichHTML(
+      game.i18n.format("POKEMON-ASSETS.Fishing.CatchNotification", { name: catcherName, result: enrichedResult })
+    );
+    ShowGMPopup?.(gmMsg);
+
+    Interact();
+    await FooterDialogPrompt({
+      title: game.i18n.localize("POKEMON-ASSETS.Fishing.Title"),
+      content: game.i18n.format("POKEMON-ASSETS.Fishing.Caught", { name: catcherName }),
+    });
+
+    return true;
+  } finally {
+    token._fishing = false;
+    token._fishingCancelCallback = null; // safety cleanup
+    token._interactionDisabled = false; // safety cleanup
+    token._skipFishSurfConfirm = false; // safety cleanup
+  }
+}
+
 export async function UseFieldMove(fieldMove, who, canUse, skipQuery) {
   const { Interact, FooterDialogPrompt, FooterDialogConfirm } = game.modules.get(DGANAME)?.api?.scripts ?? {};
   if (canUse) {
@@ -1323,6 +1541,7 @@ export function register() {
     TriggerClimb,
     TriggerWhirlpool,
     EvolveAnimation,
+    Fishing,
   };
 
   socket.registerSocket("triggerRockSmash", async (tileId)=>TriggerRockSmash(await fromUuid(tileId)));

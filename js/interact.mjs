@@ -35,7 +35,10 @@ async function _checkForSurfRegion(region, entry, token) {
   // if we're already surfing, we don't want to trigger the surf behavior again
   if (token?.object?.surfing) return false;
   const hasFieldMove = _hasFieldMove(token, "CanUseSurf", "Surf");
-  if (await UseFieldMove("Surf", hasFieldMove, !!hasFieldMove, token._surfing)) {
+  // Skip confirmation if we came from the Surf/Fish/Cancel combined dialog
+  const skipConfirm = !!token._skipFishSurfConfirm;
+  token._skipFishSurfConfirm = false;
+  if (await UseFieldMove("Surf", hasFieldMove, !!hasFieldMove, skipConfirm || token._surfing)) {
     token._surfing = true;
     // update the token's position to be on the water
     const topLeftEntry = canvas.grid.getTopLeftPoint(entry);
@@ -53,6 +56,70 @@ async function _checkForSurfRegion(region, entry, token) {
     });
   }
   return true;
+}
+
+async function _checkForFishingRegion(region, entry, token) {
+  // if this isn't a fishing region, we don't care about it
+  if (!region.behaviors.some(b => b.type == `${MODULENAME}.fishing` && !b.disabled)) return false;
+
+  // If already mid-sequence (catch window or waiting cancel), delegate straight to Fishing()
+  // to handle _fishingWaiting / _fishingCancelCallback — don't show the combined dialog
+  if (token._fishingWaiting || token._fishing) {
+    return game.modules.get(MODULENAME).api.scripts.Fishing(region, entry, token);
+  }
+
+  // Check whether the region ALSO has a surf behavior and the player can surf
+  const hasSurf = region.behaviors.some(b => b.type == `${MODULENAME}.surf` && !b.disabled);
+  const canSurf = hasSurf && !token?.object?.surfing && !!_hasFieldMove(token, "CanUseSurf", "Surf");
+
+  if (canSurf) {
+    // Both surf and fishing are present — check whether the party has a matching rod
+    const fishingBehavior = region.behaviors.find(b => b.type == `${MODULENAME}.fishing` && !b.disabled);
+    const rodTables = fishingBehavior?.system?.rodTables ?? [];
+    const party = game.modules.get(MODULENAME).api.logic.FieldMoveParty(token);
+    const hasRod = rodTables.some(rodEntry => {
+      if (!rodEntry.rodUuid || !rodEntry.tableUuid) return false;
+      return party.some(partyActor =>
+        partyActor?.items?.some(item =>
+          foundry.utils.getProperty(item, "_stats.compendiumSource") === rodEntry.rodUuid
+        )
+      );
+    });
+
+    if (!hasRod) {
+      // Can surf but has no rod — let the surf callback handle it
+      return false;
+    }
+
+    // Both actions available — ask the player to choose
+    const { Interact } = game.modules.get(DGANAME)?.api?.scripts ?? {};
+    const FooterDialog = game.modules.get(DGANAME)?.api?.FooterDialog;
+    if (!FooterDialog) return false;
+
+    Interact();
+    const choice = await FooterDialog.wait({
+      window: { title: game.i18n.localize("POKEMON-ASSETS.Fishing.Title") },
+      content: `<div class="dialog-content"><p>${game.i18n.localize("POKEMON-ASSETS.SurfOrFish.Question")}</p></div>`,
+      buttons: [
+        { action: "surf",   label: game.i18n.localize("POKEMON-ASSETS.SurfOrFish.Surf"),   callback: () => "surf" },
+        { action: "fish",   label: game.i18n.localize("POKEMON-ASSETS.SurfOrFish.Fish"),   callback: () => "fish" },
+        { action: "cancel", label: game.i18n.localize("POKEMON-ASSETS.SurfOrFish.Cancel"), callback: () => null  },
+      ],
+      rejectClose: false,
+    });
+
+    if (choice === "surf") {
+      token._skipFishSurfConfirm = true;
+      return _checkForSurfRegion(region, entry, token);
+    }
+    if (choice === "fish") {
+      token._skipFishSurfConfirm = true;
+      return game.modules.get(MODULENAME).api.scripts.Fishing(region, entry, token);
+    }
+    return true; // canceled
+  }
+
+  return game.modules.get(MODULENAME).api.scripts.Fishing(region, entry, token);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -74,6 +141,13 @@ export function registerAfterDependencies() {
   DGA.api.tileInteractions["whirlpool"] = {
     eligible: (token) => !!_hasFieldMove(token, "CanUseWhirlpool", "Whirlpool"),
     callback: _checkForTile(`${MODULENAME}.whirlpool`, "CanUseWhirlpool", "Whirlpool", "_whirlpool"),
+  };
+
+  // Register fishing BEFORE surf so that combined surf+fishing regions are handled
+  // by the fishing callback first (which can show the Surf/Fish/Cancel dialog).
+  DGA.api.regionInteractions["fishing"] = {
+    eligible: () => true,
+    callback: _checkForFishingRegion,
   };
 
   DGA.api.regionInteractions["surf"] = {

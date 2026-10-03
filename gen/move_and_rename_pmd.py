@@ -169,6 +169,7 @@ def main():
             "Sky",
             "Origin",
             "Primal",
+            "Eternamax",
             "Speed",
             "Defense",
             "Attack",
@@ -183,6 +184,7 @@ def main():
             "Zen",
             "Crowned",
             "Crowned_Sword",
+            "Crowned_Shield",
             "Neutral",
             "Original",
             "Noice",
@@ -385,6 +387,9 @@ def main():
         processVariant("Hearthflame_Mask", "_HearthflameOn")
         processVariant("Cornerstone", "_Cornerstone")
         processVariant("Cornerstone_Mask", "_CornerstoneOn")
+
+        # 1024
+        processVariant("Terastal", "_Terastal")
 
         for fileName, original in toCopy.items():
             newFilePath = os.path.join(newDirpath, fileName)

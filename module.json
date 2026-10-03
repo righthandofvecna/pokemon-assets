@@ -9,7 +9,7 @@
       "flags": {}
     }
   ],
-  "version": "1.0.3",
+  "version": "1.0.4",
   "compatibility": {
     "minimum": "13",
     "verified": "14.363"
@@ -107,12 +107,13 @@
   ],
   "documentTypes": {
     "RegionBehavior": {
-      "surf": {}
+      "surf": {},
+      "fishing": {}
     }
   },
   "socket": true,
   "url": "https://github.com/righthandofvecna/pokemon-assets",
   "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",
-  "download": "https://github.com/righthandofvecna/pokemon-assets/releases/download/v1.0.3/module.zip",
+  "download": "https://github.com/righthandofvecna/pokemon-assets/releases/download/v1.0.4/module.zip",
   "flags": {}
 }

@@ -550,6 +550,43 @@ function IsUncatchable(actor) {
 }
 
 
+/**
+ * Award items, deduplicating items that can be deduplicated
+ * @returns 
+ */
+async function AwardItems(actor, items) {
+  if (!actor || !items || !Array.isArray(items)) return;
+  if (!(items instanceof Array)) items = [items];
+  // deduplicate by compendiumSource
+  const deduplicated = {}
+  const deduplicatedCount = {};
+  for (const item of items) {
+    const key = item._stats?.compendiumSource ?? `${item.id}`;
+    if (!deduplicatedCount[key]) {
+      deduplicated[key] = item;
+      deduplicatedCount[key] = 1;
+    } else {
+      deduplicatedCount[key]++;
+    }
+  }
+  
+  const itemUpdates = [];
+  const itemCreates = [];
+  for (const key of Object.keys(deduplicated)) {
+    const item = deduplicated[key];
+    const existingItem = actor.getStackableItem?.(item) ?? null;
+    if (existingItem) {
+      itemUpdates.push({ _id: existingItem.id, "system.quantity": (deduplicatedCount[key] * (item?.system?.quantity || 1)) + (existingItem?.system?.quantity ?? 1) });
+    } else {
+      item.system.quantity = deduplicatedCount[key];
+      itemCreates.push(item);
+    }
+  }
+  if (itemCreates.length > 0) await actor.createEmbeddedDocuments("Item", itemCreates);
+  if (itemUpdates.length > 0) await actor.updateEmbeddedDocuments("Item", itemUpdates);
+}
+
+
 function fixLockAndKey() {
   if (!game.modules.get("LocknKey")?.active) return;
   Hooks.on("ready", ()=> {
@@ -631,6 +668,7 @@ export function register() {
   module.api.scripts ??= {};
   module.api.scripts.HasMoveFunction ??= HasMoveFunction;
   module.api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
+  module.api.scripts.AwardItems ??= AwardItems;
   module.api.scripts.AssignPokemonToActor ??= AssignPokemonToActor;
 
   try {
@@ -638,4 +676,17 @@ export function register() {
   } catch (e) {
     console.error(`ptu.fixLockAndKey:`, e);
   }
+
+  // Register per-system fishing defaults.
+  // Replace the UUID values with the actual compendium UUIDs for PTU rods and tables.
+  module.api.logic.fishingDefaults = {
+    rodTables: [
+      { rodUuid: "Compendium.ptu.items.Item.quJEcLDXKQxNL8Ov", tableUuid: "Compendium.ptu.rolltables.RollTable.zjTrDSr3fyDXBxW4" },
+      { rodUuid: "Compendium.ptu.items.Item.7TrnYWHd3gnwtOYK", tableUuid: "Compendium.ptu.rolltables.RollTable.TfCBUSHPSRZilbip" },
+      { rodUuid: "Compendium.ptu.items.Item.eLoWPRzahOnCq1jB", tableUuid: "Compendium.ptu.rolltables.RollTable.TpeVUMRq2iRXInaA" },
+    ],
+    cooldownSeconds: 0,
+    noBiteChance: 50,
+    gracePeriodSeconds: 5,
+  };
 }
