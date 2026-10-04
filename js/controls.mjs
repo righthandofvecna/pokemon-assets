@@ -180,7 +180,8 @@ async function _addClimbable(via) {
         system: {
           source: `game.modules.get("${MODULENAME}")?.api?.scripts?.TriggerClimb?.("${via}", { x: ${dest.x}, y: ${dest.y} }, ...arguments);`
         },
-      }]
+      }],
+      visibility: CONST.REGION_VISIBILITY.LAYER,
     },
     {
       name: `${via} - Top`,
@@ -200,7 +201,8 @@ async function _addClimbable(via) {
         system: {
           source: `game.modules.get("${MODULENAME}")?.api?.scripts?.TriggerClimb?.("${via}", { x: ${src.x}, y: ${src.y} }, ...arguments);`
         },
-      }]
+      }],
+      visibility: CONST.REGION_VISIBILITY.LAYER,
     }
   ]);
 }
