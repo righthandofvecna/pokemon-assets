@@ -351,6 +351,8 @@ function ExtendTokenImageRuleElement() {
       super.afterPrepareData(...args);
       if (!this.test()) return;
 
+      if (!this.value) return;
+
       if (this.spritesheet === true) {
         this.actor.synthetics.tokenOverrides.flags ??= {};
         this.actor.synthetics.tokenOverrides.flags[DATNAME] ??= {};
@@ -364,6 +366,12 @@ function ExtendTokenImageRuleElement() {
         if (this.separateidle !== undefined) {
           this.actor.synthetics.tokenOverrides.flags[DATNAME].separateidle = this.separateidle;
         }
+        return;
+      }
+
+      // if we're updating the texture to something defined in pokemon-assets, do that
+      if (PokemonSheets.hasSheetSettings(this.value)) {
+        this.actor.synthetics.tokenOverrides = foundry.utils.mergeObject(this.actor.synthetics.tokenOverrides, _getTokenChangesForSpritesheet(this.value));
         return;
       }
 

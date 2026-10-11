@@ -1344,7 +1344,7 @@ async function Fishing(region, entry, token) {
     let matchedRod = null;
     let fishingActor = null;
 
-    for (const rodEntry of rodTables) {
+    for (const rodEntry of rodTables.toReversed()) {
       if (!rodEntry.rodUuid || !rodEntry.tableUuid) continue;
       for (const partyActor of party) {
         const hasRod = partyActor?.items?.some(item =>
