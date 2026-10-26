@@ -295,6 +295,7 @@ export class AnimationSettings extends ArbitrarySettingsMenu {
 		"ownedPokemonCatchable",
 		"showShinyIndicator",
 		"showUncatchableIndicator",
+		"showAlphaIndicator"
 	]
 
 	static DEFAULT_OPTIONS = foundry.utils.mergeObject(
@@ -374,6 +375,16 @@ export class AnimationSettings extends ArbitrarySettingsMenu {
 			requiresReload: false,
 			config: false,
 			hint: "Show an uncatchable indicator on Pokemon tokens that cannot currently be caught (e.g. boss Pokemon with a second health bar remaining, or Pokemon with an ActiveEffect named 'Uncatchable').",
+		});
+
+		game.settings.register(MODULENAME, "showAlphaIndicator", {
+			name: "Show Alpha Indicator",
+			default: true,
+			type: Boolean,
+			scope: "world",
+			requiresReload: false,
+			config: false,
+			hint: "Show an alpha indicator on Pokemon tokens that are Alpha Pokemon.",
 		});
 
 		game.settings.register(MODULENAME, "ownedPokemonCatchable", {

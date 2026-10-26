@@ -632,18 +632,21 @@ export function register() {
 
   module.api.logic ??= {};
   module.api.logic.HealParty ??= async (actors) => {
-    const actorUpdates = [];
-    for (const actor of actors) {
-      if (!actor) continue;
-      await actor.deleteEmbeddedDocuments("Item", actor.items.filter(i=>i.type === "condition" && !i.isGranted).map(i => i.id));
-      actorUpdates.push({
-        "_id": actor.id,
-        "system.health.value": actor.system.health.total,
-        "system.health.injuries": Math.max(0, actor.system.health.injuries - 3)
-      });
-    }
-    if (actorUpdates.length > 0) {
-      await Actor.updateDocuments(actorUpdates);
+    if (game.ptu?.macros?.applyRest) game.ptu.macros.applyRest(8, true, actors);
+    else {
+      const actorUpdates = [];
+      for (const actor of actors) {
+        if (!actor) continue;
+        await actor.deleteEmbeddedDocuments("Item", actor.items.filter(i=>i.type === "condition" && !i.isGranted).map(i => i.id));
+        actorUpdates.push({
+          "_id": actor.id,
+          "system.health.value": actor.system.health.total,
+          "system.health.injuries": Math.max(0, actor.system.health.injuries - 3)
+        });
+      }
+      if (actorUpdates.length > 0) {
+        await Actor.updateDocuments(actorUpdates);
+      }
     }
   };
   module.api.logic.GetSummonSource ??= async (token) => {
@@ -670,20 +673,9 @@ export function register() {
   module.api.logic.ActorCry ??= ActorCry;
   module.api.logic.ActorShiny ??= (actor)=>actor?.system?.shiny;
   module.api.logic.IsUncatchable ??= IsUncatchable;
+  module.api.logic.IsAlpha ??= (actor)=>actor?.items?.contents?.some(i=>["alpha-pokemon"].includes(i.system.slug)) ?? false;
 
   module.api.logic.isPokemon ??= (token)=>token?.actor?.type === "pokemon";
-
-  module.api.scripts ??= {};
-  module.api.scripts.HasMoveFunction ??= HasMoveFunction;
-  module.api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
-  module.api.scripts.AwardItems ??= AwardItems;
-  module.api.scripts.AssignPokemonToActor ??= AssignPokemonToActor;
-
-  try {
-    fixLockAndKey();
-  } catch (e) {
-    console.error(`ptu.fixLockAndKey:`, e);
-  }
 
   // Register per-system fishing defaults.
   // Replace the UUID values with the actual compendium UUIDs for PTU rods and tables.
@@ -697,4 +689,18 @@ export function register() {
     noBiteChance: 50,
     gracePeriodSeconds: 5,
   };
+
+  module.api.logic.CanTokenMoveThrough = (movingToken, blockingToken)=>movingToken?.actor?.flags?.ptu?.rollOptions?.movement?.["self:unconstrained-movement"] ?? false;
+
+  module.api.scripts ??= {};
+  module.api.scripts.HasMoveFunction ??= HasMoveFunction;
+  module.api.scripts.RegenerateActorTokenImg ??= RegenerateActorTokenImg;
+  module.api.scripts.AwardItems ??= AwardItems;
+  module.api.scripts.AssignPokemonToActor ??= AssignPokemonToActor;
+
+  try {
+    fixLockAndKey();
+  } catch (e) {
+    console.error(`ptu.fixLockAndKey:`, e);
+  }
 }

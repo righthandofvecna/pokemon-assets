@@ -12,7 +12,7 @@ async function PokemonCenter(nurse, doHeal) {
   const music = game.scenes.active?.playlistSound?.sound;
   let volume = music?.volume ?? 1;
 
-  const { Interact, FooterDialogPrompt } = game.modules.get(DGANAME)?.api?.scripts ?? {};
+  const { Interact, FooterDialogPrompt, FooterDialogConfirm } = game.modules.get(DGANAME)?.api?.scripts ?? {};
   const { VolumeSettings } = game.modules.get(DGANAME).api ?? {};
 
   const talk = async function(text, ms=1500) {
@@ -25,7 +25,7 @@ async function PokemonCenter(nurse, doHeal) {
   await talk("POKEMON-ASSETS.PokemonCenter.Welcome2");
 
   Interact();
-  if (await new Promise((resolve)=>FooterDialogPrompt({
+  if (await new Promise((resolve)=>FooterDialogConfirm({
     title: "Pokemon Center Nurse",
     content: game.i18n.localize("POKEMON-ASSETS.PokemonCenter.Question"),
     yes: ()=>resolve(false),

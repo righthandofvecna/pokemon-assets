@@ -81,6 +81,17 @@ async function getIndicators(wrapper, tokenDoc) {
       allIndicators.push(icon);
     }
   }
+
+  // Alpha Indicator
+  if (game.settings.get(MODULENAME, "showAlphaIndicator")) {
+    const logic = game?.modules?.get(MODULENAME)?.api?.logic;
+    const isAlpha = logic?.IsAlpha?.(tokenDoc?.actor);
+    if (isAlpha) {
+      const tex = await foundry.canvas.loadTexture(`modules/${MODULENAME}/img/ui/alpha-indicator.png`, {fallback: "icons/svg/explosion.svg"});
+      const icon = new PIXI.Sprite(tex);
+      allIndicators.push(icon);
+    }
+  }
   return allIndicators;
 }
 
