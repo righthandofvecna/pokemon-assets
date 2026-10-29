@@ -1,0 +1,23 @@
+{
+  "type": "Scene",
+  "folder": "I59CQCwELj33Jji1",
+  "name": "Grassy Valley",
+  "color": "#09b92c",
+  "sorting": "a",
+  "_id": "uFxjmbD48v1egJkT",
+  "description": "",
+  "sort": 0,
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.367",
+    "systemId": "ptu",
+    "systemVersion": "4.4.3.57",
+    "createdTime": 1793243082211,
+    "modifiedTime": 1793243082211,
+    "lastModifiedBy": "GFCVv4EMgQDa5fGR",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!folders!uFxjmbD48v1egJkT"
+}

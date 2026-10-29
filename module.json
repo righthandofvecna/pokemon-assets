@@ -111,6 +111,14 @@
       "fishing": {}
     }
   },
+  "packs": [
+    {
+      "label": "Pokemon Assets Scenes",
+      "type": "Scene",
+      "name": "scenes",
+      "path": "packs/scenes"
+    }
+  ],
   "socket": true,
   "url": "https://github.com/righthandofvecna/pokemon-assets",
   "manifest": "https://github.com/righthandofvecna/pokemon-assets/releases/latest/download/module.json",

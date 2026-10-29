@@ -1,4 +1,6 @@
 
+.PHONY: ver release nextver unpack
+
 ver:
 	echo "export const VERSION = \""$$(jq -r ".version" module.json)"\";" > js/version.mjs
 
@@ -17,3 +19,6 @@ nextver:
 	echo "export const VERSION = \""$$(jq -r ".version" module.json)"\";" > js/version.mjs
   # create new branch with version name
 	git checkout -b v$$(jq -r ".version" module.json)-branch
+
+unpack:
+	npx fvtt package unpack --type Module --id pokemon-assets --out "packs/_source/scenes" --in packs -n scenes
