@@ -258,7 +258,7 @@ async function PokemonCenter(regionConfig) {
     type: "executeScript",
     name: "Pokemon Center",
     flags: {
-      [MODULENAME]: {
+      [DGANAME]: {
         "hasTokenInteract": true,
       },
     },

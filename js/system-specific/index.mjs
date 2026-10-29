@@ -1,4 +1,4 @@
-import { MODULENAME, DGANAME } from "../utils.mjs";
+import { MODULENAME, DGANAME, DATNAME } from "../utils.mjs";
 
 
 import * as ptr2e from "./ptr2e.mjs";
@@ -7,27 +7,31 @@ import * as pokerole from "./pokerole.mjs";
 import * as dnd5e from "./dnd5e.mjs";
 import * as generic from "./generic.mjs";
 
-export function register() {
+function gameSystem() {
   switch (game.system.id) {
     case "ptr2e":
-      ptr2e.register();
-      break;
+      return ptr2e;
     case "ptu":
-      ptu.register();
-      break;
+      return ptu;
     case "pokerole":
-      pokerole.register();
-      break;
+      return pokerole;
     case "dnd5e":
-      dnd5e.register();
-      break;
+      return dnd5e;
+    default:
+      return null;
   }
+}
+
+export function register() {
+  gameSystem()?.register?.();
   generic.register();
 }
 
 export function registerAfterDependencies() {
   const MODULE = game.modules.get(MODULENAME);
   const DGA = game.modules.get(DGANAME);
+  const DAT = game.modules.get(DATNAME);
 
   DGA.api.scripts.AwardItems = MODULE.api.scripts.AwardItems;
+  DAT.api.CanTokenMoveThrough = MODULE.api.logic.CanTokenMoveThrough;
 }

@@ -70,7 +70,11 @@ export function register() {
   api.logic.ActorCaught ??= null;
   api.logic.ActorShiny ??= (actor)=>false;
   api.logic.IsUncatchable ??= (actor)=>actor?.effects?.contents?.some(e=>e.name === "Uncatchable") ?? false;
+  api.logic.IsAlpha ??= (actor)=>actor?.effects?.contents?.some(i=>i.name === "Alpha") ?? false;
   api.logic.isPokemon ??= (token)=>token?.texture?.src?.includes("/pmd-overworld/") ?? false;
+
+  api.logic.fishingDefaults ??= {}
+  api.logic.CanTokenMoveThrough ??= (movingToken, blockingToken)=>false;
   
   api.scripts ??= {};
   api.scripts.HasMoveFunction ??= (slug)=>function (actor){ return true };
@@ -87,6 +91,4 @@ export function register() {
 
   api.scripts.GetUuidFromTableResult ??= (result)=>result.documentUuid;
   api.scripts.GetTokenChangesForSpritesheet ??= _getTokenChangesForSpritesheet;
-
-  api.logic.fishingDefaults ??= {}
 }

@@ -21,7 +21,13 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install esbuild
+        run: |
+          npm install esbuild
+          npm install @foundryvtt/foundryvtt-cli
+      
+      - name: Build packs
+        run: |
+          npx fvtt package pack --type Module --id pokemon-assets --in packs/_source/scenes --out packs -n scenes
 
       - name: Get version from module.json
         id: version
@@ -31,7 +37,7 @@ jobs:
         run: |
           echo "export const VERSION = \"$(jq -r '.version' module.json)\";" > js/version.mjs
           npx esbuild js/main.mjs --bundle --minify --outfile=pokemon-assets.js
-          zip module.zip -r audio fonts img lang templates css pokemon-assets.js module.json
+          zip module.zip -r audio fonts img lang templates css packs/scenes pokemon-assets.js module.json
 
       - name: Create Version Release
         id: create_version_release

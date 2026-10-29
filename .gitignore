@@ -5,5 +5,7 @@ pokemon-assets.lock
 pokemon-assets.js
 module.zip
 pokemon_name_to_info.json
+node_modules/
+packs/scenes
 *.bak
 .directory

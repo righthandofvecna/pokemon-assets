@@ -11,6 +11,7 @@ import * as dialog from "./dialog.mjs";
 import * as placeables from "./placeables/index.mjs";
 import * as tileConfig from "./tile-config.mjs";
 import * as scripts from "./scripts.mjs";
+import * as sidebar from "./sidebar.mjs";
 import * as pokemonSheets from "./pokemon-sheets.mjs";
 import * as interact from "./interact.mjs";
 import * as canvas from "./canvas.mjs";
@@ -32,6 +33,7 @@ const SUBMODULES = [
   ["placeables", placeables],
   ["tileConfig", tileConfig],
   ["scripts", scripts],
+  ["sidebar", sidebar],
   ["pokemonSheets", pokemonSheets],
   ["interact", interact],
   ["canvas", canvas],
