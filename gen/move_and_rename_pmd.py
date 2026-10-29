@@ -233,6 +233,12 @@ def main():
         # wormadam formes
         for t in ("Trash", "Sand", ):
             processVariant(t, f"_{t}")
+
+        # oricorio formes
+        for t in ("Baile", "Sensu"):
+            processVariant(t, f"_{t}")
+        processVariant("Pa_U", "_Pau")
+        processVariant("Pom-Pom", "_PomPom")
         
         # directional shellos formes
         processVariant("East", f"_East")

@@ -6106,14 +6106,26 @@ export default
       "07XX/074X/0741.png": {
         "animationframes": 4
       },
+      "07XX/074X/0741_Pau.png": {
+        "animationframes": 4
+      },
       "07XX/074X/0741_PomPom.png": {
         "animationframes": 12
+      },
+      "07XX/074X/0741_Sensu.png": {
+        "animationframes": 4
       },
       "07XX/074X/0741s.png": {
         "animationframes": 4
       },
+      "07XX/074X/0741s_Pau.png": {
+        "animationframes": 4
+      },
       "07XX/074X/0741s_PomPom.png": {
         "animationframes": 12
+      },
+      "07XX/074X/0741s_Sensu.png": {
+        "animationframes": 4
       },
       "07XX/074X/0742.png": {
         "animationframes": 6
@@ -6841,6 +6853,9 @@ export default
       "08XX/083X/0836s.png": {
         "animationframes": 4
       },
+      "08XX/083X/0837.png": {
+        "animationframes": 8
+      },
       "08XX/084X/0840.png": {
         "animationframes": 5
       },
@@ -6887,6 +6902,9 @@ export default
         "animationframes": 6
       },
       "08XX/084X/0847.png": {
+        "animationframes": 6
+      },
+      "08XX/084X/0847s.png": {
         "animationframes": 6
       },
       "08XX/084X/0848.png": {
