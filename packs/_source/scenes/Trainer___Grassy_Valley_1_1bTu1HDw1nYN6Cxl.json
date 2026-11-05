@@ -2,7 +2,7 @@
   "name": "Trainer - Grassy Valley 1",
   "_id": "1bTu1HDw1nYN6Cxl",
   "navigation": false,
-  "thumb": null,
+  "thumb": "worlds/ptr1e-test/assets/scenes/thumb-dBqSKewdhjCEZ3EKuVJGtg.webp",
   "width": 1920,
   "height": 1280,
   "padding": 0.25,
@@ -110,6 +110,17 @@
       },
       "sort": 0,
       "flags": {},
+      "_stats": {
+        "coreVersion": "14.370",
+        "systemId": "ptu",
+        "systemVersion": "4.4.3.57",
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
       "_key": "!scenes.levels!1bTu1HDw1nYN6Cxl.defaultLevel0000"
     }
   ],
@@ -2126,7 +2137,7 @@
     }
   },
   "_stats": {
-    "coreVersion": "14.367",
+    "coreVersion": "14.370",
     "systemId": "ptu",
     "systemVersion": "4.4.3.57",
     "createdTime": 1793243085161,
@@ -2140,6 +2151,6 @@
   "active": false,
   "navOrder": 0,
   "sort": 0,
-  "templates": [],
-  "_key": "!scenes!1bTu1HDw1nYN6Cxl"
+  "_key": "!scenes!1bTu1HDw1nYN6Cxl",
+  "templates": []
 }

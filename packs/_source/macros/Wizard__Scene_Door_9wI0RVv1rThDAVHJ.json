@@ -1,0 +1,28 @@
+{
+  "folder": "GAzKA3u0tPJp2QxO",
+  "name": "Wizard: Scene Door",
+  "type": "script",
+  "_id": "9wI0RVv1rThDAVHJ",
+  "author": "GFCVv4EMgQDa5fGR",
+  "img": "icons/svg/door-closed-outline.svg",
+  "scope": "global",
+  "command": "const currentScene = game.scenes.active;\nconst otherScenes = game.scenes.filter(s=>s.uuid !== currentScene?.uuid).map(s => ({ value: s.id, label: s.name, group: s.folder?.name ?? \"\" }));\nconst contentTemplate = Handlebars.compile(`\n          <div class=\"form-group\">\n            <label for=\"scene\">Scene</label>\n            <select name=\"scene\">\n              {{selectOptions otherScenes localize=true}}\n            </select>\n          </div>\n`);\n\nconst doorSource = await game.modules.get(\"dylans-general-automations\").api.scripts.UserPaintArea();\n\nif (!doorSource) return;\n\nconst sceneId = await new Promise(async (resolve)=>{\n  foundry.applications.api.DialogV2.wait({\n    window: { title: 'Select Scene' },\n    content: contentTemplate({otherScenes}),\n    buttons: [{\n      action: \"ok\",\n      label: \"OK\",\n      default: true,\n      callback: (event, button, dialog) => resolve(button.form.elements.scene?.value ?? null),\n    }],\n    close: () => resolve(null),\n  }).catch(()=>{\n    resolve(null);\n  });\n});\n\nif (!sceneId) return;\nconst otherScene = game.scenes.get(sceneId);\nif (!otherScene) return;\n\nawait otherScene.view();\nconst doorDestination = await game.modules.get(\"dylans-general-automations\").api.scripts.UserPaintArea();\nif (!doorDestination) return;\n\n// create the document\nconst doorData = {\n    \"elevation\": {\n        \"bottom\": 0,\n        \"top\": 20,\n        \"topInclusive\": false\n    },\n    \"levels\": [\n        \"defaultLevel0000\"\n    ],\n    \"restriction\": {\n        \"enabled\": false,\n        \"type\": \"move\",\n        \"priority\": 0\n    },\n    \"attachment\": {\n        \"token\": null\n    },\n    \"visibility\": 2,\n    \"highlightMode\": \"shapes\",\n    \"displayMeasurements\": false,\n    \"hidden\": false,\n    \"name\": `Door to ${otherScene.name}`,\n    \"shapes\": [\n        {\n            \"type\": \"rectangle\",\n            \"x\": doorSource.x,\n            \"y\": doorSource.y,\n            \"width\": currentScene.grid.size,\n            \"height\": currentScene.grid.size,\n            \"hole\": false,\n            \"anchorX\": 0,\n            \"anchorY\": 0,\n            \"rotation\": 0,\n            \"gridBased\": false\n        }\n    ],\n    \"behaviors\": [{\n        \"name\": \"Door\",\n        \"type\": \"dylans-general-automations.door\",\n        \"system\": {\n            \"destinationSceneId\": otherScene.id,\n            \"destinationPosition\": {\n                \"x\": doorDestination.x,\n                \"y\": doorDestination.y\n            }\n        },\n        \"disabled\": false,\n        \"flags\": {},\n    }\n],\n    \"locked\": false,\n};\nawait currentScene.createEmbeddedDocuments(\"Region\", [doorData]);\n\nawait currentScene.view();",
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GFCVv4EMgQDa5fGR": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.370",
+    "systemId": "ptu",
+    "systemVersion": "4.4.3.57",
+    "createdTime": 1793901160976,
+    "modifiedTime": 1793906074984,
+    "lastModifiedBy": "GFCVv4EMgQDa5fGR",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!macros!9wI0RVv1rThDAVHJ"
+}

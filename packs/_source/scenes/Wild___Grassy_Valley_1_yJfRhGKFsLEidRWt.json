@@ -2,7 +2,7 @@
   "name": "Wild - Grassy Valley 1",
   "_id": "yJfRhGKFsLEidRWt",
   "navigation": false,
-  "thumb": null,
+  "thumb": "worlds/ptr1e-test/assets/scenes/thumb-9d42sO9P7L-MfoGESqTO_A.webp",
   "width": 1920,
   "height": 1280,
   "padding": 0.25,
@@ -110,6 +110,17 @@
       },
       "sort": 0,
       "flags": {},
+      "_stats": {
+        "coreVersion": "14.370",
+        "systemId": "ptu",
+        "systemVersion": "4.4.3.57",
+        "createdTime": null,
+        "modifiedTime": null,
+        "lastModifiedBy": null,
+        "compendiumSource": null,
+        "duplicateSource": null,
+        "exportSource": null
+      },
       "_key": "!scenes.levels!yJfRhGKFsLEidRWt.defaultLevel0000"
     }
   ],
@@ -4688,7 +4699,7 @@
     }
   },
   "_stats": {
-    "coreVersion": "14.367",
+    "coreVersion": "14.370",
     "systemId": "ptu",
     "systemVersion": "4.4.3.57",
     "createdTime": 1793243111125,
@@ -4702,6 +4713,6 @@
   "active": false,
   "navOrder": 0,
   "sort": 0,
-  "templates": [],
-  "_key": "!scenes!yJfRhGKFsLEidRWt"
+  "_key": "!scenes!yJfRhGKFsLEidRWt",
+  "templates": []
 }

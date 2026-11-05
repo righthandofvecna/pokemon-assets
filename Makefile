@@ -6,7 +6,7 @@ ver:
 
 release: ver
 	npx esbuild js/main.mjs --bundle --minify --outfile=pokemon-assets.js
-	zip module.zip -r audio fonts img lang templates css/main.css pokemon-assets.js module.json
+	zip module.zip -r audio fonts img lang templates css/main.css packs/scenes packs/macros pokemon-assets.js module.json
 	rm pokemon-assets.js
 	echo "import * as main from './js/main.mjs';" > pokemon-assets.js
 
@@ -22,3 +22,4 @@ nextver:
 
 unpack:
 	npx fvtt package unpack --type Module --id pokemon-assets --out "packs/_source/scenes" --in packs -n scenes
+	npx fvtt package unpack --type Module --id pokemon-assets --out "packs/_source/macros" --in packs -n macros

@@ -117,6 +117,12 @@
       "type": "Scene",
       "name": "scenes",
       "path": "packs/scenes"
+    },
+    {
+      "label": "Pokemon Assets Macros",
+      "type": "Macro",
+      "name": "macros",
+      "path": "packs/macros"
     }
   ],
   "socket": true,

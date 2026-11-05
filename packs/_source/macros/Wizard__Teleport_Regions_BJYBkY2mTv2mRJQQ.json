@@ -1,0 +1,28 @@
+{
+  "folder": "GAzKA3u0tPJp2QxO",
+  "name": "Wizard: Teleport Regions",
+  "type": "script",
+  "_id": "BJYBkY2mTv2mRJQQ",
+  "author": "GFCVv4EMgQDa5fGR",
+  "img": "icons/svg/portal.svg",
+  "scope": "global",
+  "command": "const currentScene = game.scenes.active;\n\nconst doorSource = await game.modules.get(\"dylans-general-automations\").api.scripts.UserPaintArea();\nif (!doorSource) return;\n\nconst doorDestination = await game.modules.get(\"dylans-general-automations\").api.scripts.UserPaintArea();\nif (!doorDestination) return;\n\n// find a unique teleport name\nconst existingNames = new Set(currentScene.regions.contents.map(r => r.name));\nlet name = \"Teleport Region\";\nfor (let i = 1; ; i++) {\n  if (!existingNames.has(`Teleport Region ${i}`)) {\n    name = `Teleport Region ${i}`;\n    break;\n  }\n}\n\n// create the document\nconst tpData = {\n  \"elevation\": {\n    \"bottom\": 0,\n    \"top\": 20,\n    \"topInclusive\": false\n  },\n  \"levels\": [\n    \"defaultLevel0000\"\n  ],\n  \"restriction\": {\n    \"enabled\": false,\n    \"type\": \"move\",\n    \"priority\": 0\n  },\n  \"attachment\": {\n    \"token\": null\n  },\n  \"visibility\": 2,\n  \"highlightMode\": \"shapes\",\n  \"displayMeasurements\": false,\n  \"hidden\": false,\n  \"name\": name,\n  \"shapes\": [\n    {\n      \"type\": \"rectangle\",\n      \"x\": doorSource.x,\n      \"y\": doorSource.y,\n      \"width\": currentScene.grid.size,\n      \"height\": currentScene.grid.size,\n      \"hole\": false,\n      \"anchorX\": 0,\n      \"anchorY\": 0,\n      \"rotation\": 0,\n      \"gridBased\": false\n    }\n  ],\n  \"behaviors\": [],\n  \"locked\": false,\n};\nconst tpAData = foundry.utils.deepClone(tpData);\nconst tpBData = foundry.utils.deepClone(tpData);\ntpAData.shapes[0].x = doorSource.x;\ntpAData.shapes[0].y = doorSource.y;\ntpBData.shapes[0].x = doorDestination.x;\ntpBData.shapes[0].y = doorDestination.y;\n\nconst [a,b] = await currentScene.createEmbeddedDocuments(\"Region\", [tpAData, tpBData]);\n\nconst tpBehavior = {\n  \"name\": \"Teleport Token\",\n  \"type\": \"teleportToken\",\n  \"system\": {\n    \"destinations\": [],\n    \"placement\": \"random\",\n    \"snap\": true,\n    \"choice\": false,\n    \"revealed\": false,\n    \"dialog\": {\n      \"revealed\": null,\n      \"unrevealed\": null\n    },\n    \"transition\": {\n      \"type\": null,\n      \"duration\": 1500\n    }\n  },\n  \"disabled\": false,\n  \"flags\": {\n    \"dylans-general-automations\": {\n      \"hasTokenInteract\": false\n    }\n  }\n};\nconst tpBehaviorA = foundry.utils.deepClone(tpBehavior);\ntpBehaviorA.system.destinations.push(b.id);\nconst tpBehaviorB = foundry.utils.deepClone(tpBehavior);\ntpBehaviorB.system.destinations.push(a.id);\n\nawait a.createEmbeddedDocuments(\"Behavior\", [tpBehaviorA]);\nawait b.createEmbeddedDocuments(\"Behavior\", [tpBehaviorB]);",
+  "sort": 0,
+  "ownership": {
+    "default": 0,
+    "GFCVv4EMgQDa5fGR": 3
+  },
+  "flags": {},
+  "_stats": {
+    "coreVersion": "14.370",
+    "systemId": "ptu",
+    "systemVersion": "4.4.3.57",
+    "createdTime": 1793906443827,
+    "modifiedTime": 1793907076462,
+    "lastModifiedBy": "GFCVv4EMgQDa5fGR",
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null
+  },
+  "_key": "!macros!BJYBkY2mTv2mRJQQ"
+}

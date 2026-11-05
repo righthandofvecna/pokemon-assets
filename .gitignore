@@ -7,5 +7,6 @@ module.zip
 pokemon_name_to_info.json
 node_modules/
 packs/scenes
+packs/macros
 *.bak
 .directory
