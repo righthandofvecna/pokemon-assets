@@ -6,14 +6,28 @@ import * as tokenizer from "./tokenizer.mjs";
 import * as ptr1eItemPiles from "./ptr1e-item-piles.mjs";
 import * as ptr2eItemPiles from "./ptr2e-item-piles.mjs";
 import * as monksSoundEnhancements from "./monks-sound-enhancements.mjs";
+import * as dylansModules from "./dylans-modules.mjs";
+
+const submodules = [
+  barBrawl,
+  isometricPerspective,
+  primePerformance,
+  sequencer,
+  tokenizer,
+  ptr1eItemPiles,
+  ptr2eItemPiles,
+  monksSoundEnhancements,
+  dylansModules,
+];
 
 export function register() {
-  barBrawl.register();
-  primePerformance.register();
-  isometricPerspective.register();
-  sequencer.register();
-  tokenizer.register();
-  ptr1eItemPiles.register();
-  ptr2eItemPiles.register();
-  monksSoundEnhancements.register();
+  for (const submodule of submodules) {
+    submodule?.register?.();
+  }
+}
+
+export function registerAfterDependencies() {
+  for (const submodule of submodules) {
+    submodule?.registerAfterDependencies?.();
+  }
 }
