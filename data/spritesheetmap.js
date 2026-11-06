@@ -7324,6 +7324,9 @@ export default
       "08XX/087X/0877s_Hangry.png": {
         "animationframes": 7
       },
+      "08XX/087X/0878.png": {
+        "animationframes": 4
+      },
       "08XX/087X/0879.png": {
         "animationframes": 4
       },
@@ -7802,6 +7805,9 @@ export default
       },
       "09XX/096X/0961.png": {
         "animationframes": 2
+      },
+      "09XX/096X/0962.png": {
+        "animationframes": 4
       },
       "09XX/096X/0963.png": {
         "animationframes": 9

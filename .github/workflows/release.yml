@@ -37,7 +37,7 @@ jobs:
         run: |
           echo "export const VERSION = \"$(jq -r '.version' module.json)\";" > js/version.mjs
           npx esbuild js/main.mjs --bundle --minify --outfile=pokemon-assets.js
-          zip module.zip -r audio fonts img lang templates css packs/scenes pokemon-assets.js module.json
+          zip module.zip -r audio fonts img lang templates css packs/scenes packs/macros pokemon-assets.js module.json
 
       - name: Create Version Release
         id: create_version_release
