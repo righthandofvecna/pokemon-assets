@@ -28,6 +28,7 @@ jobs:
       - name: Build packs
         run: |
           npx fvtt package pack --type Module --id pokemon-assets --in packs/_source/scenes --out packs -n scenes
+          npx fvtt package pack --type Module --id pokemon-assets --in packs/_source/macros --out packs -n macros
 
       - name: Get version from module.json
         id: version
